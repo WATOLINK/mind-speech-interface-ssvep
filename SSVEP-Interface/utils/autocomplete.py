@@ -10,7 +10,7 @@ def prompt_conditions(prompt):
 
 
 def process_corpus():
-    """ Text parameter should be string to extract and generate prompts for """
+    ''' Text parameter should be string to extract and generate prompts for '''
     curated_prompts = []
 
     if (not os.path.isfile(CORPUS_PATH)):
@@ -34,16 +34,3 @@ def process_corpus():
             curated_prompts = f.read().splitlines()
 
     return curated_prompts
-
-    # prompts_count = Counter(curated_prompts)
-
-    # for item in prompts_count.most_common():
-    #     data.append([item[0], item[1]])
-    #     # data['ngram'] = item[0]
-    #     # data['freq'] = item[1]
-
-    # return pd.DataFrame(data, columns=['ngram', 'freq'])
-
-
-# prompts = process_corpus()
-# print(prompts)
