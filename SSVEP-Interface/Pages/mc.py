@@ -1,27 +1,32 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
 
 class MultipleChoiceWidget(QWidget):
 
     def __init__(self, parent):
         super().__init__(parent)
-        layout = QVBoxLayout() # Creates a verticle template that formats whatever widgets are added to it
+        layout = self._createLayout(parent)
+        self.setLayout(layout)
+
+    # Method creates the layout of the page, called in the init function to maintain clean and readable code
+    # If you are changing the functionalities of the page, you will most likely want to alter this method
+    def _createLayout(self, parent):
+        layout = QHBoxLayout() # Creates a verticle template that formats whatever widgets are added to it
         layout.setSpacing(0)
         layout.setContentsMargins(100, 100, 100, 100)    
-
         centerText = self._createCenterText()
-        button = self._createBackButton()
-
-        button.clicked.connect(parent.back)
-
-        layout.addWidget(button)
+        button1 = self._createBackButton(text="<")
+        button2 = self._createBackButton(text=">")
+        button1.clicked.connect(parent.showQA)
+        button2.clicked.connect(parent.showTF)
+        layout.addWidget(button1)
         layout.addWidget(centerText)
+        layout.addWidget(button2)
+        layout.setAlignment(Qt.AlignVCenter)
+        return layout
 
-        layout.setAlignment(Qt.AlignTop)
-        
-        self.setLayout(layout)
 
     def _createCenterText(self):
         centertext = QLabel("Multiple Choice Page!")
@@ -30,8 +35,9 @@ class MultipleChoiceWidget(QWidget):
         centertext.setAlignment(Qt.AlignCenter)
         return centertext
     
-    def _createBackButton(self):
-        button = QPushButton("Back")
-        button.setMinimumHeight(20)
-        button.setMaximumWidth(50)
+    
+    def _createBackButton(self, text):
+        button = QPushButton(text)
+        button.setMinimumHeight(150)
+        button.setMaximumWidth(20)
         return button
