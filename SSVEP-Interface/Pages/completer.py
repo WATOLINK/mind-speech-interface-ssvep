@@ -26,18 +26,14 @@ class AutoCompleter(QCompleter, metaclass=Singleton):
         self.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.setMaxVisibleItems(1)
         self.highlighted.connect(self.setHighlighted)
+        self.suggestion = ""
 
     def setHighlighted(self, text):
         # print("autcomplete suggestion: ", text)
         self.suggestion = text
 
-    def getSelected(self, complete=False):
-        if (not complete):
-            return self.suggestion
+    def getSuggestion(self):
+        return self.suggestion
 
-        suggested = self.suggestion
-        self.resetSelected()
-        return suggested
-
-    def resetSelected(self):
+    def reset(self):
         self.suggestion = ""
