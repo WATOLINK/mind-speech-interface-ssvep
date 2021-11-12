@@ -17,7 +17,6 @@ class Window(QMainWindow):
     def __init__(self, parent=None):
         """Initializer."""
         super().__init__(parent)
-
         # Make sure to pass in 'self' to the child widget for it to access parent methods
         self.multiplePage = MultipleChoiceWidget(self)
         self.questionPage = QuestionAndAnswerWidget(self)
@@ -38,6 +37,7 @@ class Window(QMainWindow):
 
     # To navigate to different pages, we set the current widget of the stack
     # These function below are called to nagivate between different pages
+    def showQA(self):
         self.stacked.setCurrentWidget(self.questionPage)
 
     def showMC(self):
