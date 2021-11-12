@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QMainWindow
 from Pages.qa import QuestionAndAnswerWidget
 from Pages.mc import MultipleChoiceWidget
 from Pages.absolute import TrueAndFalseWidget
+from Pages.search import SearchWidget
 
 
 class Window(QMainWindow):
@@ -21,9 +22,11 @@ class Window(QMainWindow):
         self.multiplePage = MultipleChoiceWidget(self)
         self.questionPage = QuestionAndAnswerWidget(self)
         self.trueFalsePage = TrueAndFalseWidget(self)
+        self.search_widget = SearchWidget(self)
         # We use the Stack Widget to navigate between different pages
         # If new pages need to be added, import it to this file and add it to the stack
         self.stacked = QStackedWidget()
+        self.stacked.addWidget(self.search_widget)
         self.stacked.addWidget(self.questionPage)
         self.stacked.addWidget(self.multiplePage)
         self.stacked.addWidget(self.trueFalsePage)
