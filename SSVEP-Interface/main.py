@@ -21,8 +21,8 @@ class Window(QMainWindow):
         # We use the Stack Widget to navigate between different pages
         # If new pages need to be added, import it to this file and add it to the stack
         self.stacked = QStackedWidget()
-        self.stacked.addWidget(self.multiplePage)
         self.stacked.addWidget(self.questionPage)
+        self.stacked.addWidget(self.multiplePage)
         self.stacked.addWidget(self.trueFalsePage)
         self.setWindowTitle('Main Window') # Sets name of window
         self.setCentralWidget(self.stacked) # Adds central widget where we are going to do most of our work

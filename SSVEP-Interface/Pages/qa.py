@@ -19,7 +19,7 @@ class QuestionAndAnswerWidget(QWidget):
         layout.setContentsMargins(100, 100, 100, 100)    
         centerText = self._createCenterText()
         button1 = self._createBackButton(text=">")
-        button1.clicked.connect(parent.showMC)
+        button1.clicked.connect(parent.showTF)
         layout.addWidget(centerText)
         layout.addWidget(button1)
         layout.setAlignment(Qt.AlignVCenter)

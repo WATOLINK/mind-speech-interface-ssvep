@@ -18,12 +18,9 @@ class MultipleChoiceWidget(QWidget):
         layout.setContentsMargins(100, 100, 100, 100)    
         centerText = self._createCenterText()
         button1 = self._createBackButton(text="<")
-        button2 = self._createBackButton(text=">")
-        button1.clicked.connect(parent.showQA)
-        button2.clicked.connect(parent.showTF)
+        button1.clicked.connect(parent.showTF)
         layout.addWidget(button1)
         layout.addWidget(centerText)
-        layout.addWidget(button2)
         layout.setAlignment(Qt.AlignVCenter)
         return layout
 
