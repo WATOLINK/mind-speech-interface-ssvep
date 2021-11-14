@@ -1,10 +1,10 @@
-
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
 
-class QuestionAndAnswerWidget(QWidget):
+# This page is not part of the finished application, just a place to put WIP items that does not yet have a place on other pages
+class HomeWidget(QWidget):
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -18,19 +18,16 @@ class QuestionAndAnswerWidget(QWidget):
         layout.setSpacing(0)
         layout.setContentsMargins(100, 100, 100, 100)    
         centerText = self._createCenterText()
-        button2 = self._createBackButton(text=">")
-        button2.clicked.connect(parent.showTF)
-        button1 = self._createBackButton(text="<")
-        button1.clicked.connect(parent.showHome)
-        layout.addWidget(button1)
+        button1 = self._createBackButton(text=">")
+        button1.clicked.connect(parent.showQA)
         layout.addWidget(centerText)
-        layout.addWidget(button2)
+        layout.addWidget(button1)
         layout.setAlignment(Qt.AlignVCenter)
         return layout
 
-    
+
     def _createCenterText(self):
-        centertext = QLabel("Question And Answer Page!")
+        centertext = QLabel("Home Page, Add Search Widget here")
         centertext.setMaximumHeight(100)
         centertext.setFont(QFont('Arial', 32))
         centertext.setAlignment(Qt.AlignCenter)

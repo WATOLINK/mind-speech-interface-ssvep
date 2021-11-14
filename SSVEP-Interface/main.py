@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QMainWindow
 from Pages.qa import QuestionAndAnswerWidget
 from Pages.mc import MultipleChoiceWidget
 from Pages.absolute import TrueAndFalseWidget
+from Pages.home import HomeWidget
 
 class Window(QMainWindow):
     """Main Window."""
@@ -18,9 +19,11 @@ class Window(QMainWindow):
         self.multiplePage = MultipleChoiceWidget(self)
         self.questionPage = QuestionAndAnswerWidget(self)
         self.trueFalsePage = TrueAndFalseWidget(self)
+        self.home = HomeWidget(self)
         # We use the Stack Widget to navigate between different pages
         # If new pages need to be added, import it to this file and add it to the stack
         self.stacked = QStackedWidget()
+        self.stacked.addWidget(self.home)
         self.stacked.addWidget(self.questionPage)
         self.stacked.addWidget(self.multiplePage)
         self.stacked.addWidget(self.trueFalsePage)
@@ -40,6 +43,10 @@ class Window(QMainWindow):
 
     def showTF(self):
         self.stacked.setCurrentWidget(self.trueFalsePage)
+
+    
+    def showHome(self):
+        self.stacked.setCurrentWidget(self.home)
 
     # Functions below may be useful in the future
     # def _createMenu(self):
