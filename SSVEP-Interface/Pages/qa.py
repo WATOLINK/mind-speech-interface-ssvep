@@ -18,13 +18,10 @@ class QuestionAndAnswerWidget(QWidget):
         layout.setSpacing(0)
         layout.setContentsMargins(100, 100, 100, 100)    
         centerText = self._createCenterText()
-        button2 = self._createBackButton(text=">")
-        button2.clicked.connect(parent.showTF)
-        button1 = self._createBackButton(text="<")
-        button1.clicked.connect(parent.showHome)
-        layout.addWidget(button1)
+        button1 = self._createBackButton(text=">")
+        button1.clicked.connect(parent.showTF)
         layout.addWidget(centerText)
-        layout.addWidget(button2)
+        layout.addWidget(button1)
         layout.setAlignment(Qt.AlignVCenter)
         return layout
 
