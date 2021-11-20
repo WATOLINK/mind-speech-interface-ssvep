@@ -1,8 +1,9 @@
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget,QApplication, QMainWindow,QLineEdit, QGridLayout, QVBoxLayout
 
+from Pages.QApage.keyboard import keyboardInput
 
 class QuestionAndAnswerWidget(QWidget):
 
@@ -17,28 +18,17 @@ class QuestionAndAnswerWidget(QWidget):
         layout = QHBoxLayout() # Creates a verticle template that formats whatever widgets are added to it
         layout.setSpacing(0)
         layout.setContentsMargins(100, 100, 100, 100)    
-        centerText = self._createCenterText()
+        centerWidget = keyboardInput()
         button2 = self._createBackButton(text=">")
         button2.clicked.connect(parent.showTF)
-        button1 = self._createBackButton(text="<")
-        button1.clicked.connect(parent.showHome)
-        layout.addWidget(button1)
-        layout.addWidget(centerText)
+        layout.addWidget(centerWidget)
         layout.addWidget(button2)
         layout.setAlignment(Qt.AlignVCenter)
         return layout
-
-    
-    def _createCenterText(self):
-        centertext = QLabel("Question And Answer Page!")
-        centertext.setMaximumHeight(100)
-        centertext.setFont(QFont('Arial', 32))
-        centertext.setAlignment(Qt.AlignCenter)
-        return centertext
-    
-    
+  
     def _createBackButton(self, text):
         button = QPushButton(text)
         button.setMinimumHeight(150)
         button.setMaximumWidth(20)
         return button
+
