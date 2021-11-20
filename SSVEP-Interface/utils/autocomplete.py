@@ -1,5 +1,3 @@
-import pandas as pd
-
 CORPUS_PATH = './utils/corpus-v2.txt'
 
 
