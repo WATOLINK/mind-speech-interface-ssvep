@@ -1,7 +1,6 @@
 import functools
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QFont
-from qtwidgets import AnimatedToggle
 from Pages.stimuli import Flash
 
 class YesNoWindow(QtWidgets.QWidget):
