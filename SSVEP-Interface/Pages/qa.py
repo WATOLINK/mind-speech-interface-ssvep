@@ -26,7 +26,7 @@ class keyboardInput(QMainWindow):
             self.toggle.setText("Toggle Mode")
             self.setAlphaMode()
 
-    def alpha_keyboard_click(self):
+    def alpha_keyboard_click(self): #clicking a button in the keyboard view
         if self.label.text() == "keyboard mode":
             self.toggle.setText("Return")
             self.sending_button = self.sender()
@@ -53,7 +53,6 @@ class keyboardInput(QMainWindow):
         self.toggle.setText("Toggle Mode")
         self.toggle.clicked.connect(self.toggleClick)
         self.toggle.setFixedWidth(200)
-  
 
         self.generalLayout.addWidget(self.toggle, alignment=Qt.AlignRight)
 
@@ -89,7 +88,6 @@ class keyboardInput(QMainWindow):
         # Add buttonsLayout to the general layout
         self.generalLayout.addLayout(buttonsLayout)
 
-
     def setWordMode(self): # set button text to "list of suggested words"
         self.label.setText("word mode")
         self.wordLabels = ["Hi", "Bruh", "I'm ok", "Good, and you?", "Duck Duck Goose ", "MIT of the North"] # list of suggested words (given by OpenAI integration)
@@ -104,7 +102,6 @@ class keyboardInput(QMainWindow):
             self.buttons[btnText].setText(btnText)
             self.buttons[btnText].clicked.disconnect() # cancels any previous signals and ensure that each keyboard press ONLY lead to char input
             self.buttons[btnText].clicked.connect(self.alpha_keyboard_click)
-
 
     def setChars(self, letters): # set button text to characters for input
         self.label.setText("char mode")
@@ -125,7 +122,6 @@ class keyboardInput(QMainWindow):
         # return to keyboard view
         self.setAlphaMode() 
         self.toggle.setText("Toggle Mode")
-
 
     def displayText(self):
         """Get display's text."""
