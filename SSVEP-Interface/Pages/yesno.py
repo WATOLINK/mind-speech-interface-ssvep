@@ -4,9 +4,9 @@ from PyQt5.QtGui import QFont
 from qtwidgets import AnimatedToggle
 
 
-class YesNoWindow(QtWidgets.QMainWindow):
-    def __init__(self):
-        super().__init__()
+class YesNoWindow(QtWidgets.QWidget):
+    def __init__(self, parent):
+        super().__init__(parent)
 
         yes_toggle = AnimatedToggle(
             checked_color="#03a9fc",
@@ -18,7 +18,6 @@ class YesNoWindow(QtWidgets.QMainWindow):
             pulse_checked_color="#4403a9fc"
         )
 
-        container = QtWidgets.QWidget()
         layout = QtWidgets.QGridLayout()
 
         yes_label = QtWidgets.QLabel('Yes')
@@ -38,9 +37,7 @@ class YesNoWindow(QtWidgets.QMainWindow):
         confirm_button.setFont(QFont('Helvetica'))
         layout.addWidget(confirm_button, 2, 1)
 
-        container.setLayout(layout)
-
-        self.setCentralWidget(container)
+        self.setLayout(layout)
 
     def yesToggleOn(self, yes_toggle, no_toggle):
         if yes_toggle.isChecked():
@@ -49,9 +46,3 @@ class YesNoWindow(QtWidgets.QMainWindow):
     def noToggleOn(self, yes_toggle, no_toggle):
         if no_toggle.isChecked():
             yes_toggle.setCheckState(False)
-
-
-app = QtWidgets.QApplication([])
-w = YesNoWindow()
-w.show()
-app.exec_()
