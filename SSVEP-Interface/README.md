@@ -7,6 +7,14 @@ To set up: follow steps in https://realpython.com/python-pyqt-gui-calculator/, y
 pip install setuptools wheel
 pip install spacy
 python -m spacy download en_core_web_sm
+pip install pandas
 
 pip install qtwidgets
+
+pip install pipwin
+pipwin install pyaudio
+
+pip install openai
+pip install python-dotenv
+
 ```
