@@ -3,6 +3,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
+from Pages.styles import navigationButtonStyle
+
 
 class QuestionAndAnswerWidget(QWidget):
 
@@ -18,9 +20,9 @@ class QuestionAndAnswerWidget(QWidget):
         layout.setSpacing(0)
         layout.setContentsMargins(100, 100, 100, 100)    
         centerText = self._createCenterText()
-        button2 = self._createBackButton(text=">")
+        button2 = self._createBackButton(text="→")
         button2.clicked.connect(parent.showTF)
-        button1 = self._createBackButton(text="<")
+        button1 = self._createBackButton(text="←")
         button1.clicked.connect(parent.showHome)
         layout.addWidget(button1)
         layout.addWidget(centerText)
@@ -39,6 +41,7 @@ class QuestionAndAnswerWidget(QWidget):
     
     def _createBackButton(self, text):
         button = QPushButton(text)
+        button.setStyleSheet(navigationButtonStyle)
         button.setMinimumHeight(150)
         button.setMaximumWidth(20)
         return button

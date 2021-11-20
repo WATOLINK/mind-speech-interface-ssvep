@@ -52,14 +52,14 @@ class Flash (QOpenGLWidget):
         self.gl.glEnable(self.gl.GL_DEPTH_TEST)
 
     def paintGL(self):
-        print("updating")
+        # print("updating")
         if self.flag:
-            self.gl.glClearColor(1, 1, 1, 1) # white
+            self.gl.glClearColor(0, 0, 0, 1) # black
 
-            print("clear")
+            # print("clear")
         else:
             self.gl.glClearColor(self.rValue, self.gValue, self.bValue, self.opacityValue)
-            print("set")
+            # print("set")
         self.flag = not self.flag
 
 # for testing, doesnt actually do stuff when you run main

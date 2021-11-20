@@ -10,6 +10,8 @@ from Pages.mc import MultipleChoiceWidget
 from Pages.absolute import TrueAndFalseWidget
 from Pages.home import HomeWidget
 
+from Pages.styles import windowStyle
+
 
 class Window(QMainWindow):
     """Main Window."""
@@ -34,6 +36,8 @@ class Window(QMainWindow):
         self.setCentralWidget(self.stacked)
         # Sets location (x, y) and size (width, height) of current window
         self.setGeometry(0, 0, 1600, 900)
+
+    
 
     # To navigate to different pages, we set the current widget of the stack
     # These function below are called to nagivate between different pages
@@ -67,6 +71,8 @@ class Window(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    
     win = Window()
+    win.setStyleSheet(windowStyle)
     win.show()
     sys.exit(app.exec_())
