@@ -73,22 +73,22 @@ if __name__ == '__main__':
     titleLabel = QLabel('<h1 style="text-align:center">Flashing Stimuli 1</h1>')
     layout.addWidget(titleLabel, 0, 0, 2, 6)
 
-    w1 = Flash(400,random.random(), random.random(), random.random())
+    w1 = Flash(400,random.randrange(1,255), random.randrange(1,255), random.randrange(1,255), 1)
     w1.setAttribute(Qt.WA_StyledBackground, True)
 
-    w2 = Flash(400,random.random(), random.random(), random.random())
+    w2 = Flash(400,random.randrange(1,255), random.randrange(1,255), random.randrange(1,255), 1)
     w2.setAttribute(Qt.WA_StyledBackground, True)
 
-    w3 = Flash(200,random.random(), random.random(), random.random())
+    w3 = Flash(200,random.randrange(1,255), random.randrange(1,255), random.randrange(1,255), 1)
     w3.setAttribute(Qt.WA_StyledBackground, True)
 
-    w4 = Flash(200,random.random(), random.random(), random.random())
+    w4 = Flash(200,random.randrange(1,255), random.randrange(1,255), random.randrange(1,255), 1)
     w4.setAttribute(Qt.WA_StyledBackground, True)
 
-    w5 = Flash(100,random.random(), random.random(), random.random())
+    w5 = Flash(100,random.randrange(1,255), random.randrange(1,255), random.randrange(1,255), 1)
     w5.setAttribute(Qt.WA_StyledBackground, True)
 
-    w6 = Flash(100,random.random(), random.random(), random.random())
+    w6 = Flash(100,random.randrange(1,255), random.randrange(1,255), random.randrange(1,255), random.randrange(1,255))
     w6.setAttribute(Qt.WA_StyledBackground, True)
 
     layout.addWidget(w1, 2, 0)
@@ -97,12 +97,12 @@ if __name__ == '__main__':
     layout.addWidget(w4, 2, 3)
     layout.addWidget(w5, 2, 4)
     layout.addWidget(w6, 2, 5)
-        
-    
+
+
     demo.setLayout(layout)
     demo.resize(500, 500)
     demo.show()
-    
+
     try:
         sys.exit(app.exec_())
     except SystemExit:
