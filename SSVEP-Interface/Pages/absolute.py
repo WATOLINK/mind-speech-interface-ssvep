@@ -1,6 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
+from Pages.yesno import YesNoWindow
 
 
 class TrueAndFalseWidget(QWidget):
@@ -22,7 +23,8 @@ class TrueAndFalseWidget(QWidget):
         button1.clicked.connect(parent.showQA)
         button2.clicked.connect(parent.showMC)
         layout.addWidget(button1)
-        layout.addWidget(centerText)
+        yesNoWidget = YesNoWindow(self)
+        layout.addWidget(yesNoWidget)
         layout.addWidget(button2)
         layout.setAlignment(Qt.AlignVCenter)
         return layout
