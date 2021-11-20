@@ -26,14 +26,14 @@ class Flash (QOpenGLWidget):
     bValue = 0
     opacityValue = 0
 
-    def __init__(self,freq, r, g, b,opactiy):
+    def __init__(self,freq, r, g, b,opacity):
         super() . __init__()
         self.flag = True
 
         self.rValue = r/255
         self.gValue = g/255
         self.bValue = b/255
-        opactiyValue = opactiy
+        opactiyValue = opacity
 
         timer = QTimer(self, interval=freq, timerType = 0)  # using Qt.PreciseTimer, which is accurate to 1ms
         timer.timeout.connect(lambda: self.update()) # calls paintGL/ updates widget
