@@ -1,7 +1,7 @@
 import pandas as pd
-import os
 
 CORPUS_PATH = './utils/corpus-v2.txt'
+
 
 def process_corpus():
     ''' Text parameter should be string to extract and generate prompts for '''
