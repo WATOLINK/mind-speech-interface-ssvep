@@ -56,20 +56,20 @@ class CircleFlash (QOpenGLWidget):
             # increase sides to get smoother edges
             sides = 64    
 
-            # scale decides the percentage of the widget the circle occupies
-            scale = 1   
+            # radius decides the percentage of the widget the circle occupies
+            radius = 1   
 
             # set circle colour
             self.gl.glColor3f(self.rValue, self.gValue, self.bValue);
 
             # start drawing circle
-            self.gl.glBegin(self.gl.GL_POLYGON)    
-            for i in range(100):    
-                cosine = scale * cos(i * 2 * pi / sides) 
-                sine   = scale * sin(i * 2 * pi / sides)
-                self.gl.glVertex2f(cosine, sine)
+            self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)    
+            for i in range(sides):    
+                x = radius * cos(i * 2 * pi / sides)
+                y = radius * sin(i * 2 * pi / sides)
+                self.gl.glVertex2f(x, y)
             self.gl.glEnd()    
-            
+
         self.flag = not self.flag
 
 # for testing, doesnt actually do stuff when you run main
