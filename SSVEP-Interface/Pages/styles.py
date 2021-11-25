@@ -39,6 +39,5 @@ windowStyle = """
 stimuliStyle = """
     min-width: 250px;
     min-height: 250px;
-    border: 30px solid white;
 """
 

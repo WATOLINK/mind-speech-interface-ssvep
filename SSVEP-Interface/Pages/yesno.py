@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 from qtwidgets import AnimatedToggle
-from Pages.stimuli import Flash
+from Pages.circle_stimuli import CircleFlash
 
 from Pages.styles import confirmButtonStyle, stimuliStyle, toggleButtonStyle
 
@@ -32,15 +32,17 @@ class YesNoWindow(QtWidgets.QWidget):
         layout.addWidget(no_toggle, 0, 1)
         
         #add stims
-        w1 = Flash(400,0,0,255,1)
+        w1 = CircleFlash(400,0,0,255,1)
         w1.setStyleSheet(stimuliStyle)
+        w1.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
         
-        w2 = Flash(50,255,0,0,1)
+        w2 = CircleFlash(50,255,0,0,1)
         w2.setStyleSheet(stimuliStyle)
+        w2.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
-        layout.addWidget(w1, 1, 0)
-        layout.addWidget(w2, 1, 1)
+        layout.addWidget(w1, 1, 0, alignment=Qt.AlignCenter)
+        layout.addWidget(w2, 1, 1, alignment=Qt.AlignCenter)
 
         confirm_button = QtWidgets.QPushButton('Confirm')
         confirm_button.setStyleSheet(confirmButtonStyle)
