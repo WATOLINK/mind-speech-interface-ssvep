@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QGri
 from PyQt5.QtCore import Qt
 import sys
 
+
 class keyboardInput(QMainWindow):
     def __init__(self):
         super(keyboardInput,self).__init__()
@@ -47,7 +48,7 @@ class keyboardInput(QMainWindow):
         # Create the keyboard buttons
         self._createButtons()
 
-        # Create the toggle
+        # Create the toggle/mode switch
         self.toggle = QPushButton(self)
         self.toggle.setText("Toggle Mode")
         self.toggle.clicked.connect(self.toggleClick)

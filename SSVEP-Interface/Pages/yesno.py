@@ -2,7 +2,6 @@ import functools
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
-from qtwidgets import AnimatedToggle
 from Pages.circle_stimuli import CircleFlash
 from Pages.styles import confirmButtonStyle, stimuliStyle, toggleButtonStyle
 from Pages.stimuli import Flash
@@ -21,12 +20,12 @@ class YesNoWindow(QtWidgets.QWidget):
         self.yes_toggle = QtWidgets.QPushButton("Yes")
         self.yes_toggle.setCheckable(True)
         # yes_toggle.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        yes_toggle.setStyleSheet(toggleButtonStyle)
+        self.yes_toggle.setStyleSheet(toggleButtonStyle)
 
         self.no_toggle = QtWidgets.QPushButton("No")
         self.no_toggle.setCheckable(True)
         # no_toggle.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        no_toggle.setStyleSheet(toggleButtonStyle)
+        self.no_toggle.setStyleSheet(toggleButtonStyle)
 
         self.buttonGroup = QtWidgets.QButtonGroup()
         self.buttonGroup.addButton(self.yes_toggle)
@@ -62,8 +61,8 @@ class YesNoWindow(QtWidgets.QWidget):
 
 
         self.confirm_button = QtWidgets.QPushButton('Confirm')
-        confirm_button.setStyleSheet(confirmButtonStyle)
-        layout.addWidget(confirm_button, 2, 1)
+        self.confirm_button.setStyleSheet(confirmButtonStyle)
+        layout.addWidget(self.confirm_button, 2, 1)
         self.confirm_button.clicked.connect(self.confirm_detect)
 
         self.setLayout(layout)  
