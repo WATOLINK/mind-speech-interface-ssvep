@@ -1,7 +1,12 @@
 import functools
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QFont
+from PyQt5.QtCore import Qt
+from qtwidgets import AnimatedToggle
+from Pages.circle_stimuli import CircleFlash
+from Pages.styles import confirmButtonStyle, stimuliStyle, toggleButtonStyle
 from Pages.stimuli import Flash
+
 
 
 class YesNoWindow(QtWidgets.QWidget):  
@@ -16,10 +21,12 @@ class YesNoWindow(QtWidgets.QWidget):
         self.yes_toggle = QtWidgets.QPushButton("Yes")
         self.yes_toggle.setCheckable(True)
         # yes_toggle.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        yes_toggle.setStyleSheet(toggleButtonStyle)
 
         self.no_toggle = QtWidgets.QPushButton("No")
         self.no_toggle.setCheckable(True)
         # no_toggle.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        no_toggle.setStyleSheet(toggleButtonStyle)
 
         self.buttonGroup = QtWidgets.QButtonGroup()
         self.buttonGroup.addButton(self.yes_toggle)
@@ -41,14 +48,22 @@ class YesNoWindow(QtWidgets.QWidget):
         # layout.addWidget(self.n, 2, 2)
         
         #add stims
-        w1 = Flash(400,0,0,255,1)
-        w2 = Flash(50,255,0,0,1)
-        layout.addWidget(w1, 1, 0)
-        layout.addWidget(w2, 1, 1)
+        w1 = CircleFlash(400,0,0,255,1)
+        w1.setStyleSheet(stimuliStyle)
+        w1.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+
+        
+        w2 = CircleFlash(50,255,0,0,1)
+        w2.setStyleSheet(stimuliStyle)
+        w2.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+
+        layout.addWidget(w1, 1, 0, alignment=Qt.AlignCenter)
+        layout.addWidget(w2, 1, 1, alignment=Qt.AlignCenter)
+
 
         self.confirm_button = QtWidgets.QPushButton('Confirm')
-        self.confirm_button.setFont(QFont('Helvetica'))
-        layout.addWidget(self.confirm_button, 2, 1)
+        confirm_button.setStyleSheet(confirmButtonStyle)
+        layout.addWidget(confirm_button, 2, 1)
         self.confirm_button.clicked.connect(self.confirm_detect)
 
         self.setLayout(layout)  

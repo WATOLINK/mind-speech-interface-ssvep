@@ -3,6 +3,8 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 from Pages.yesno import YesNoWindow
 
+from Pages.styles import navigationButtonStyle
+
 
 class TrueAndFalseWidget(QWidget):
 
@@ -18,8 +20,8 @@ class TrueAndFalseWidget(QWidget):
         layout.setSpacing(0)
         layout.setContentsMargins(100, 100, 100, 100)    
         centerText = self._createCenterText()
-        button1 = self._createBackButton(text="<")
-        button2 = self._createBackButton(text=">")
+        button1 = self._createBackButton(text="←")
+        button2 = self._createBackButton(text="→")
         button1.clicked.connect(parent.showQA)
         button2.clicked.connect(parent.showMC)
         layout.addWidget(button1)
@@ -40,6 +42,7 @@ class TrueAndFalseWidget(QWidget):
     
     def _createBackButton(self, text):
         button = QPushButton(text)
+        button.setStyleSheet(navigationButtonStyle)
         button.setMinimumHeight(150)
         button.setMaximumWidth(20)
         return button

@@ -1,6 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QButtonGroup, QGridLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QVBoxLayout, QWidget
+from Pages.styles import toggleButtonStyle, confirmButtonStyle, navigationButtonStyle
 
 
 class MultipleChoiceWidget(QWidget):
@@ -17,7 +18,7 @@ class MultipleChoiceWidget(QWidget):
         layout.setSpacing(0)
         layout.setContentsMargins(100, 100, 100, 100)  
 
-        button1 = self._createBackButton(text="<")
+        button1 = self._createBackButton(text="←")
         button1.clicked.connect(parent.showTF)
 
         centralLayout = self._createCentralLayout()
@@ -28,7 +29,7 @@ class MultipleChoiceWidget(QWidget):
 
         centralLayout.addWidget(self.previewText, alignment=Qt.AlignCenter)
         centralLayout.addLayout(buttonLayout)
-        centralLayout.addWidget(confirmButton, alignment=Qt.AlignRight)
+        centralLayout.addWidget(confirmButton, alignment=Qt.AlignCenter)
 
         layout.addWidget(button1)
         layout.addLayout(centralLayout)
@@ -51,6 +52,7 @@ class MultipleChoiceWidget(QWidget):
         for buttonText, pos in buttons.items():
             button = QPushButton(buttonText)
             button.setCheckable(True)
+            button.setStyleSheet(toggleButtonStyle)
             button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             buttonLayout.addWidget(button, pos[0], pos[1])
             self.buttonGroup.addButton(button)
@@ -60,11 +62,13 @@ class MultipleChoiceWidget(QWidget):
 
     # Confirm selection callback
     def _handleConfirm(self):
-        self.previewText.setText(self.buttonGroup.checkedButton().text())
+        if self.buttonGroup.checkedButton():
+            self.previewText.setText(self.buttonGroup.checkedButton().text())
 
 
     def _createConfirmButton(self):
         confirmButton = QPushButton("Confirm")
+        confirmButton.setStyleSheet(confirmButtonStyle)
         confirmButton.clicked.connect(self._handleConfirm)
         return confirmButton
 
@@ -77,6 +81,5 @@ class MultipleChoiceWidget(QWidget):
     
     def _createBackButton(self, text):
         button = QPushButton(text)
-        button.setMinimumHeight(150)
-        button.setMaximumWidth(20)
+        button.setStyleSheet(navigationButtonStyle)
         return button

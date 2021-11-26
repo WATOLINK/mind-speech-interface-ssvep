@@ -1,6 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QGridLayout
+from Pages.styles import navigationButtonStyle
 
 from Pages.search import SearchWidget
 
@@ -23,7 +24,7 @@ class HomeWidget(QWidget):
         layout.setSpacing(0)
         layout.setContentsMargins(100, 100, 100, 100)
         centerText = self._createCenterText()
-        button1 = self._createBackButton(text=">")
+        button1 = self._createBackButton(text="→")
         button1.clicked.connect(parent.showQA)
 
         searchWidget = SearchWidget()
@@ -44,6 +45,7 @@ class HomeWidget(QWidget):
 
     def _createBackButton(self, text):
         button = QPushButton(text)
+        button.setStyleSheet(navigationButtonStyle)
         button.setMinimumHeight(150)
         button.setMaximumWidth(20)
         return button
