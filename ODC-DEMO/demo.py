@@ -26,32 +26,44 @@ def thread_function(stop):
         print("=====Trial "+str(trial+1)+"=====")
         random.shuffle(order)
         print(order)
-        for stimPeriod in range(13):
+        
+        #turn all stims off at the beginning of trial
+        for x in range(12):
+            stim[x].toggleOff()
+        
+        for stimPeriod in range(12):
             
+            #just for testing otherwise the thread keeps running if you close the window
             if stop():
                 print("thread ended")
                 break
 
-            time.sleep(0.5) #allow previously turned on stim to be on for x seconds
-
-            if stimPeriod > 0: #if not first stim, turn off prev stim
-                stim[order[stimPeriod-1]].toggleOff()
             
-            time.sleep(0.5) #x second break before turning on next stim
+            currentStim = stim[order[stimPeriod]]
+            
+            #turn on current stim in the random order
+            currentStim.toggleOn()
+            
+            #log color and hz
+            color = str(currentStim.rValue)+","+str(currentStim.gValue)+","+str(currentStim.bValue)
+            if color == "255,255,255":
+                color = "white"
+            elif color == "0,0,255":
+                color = "blue" 
+            elif color == "0,255,0":
+                color = "green"
+            print(f"{color}\t{currentStim.freqHertz}Hz")
 
-            if stimPeriod < 12:
-                currentStim = stim[order[stimPeriod]]
-                currentStim.toggleOn()
-                
-                color = str(currentStim.rValue)+","+str(currentStim.gValue)+","+str(currentStim.bValue)
-                if color == "255,255,255":
-                    color = "white"
-                elif color == "0,0,255":
-                    color = "blue" 
-                elif color == "0,255,0":
-                    color = "green"
-                print(f"{color}\t{currentStim.freqHertz}Hz")
+            time.sleep(0.5) #leave single stim on for X before turning all on
 
+            for x in range(12):
+                stim[x].toggleOn()
+
+            time.sleep(0.5) #allow all stims to be on for X seconds
+
+            for x in range(12):
+                stim[x].toggleOff()
+            
         time.sleep(1) #x second break before next trial
     print ("all trials finished")            
 
