@@ -4,7 +4,10 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QWidget,
     QGridLayout,
+    QFrame,
+    QVBoxLayout,
 )
+from PyQt5.QtCore import QRect
 import threading
 import random
 import time
@@ -20,7 +23,7 @@ def thread_function(stop):
     print("starting")
 
     time.sleep(2)
-    startDelay = 5
+    startDelay = 2
     for x in range(startDelay):
         label.setText(labelTxt(f"Starting in {str(startDelay-x)}"))
         time.sleep(1)
@@ -99,61 +102,84 @@ def thread_function(stop):
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
 
+class Window(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.resize(1200, 900)
+
+        self.frame = QFrame(self,objectName="frame")
+
+        global stim
+
+        stim = []
+
+        # white stims
+        stim.append(Stim.CircleFlash(20, 255, 255, 255, 1))
+        stim.append(Stim.CircleFlash(18, 255, 255, 255, 2))
+        stim.append(Stim.CircleFlash(16, 255, 255, 255, 3))
+        stim.append(Stim.CircleFlash(14, 255, 255, 255, 4))
+        stim.append(Stim.CircleFlash(12, 255, 255, 255, 5))
+        stim.append(Stim.CircleFlash(10, 255, 255, 255, 6))
+        stim.append(Stim.CircleFlash(8, 255, 255, 255, 7))
+        stim.append(Stim.CircleFlash(6, 255, 255, 255, 8))
+
+        # blue stims
+        stim.append(Stim.CircleFlash(11, 0, 0, 255, 9))
+        stim.append(Stim.CircleFlash(7, 0, 0, 255, 10))
+
+        # green stims
+        stim.append(Stim.CircleFlash(9, 0, 255, 0, 11))
+        stim.append(Stim.CircleFlash(5, 0, 255, 0, 12))
+
+        # append stimulis to grid in random order
+        random.shuffle(stim)
+
+        gridLayout = QGridLayout(self.frame)
+        for row in range(3):
+            for col in range(4):
+                stimNum = row*4+col
+                stim[stimNum].toggleOff()
+                gridLayout.addWidget(stim[stimNum], row+2, col)
+
+        gridLayout.setSpacing(50)
+    
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+
+        l = min(self.width(), self.height())
+        center = self.rect().center()
+
+        rect = QRect(0, 0, l*(4/3), l)
+        rect.moveCenter(center)
+        self.frame.setGeometry(rect)
+
+        
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     demo = QWidget()
     demo.setWindowTitle('Flashing Stim 1')
 
-    layout = QGridLayout()
+    layout = QVBoxLayout()
 
     demo.setStyleSheet("background-color: black;")
-    
-    global label,stim 
+        
+    global label 
     
     label = QLabel(labelTxt("ODC-DEMO"))
-    layout.addWidget(label, 0, 0, 1, 4)
+    label.setFixedHeight(100)
+    layout.addWidget(label)
+    
+    grid = Window()
 
-    stim = []
-
-    # white stims
-    stim.append(Stim.CircleFlash(20, 255, 255, 255, 1))
-    stim.append(Stim.CircleFlash(18, 255, 255, 255, 2))
-    stim.append(Stim.CircleFlash(16, 255, 255, 255, 3))
-    stim.append(Stim.CircleFlash(14, 255, 255, 255, 4))
-    stim.append(Stim.CircleFlash(12, 255, 255, 255, 5))
-    stim.append(Stim.CircleFlash(10, 255, 255, 255, 6))
-    stim.append(Stim.CircleFlash(8, 255, 255, 255, 7))
-    stim.append(Stim.CircleFlash(6, 255, 255, 255, 8))
-
-    # blue stims
-    stim.append(Stim.CircleFlash(11, 0, 0, 255, 9))
-    stim.append(Stim.CircleFlash(7, 0, 0, 255, 10))
-
-    # green stims
-    stim.append(Stim.CircleFlash(9, 0, 255, 0, 11))
-    stim.append(Stim.CircleFlash(5, 0, 255, 0, 12))
-
-    # append stimulis to grid in random order
-    random.shuffle(stim)
-
-    for row in range(3):
-        for col in range(4):
-            stimNum = row*4+col
-            stim[stimNum].toggleOff()
-            layout.addWidget(stim[stimNum], row+2, col)
-
-
+    layout.addWidget(grid)
+    demo.setLayout(layout)
 
     stopThread = False
     x = threading.Thread(target=thread_function, args=(lambda: stopThread,))
     x.start()
 
-
-    demo.setLayout(layout)
-    demo.resize(500, 500)
+    demo.resize(1600, 1200)
     demo.show()
-
-    
 
     try:
         sys.exit(app.exec_())
