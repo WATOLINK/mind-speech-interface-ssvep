@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import (
     QApplication,
     QLabel,
+    QPushButton,
     QWidget,
     QGridLayout,
 )
@@ -16,11 +17,17 @@ import os
 def thread_function(stop):
     f = open("ODC-DEMO/log.txt", 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()}\n\n")
-    print("start")
+    print("starting")
+
+    time.sleep(2)
+    startDelay = 5
+    for x in range(startDelay):
+        label.setText(labelTxt(f"Starting in {str(startDelay-x)}"))
+        time.sleep(1)
 
     order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
-    for trial in range(5):  # number of trials (5 times)
+    for trial in range(2):  # number of trials (5 times)
         print("=====Trial "+str(trial+1)+"=====")
         f.write("\n=====Trial "+str(trial+1)+"=====\n")
 
@@ -32,7 +39,6 @@ def thread_function(stop):
 
             # just for testing otherwise the thread keeps running if you close the window
             if stop():
-                print("thread ended")
                 break
 
             currentStim = stim[order[stimPeriod]]
@@ -58,7 +64,12 @@ def thread_function(stop):
             f.write(f"{currentStim.id:02} " + colorCode +
                     f" {currentStim.freqHertz:02}\n")
 
-            time.sleep(0.5)  # time indicator is displayed (4s)
+            indicatorTime = 2
+            
+            for x in range(int(indicatorTime)):
+                label.setText(labelTxt(f"Keep you eyes where the red circle is. ({indicatorTime-x})"))
+                time.sleep(1)
+            label.setText(labelTxt("Keep you eyes where the red circle was."))
 
             # start simulation period (all stimulis flashing)
             currentStim.toggleIndicator(False)
@@ -71,12 +82,22 @@ def thread_function(stop):
             for x in range(12):
                 stim[x].toggleOff()
 
-        time.sleep(1)  # x second break between trials (120s)
+        # just for testing otherwise the thread keeps running if you close the window
+        if stop():
+            break
+
+        trialBreakTime = 20
+            
+        for x in range(int(trialBreakTime)):
+            label.setText(labelTxt(f"Time before next trial: ({trialBreakTime-x})"))
+            time.sleep(1)
 
     print("all trials finished")
     f.write("Session finished.\n\n")
     f.close()
 
+def labelTxt(text):
+    return f'<h1 style="text-align:center; color: white">{text}</h1>'
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -86,11 +107,12 @@ if __name__ == '__main__':
     layout = QGridLayout()
 
     demo.setStyleSheet("background-color: black;")
-    titleLabel = QLabel(
-        '<h1 style="text-align:center; color: white">ODC-DEMO</h1>')
-    layout.addWidget(titleLabel, 0, 0, 1, 4)
+    
+    global label,stim 
+    
+    label = QLabel(labelTxt("ODC-DEMO"))
+    layout.addWidget(label, 0, 0, 1, 4)
 
-    global stim
     stim = []
 
     # white stims
@@ -118,15 +140,20 @@ if __name__ == '__main__':
         for col in range(4):
             stimNum = row*4+col
             stim[stimNum].toggleOff()
-            layout.addWidget(stim[stimNum], row+1, col)
+            layout.addWidget(stim[stimNum], row+2, col)
+
+
+
+    stopThread = False
+    x = threading.Thread(target=thread_function, args=(lambda: stopThread,))
+    x.start()
+
 
     demo.setLayout(layout)
     demo.resize(500, 500)
     demo.show()
 
-    stopThread = False
-    x = threading.Thread(target=thread_function, args=(lambda: stopThread,))
-    x.start()
+    
 
     try:
         sys.exit(app.exec_())
