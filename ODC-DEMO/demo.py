@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import (
     QApplication,
     QLabel,
-    QPushButton,
     QWidget,
     QGridLayout,
     QFrame,
@@ -68,9 +67,10 @@ def thread_function(stop):
                     f" {currentStim.freqHertz:02}\n")
 
             indicatorTime = 2
-            
+
             for x in range(int(indicatorTime)):
-                label.setText(labelTxt(f"Keep you eyes where the red circle is. ({indicatorTime-x})"))
+                label.setText(
+                    labelTxt(f"Keep you eyes where the red circle is. ({indicatorTime-x})"))
                 time.sleep(1)
             label.setText(labelTxt("Keep you eyes where the red circle was."))
 
@@ -90,27 +90,29 @@ def thread_function(stop):
             break
 
         trialBreakTime = 20
-            
+
         for x in range(int(trialBreakTime)):
-            label.setText(labelTxt(f"Time before next trial: ({trialBreakTime-x})"))
+            label.setText(
+                labelTxt(f"Time before next trial: ({trialBreakTime-x})"))
             time.sleep(1)
 
     print("all trials finished")
     f.write("Session finished.\n\n")
     f.close()
 
+
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
 
-class Window(QWidget):
+
+class Stimuli(QWidget):
     def __init__(self):
         super().__init__()
         self.resize(1200, 900)
 
-        self.frame = QFrame(self,objectName="frame")
+        self.frame = QFrame(self, objectName="frame") # ensures correct aspect ratio of grid
 
         global stim
-
         stim = []
 
         # white stims
@@ -134,52 +136,55 @@ class Window(QWidget):
         # append stimulis to grid in random order
         random.shuffle(stim)
 
-        gridLayout = QGridLayout(self.frame)
+        self.gridLayout = QGridLayout(self.frame)
         for row in range(3):
             for col in range(4):
                 stimNum = row*4+col
                 stim[stimNum].toggleOff()
-                gridLayout.addWidget(stim[stimNum], row+2, col)
+                self.gridLayout.addWidget(stim[stimNum], row+3, col*2)
 
-        gridLayout.setSpacing(50)
-    
-    def resizeEvent(self, event):
+        self.gridLayout.setSpacing(225)
+
+    # resizes grid during window resize
+    def resizeEvent(self, event): 
         super().resizeEvent(event)
 
         l = min(self.width(), self.height())
         center = self.rect().center()
 
-        rect = QRect(0, 0, l*(4/3), l)
+        rect = QRect(0, 0, l*(5/3), l) # 5 x 3 ratio
         rect.moveCenter(center)
         self.frame.setGeometry(rect)
 
-        
+        self.gridLayout.setColumnMinimumWidth(1, l/12) # 3 additional columns fill space to make it a 4x3 grid 
+        self.gridLayout.setColumnMinimumWidth(3, l/12)
+        self.gridLayout.setColumnMinimumWidth(5, l/12)
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    demo = QWidget()
-    demo.setWindowTitle('Flashing Stim 1')
+    window = QWidget()
+    window.setWindowTitle('Flashing Stim 1')
+    window.setStyleSheet("background-color: black;")
 
     layout = QVBoxLayout()
 
-    demo.setStyleSheet("background-color: black;")
-        
-    global label 
-    
+    global label
     label = QLabel(labelTxt("ODC-DEMO"))
     label.setFixedHeight(100)
     layout.addWidget(label)
-    
-    grid = Window()
+
+    grid = Stimuli() # stimuli grid widget
 
     layout.addWidget(grid)
-    demo.setLayout(layout)
+    window.setLayout(layout)
 
     stopThread = False
     x = threading.Thread(target=thread_function, args=(lambda: stopThread,))
     x.start()
 
-    demo.resize(1600, 1200)
-    demo.show()
+    window.resize(1600, 1200) # initial window size
+    window.show()
 
     try:
         sys.exit(app.exec_())
