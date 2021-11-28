@@ -11,9 +11,6 @@ import datetime
 import circle_stimuli as Stim
 import sys
 import os
-# might to change following line fron where you are in the repo, works for me but might not on another workspace? - Ivan
-sys.path.append(os.path.abspath(
-    'mind-speech-interface-ssvep/SSVEP-Interface/Pages'))
 
 
 def thread_function(stop):
