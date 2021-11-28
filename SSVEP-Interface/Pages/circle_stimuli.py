@@ -6,38 +6,33 @@ from math import cos, sin, pi
 # 1. Import `QApplication` and all the required widgets
 from PyQt5.QtWidgets import (
     QApplication,
-    QLabel,
     QWidget,
-    QGridLayout,
     QHBoxLayout,
     QOpenGLWidget,
 )
-from PyQt5.QtCore import (
-    Qt,
-    QTimer
-)
-from PyQt5.QtGui import (
-    QOpenGLVersionProfile, 
-)
-import random
+from PyQt5.QtCore import QTimer
+
+from PyQt5.QtGui import QOpenGLVersionProfile
+
 
 
 class CircleFlash (QOpenGLWidget):
     rValue = 0
     gValue = 0
     bValue = 0
-    opacityValue = 0
+    on = True
 
-    def __init__(self,freq, r, g, b,opacity):
+    def __init__(self,freqHz, r, g, b):
         super() . __init__()
         self.flag = True
 
-        self.rValue = r/255
-        self.gValue = g/255
-        self.bValue = b/255
-        opactiyValue = opacity
+        self.rValue = r
+        self.gValue = g
+        self.bValue = b
+        self.freqHertz = freqHz
 
-        timer = QTimer(self, interval=freq, timerType = 0)  # using Qt.PreciseTimer, which is accurate to 1ms
+        timer = QTimer(self, interval=(1000/(freqHz*2)), timerType = 0)  # using Qt.PreciseTimer, which is accurate to 1ms
+        #freq is x2 since the freq needed is by # of times on, instead of times changed between on and 
         timer.timeout.connect(lambda: self.update()) # calls paintGL/ updates widget
         timer.start()
 
@@ -52,25 +47,34 @@ class CircleFlash (QOpenGLWidget):
         self.gl.glEnable(self.gl.GL_DEPTH_TEST)
 
     def paintGL(self):
-        if self.flag:  
-            # increase sides to get smoother edges
-            sides = 64    
+        if self.on:
+            if self.flag:  
+                # increase sides to get smoother edges
+                sides = 64    
 
-            # radius decides the percentage of the widget the circle occupies
-            radius = 1   
+                # radius decides the percentage of the widget the circle occupies
+                radius = 1   
 
-            # set circle colour
-            self.gl.glColor3f(self.rValue, self.gValue, self.bValue);
+                # set circle colour
+                self.gl.glColor3f(self.rValue/255, self.gValue/255, self.bValue/255);
 
-            # start drawing circle
-            self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)    
-            for i in range(sides):    
-                x = radius * cos(i * 2 * pi / sides)
-                y = radius * sin(i * 2 * pi / sides)
-                self.gl.glVertex2f(x, y)
-            self.gl.glEnd()    
+                # start drawing circle
+                self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)    
+                for i in range(sides):    
+                    x = radius * cos(i * 2 * pi / sides)
+                    y = radius * sin(i * 2 * pi / sides)
+                    self.gl.glVertex2f(x, y)
+                self.gl.glEnd()    
 
-        self.flag = not self.flag
+            self.flag = not self.flag
+        else:
+            self.gl.glClearColor(0, 0, 0, 1) # black
+    
+    def toggleOn(self): 
+        self.on = True
+        
+    def toggleOff(self):
+        self.on = False
 
 # for testing, doesnt actually do stuff when you run main
 if __name__ == '__main__':
@@ -80,7 +84,7 @@ if __name__ == '__main__':
 
     layout = QHBoxLayout()
 
-    w1 = CircleFlash(400,random.randrange(1,255), random.randrange(1,255), random.randrange(1,255), 1)
+    w1 = CircleFlash(4,255,255,255)
 
     layout.addWidget(w1)
 
