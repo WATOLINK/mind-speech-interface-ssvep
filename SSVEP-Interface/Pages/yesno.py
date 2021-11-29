@@ -47,12 +47,12 @@ class YesNoWindow(QtWidgets.QWidget):
         # layout.addWidget(self.n, 2, 2)
         
         #add stims
-        w1 = CircleFlash(400,0,0,255,1)
+        w1 = CircleFlash(400,0,0,255)
         w1.setStyleSheet(stimuliStyle)
         w1.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
         
-        w2 = CircleFlash(50,255,0,0,1)
+        w2 = CircleFlash(50,255,0,0)
         w2.setStyleSheet(stimuliStyle)
         w2.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
