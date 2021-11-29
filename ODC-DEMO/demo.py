@@ -17,12 +17,12 @@ import os
 
 
 def thread_function(stop):
-    f = open("ODC-DEMO/log.txt", 'a')  # modify depending on CWD
+    f = open("ODC-DEMO/"+ filename, 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()}\n\n")
     print("starting")
 
     time.sleep(2)
-    startDelay = 2
+    startDelay = 10
     for x in range(startDelay):
         label.setText(labelTxt(f"Starting in {str(startDelay-x)}"))
         time.sleep(1)
@@ -66,7 +66,7 @@ def thread_function(stop):
             f.write(f"{currentStim.id:02} " + colorCode +
                     f" {currentStim.freqHertz:02}\n")
 
-            indicatorTime = 2
+            indicatorTime = 5
 
             for x in range(int(indicatorTime)):
                 label.setText(
@@ -79,7 +79,7 @@ def thread_function(stop):
             for x in range(12):
                 stim[x].toggleOn()
 
-            time.sleep(1)  # set length of simulation period (5s)
+            time.sleep(5)  # set length of simulation period (5s)
 
             # turn off all stimuli and prepare for next trial
             for x in range(12):
@@ -89,7 +89,7 @@ def thread_function(stop):
         if stop():
             break
 
-        trialBreakTime = 20
+        trialBreakTime = 120
 
         for x in range(int(trialBreakTime)):
             label.setText(
@@ -162,6 +162,13 @@ class Stimuli(QWidget):
 
 
 if __name__ == '__main__':
+    x = datetime.datetime.now()
+
+    global filename 
+    filename =  f"{x.strftime('%j')}_{x.strftime('%Y')}_{x.strftime('%f')}.txt" #day of year, year, millisecond
+
+    file = open("ODC-DEMO/"+ filename, "x") # create log 
+
     app = QApplication(sys.argv)
     window = QWidget()
     window.setWindowTitle('Flashing Stim 1')
