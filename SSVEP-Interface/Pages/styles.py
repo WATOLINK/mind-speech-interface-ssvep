@@ -6,6 +6,12 @@ toggleButtonStyle = """
         font-size: 72px;
         margin: 10% 50%;
         width: 349px;
+        height: 250px;
+        color: #2C2C2C;
+    }
+    
+    QLabel {
+        font-size: 72px;
     }
 
     QPushButton:checked {
@@ -39,5 +45,6 @@ windowStyle = """
 stimuliStyle = """
     min-width: 250px;
     min-height: 250px;
+    margin: -50%;
 """
 

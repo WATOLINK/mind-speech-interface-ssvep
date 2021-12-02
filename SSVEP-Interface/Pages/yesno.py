@@ -13,16 +13,23 @@ class YesNoWindow(QtWidgets.QWidget):
     def __init__(self, parent):
         super().__init__(parent)
 
+        self.no_label = QtWidgets.QLabel("No")
+        self.yes_label = QtWidgets.QLabel("Yes")
+        self.yes_label.setStyleSheet(toggleButtonStyle)
+        self.no_label.setStyleSheet(toggleButtonStyle)
+
         #This button is not shown to the user, only exists so that the yes/no buttons can be deselected
         self.default_toggle = QtWidgets.QPushButton("")
         self.default_toggle.setCheckable(True)
 
         self.yes_toggle = QtWidgets.QPushButton("Yes")
+        # self.yes_toggle = QtWidgets.QPushButton()
         self.yes_toggle.setCheckable(True)
         # yes_toggle.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.yes_toggle.setStyleSheet(toggleButtonStyle)
 
         self.no_toggle = QtWidgets.QPushButton("No")
+        # self.no_toggle = QtWidgets.QPushButton()
         self.no_toggle.setCheckable(True)
         # no_toggle.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.no_toggle.setStyleSheet(toggleButtonStyle)
@@ -34,9 +41,13 @@ class YesNoWindow(QtWidgets.QWidget):
 
         layout = QtWidgets.QGridLayout()
 
+
+
         layout.addWidget(self.yes_toggle, 0, 0)
         layout.addWidget(self.no_toggle, 0, 1)
 
+        layout.addWidget(self.yes_label, 0, 0)
+        layout.addWidget(self.no_label, 0, 1)
         # Buttons used to test stimuli detect functions
 
         # self.y = QtWidgets.QPushButton("y")
@@ -56,14 +67,17 @@ class YesNoWindow(QtWidgets.QWidget):
         w2.setStyleSheet(stimuliStyle)
         w2.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
-        layout.addWidget(w1, 1, 0, alignment=Qt.AlignCenter)
-        layout.addWidget(w2, 1, 1, alignment=Qt.AlignCenter)
+        layout.addWidget(w1, 0, 0, alignment=Qt.AlignCenter)
+        layout.addWidget(w2, 0, 1, alignment=Qt.AlignCenter)
 
 
         self.confirm_button = QtWidgets.QPushButton('Confirm')
         self.confirm_button.setStyleSheet(confirmButtonStyle)
         layout.addWidget(self.confirm_button, 2, 1)
         self.confirm_button.clicked.connect(self.confirm_detect)
+
+        self.yes_label.raise_()
+        self.no_label.raise_()
 
         self.setLayout(layout)  
 
