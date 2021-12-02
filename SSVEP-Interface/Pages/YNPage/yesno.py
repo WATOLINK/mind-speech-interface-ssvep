@@ -4,12 +4,12 @@ from PyQt5.QtGui import QFont
 from Pages.stimuli import Flash
 
 
-class YesNoWindow(QtWidgets.QWidget):  
+class YesNoWindow(QtWidgets.QWidget):
 
     def __init__(self, parent):
         super().__init__(parent)
 
-        #This button is not shown to the user, only exists so that the yes/no buttons can be deselected
+        # This button is not shown to the user, only exists so that the yes/no buttons can be deselected
         self.default_toggle = QtWidgets.QPushButton("")
         self.default_toggle.setCheckable(True)
 
@@ -39,10 +39,10 @@ class YesNoWindow(QtWidgets.QWidget):
         # self.n.clicked.connect(self.no_detect)
         # layout.addWidget(self.y, 2, 0)
         # layout.addWidget(self.n, 2, 2)
-        
-        #add stims
-        w1 = Flash(400,0,0,255,1)
-        w2 = Flash(50,255,0,0,1)
+
+        # add stims
+        w1 = Flash(400, 0, 0, 255, 1)
+        w2 = Flash(50, 255, 0, 0, 1)
         layout.addWidget(w1, 1, 0)
         layout.addWidget(w2, 1, 1)
 
@@ -51,23 +51,23 @@ class YesNoWindow(QtWidgets.QWidget):
         layout.addWidget(self.confirm_button, 2, 1)
         self.confirm_button.clicked.connect(self.confirm_detect)
 
-        self.setLayout(layout)  
+        self.setLayout(layout)
 
-    #Following functions are called when a yes, no, or confirm stimuli is detected by event loop (not implemented yet)
+    # Following functions are called when a yes, no, or confirm stimuli is detected by event loop (not implemented yet)
 
     def yes_detect(self):
         self.yes_toggle.setChecked(True)
-    
+
     def no_detect(self):
         self.no_toggle.setChecked(True)
 
     def confirm_detect(self):
         y_check = self.yes_toggle.isChecked()
         n_check = self.no_toggle.isChecked()
-        if (y_check==True):
+        if (y_check == True):
             self.default_toggle.setChecked(True)
-            #Do what we want when yes is checked and confirm is clicked
+            # Do what we want when yes is checked and confirm is clicked
 
-        elif (n_check==True):
+        elif (n_check == True):
             self.default_toggle.setChecked(True)
-            #Do what we want when no is checked and confirm is clicked
+            # Do what we want when no is checked and confirm is clicked

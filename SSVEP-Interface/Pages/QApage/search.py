@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QCompleter, QTextEdit
 from PyQt5.QtGui import QTextCursor, QKeySequence, QFont
 
-from Pages.completer import AutoCompleter
+from Pages.QAPage.completer import AutoCompleter
 
 import string
 
@@ -16,8 +16,8 @@ class SearchWidget(QTextEdit):
         font = QFont()
         font.setPointSize(12)
         self.setFont(font)
-        self.setMaximumHeight(30)
-        self.setAlignment(Qt.AlignLeft)
+        self.setFixedHeight(35)
+        self.setAlignment(Qt.AlignRight)
         self.setAcceptRichText(False)
 
         # create auto completer
@@ -51,6 +51,11 @@ class SearchWidget(QTextEdit):
         QTextEdit.focusInEvent(self, event)
 
     def keyPressEvent(self, event):
+
+        # prevent copy paste
+        if event in (QtGui.QKeySequence.Copy, QtGui.QKeySequence.Paste):
+            return
+
         tc = self.textCursor()
         if event.key() == Qt.Key_Tab:
             if self.completer.getSuggestion().strip() != "":
@@ -70,6 +75,7 @@ class SearchWidget(QTextEdit):
 
         if event.key() == Qt.Key_Space:
             self.completer.reset()
+            tc.removeSelectedText()
             tc.setKeepPositionOnInsert(False)
             tc.movePosition(QTextCursor.EndOfWord)
             tc.insertText(" ")

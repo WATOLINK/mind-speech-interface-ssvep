@@ -1,12 +1,10 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QGridLayout
+from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
+from Pages.YNPage.yesno import YesNoWindow
 
-from Pages.search import SearchWidget
 
-
-# This page is not part of the finished application, just a place to put WIP items that does not yet have a place on other pages
-class HomeWidget(QWidget):
+class TrueAndFalseWidget(QWidget):
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -17,28 +15,25 @@ class HomeWidget(QWidget):
     # If you are changing the functionalities of the page, you will most likely want to alter this method
     def _createLayout(self, parent):
         # Creates a verticle template that formats whatever widgets are added to it
-        # layout = QHBoxLayout()
-
-        layout = QGridLayout()
+        layout = QHBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(100, 100, 100, 100)
         centerText = self._createCenterText()
-        button1 = self._createBackButton(text=">")
+        button1 = self._createBackButton(text="<")
+        button2 = self._createBackButton(text=">")
         button1.clicked.connect(parent.showQA)
-
-        searchWidget = SearchWidget()
-
-        layout.addWidget(centerText, 0, 0)
-        layout.addWidget(searchWidget, 1, 0)
-        layout.addWidget(button1, 0, 1, 1, 1)
+        button2.clicked.connect(parent.showMC)
+        layout.addWidget(button1)
+        yesNoWidget = YesNoWindow(self)
+        layout.addWidget(yesNoWidget)
+        layout.addWidget(button2)
         layout.setAlignment(Qt.AlignVCenter)
-        layout.setSpacing(5)
         return layout
 
     def _createCenterText(self):
-        centertext = QLabel("Home Page, Add Search Widget here")
+        centertext = QLabel("True And False Page!")
         centertext.setMaximumHeight(100)
-        centertext.setFont(QFont('Arial', 20))
+        centertext.setFont(QFont('Arial', 32))
         centertext.setAlignment(Qt.AlignCenter)
         return centertext
 

@@ -13,9 +13,10 @@ class MultipleChoiceWidget(QWidget):
     # Method creates the layout of the page, called in the init function to maintain clean and readable code
     # If you are changing the functionalities of the page, you will most likely want to alter this method
     def _createLayout(self, parent):
-        layout = QHBoxLayout() # Creates a verticle template that formats whatever widgets are added to it
+        # Creates a verticle template that formats whatever widgets are added to it
+        layout = QHBoxLayout()
         layout.setSpacing(0)
-        layout.setContentsMargins(100, 100, 100, 100)  
+        layout.setContentsMargins(100, 100, 100, 100)
 
         button1 = self._createBackButton(text="<")
         button1.clicked.connect(parent.showTF)
@@ -36,45 +37,40 @@ class MultipleChoiceWidget(QWidget):
 
         return layout
 
-
     def _createCentralLayout(self):
         centralLayout = QVBoxLayout()
         return centralLayout
-
 
     def _createButtonLayout(self):
         self.buttonGroup = QButtonGroup()
         buttonLayout = QGridLayout()
         buttons = {'A': (0, 0), 'B': (0, 1), 'C': (0, 2),
-                    'D': (1,0), 'E': (1,1), 'F': (1,2)}
-        
+                   'D': (1, 0), 'E': (1, 1), 'F': (1, 2)}
+
         for buttonText, pos in buttons.items():
             button = QPushButton(buttonText)
             button.setCheckable(True)
             button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             buttonLayout.addWidget(button, pos[0], pos[1])
             self.buttonGroup.addButton(button)
-            
+
         return buttonLayout
 
-
     # Confirm selection callback
+
     def _handleConfirm(self):
         self.previewText.setText(self.buttonGroup.checkedButton().text())
-
 
     def _createConfirmButton(self):
         confirmButton = QPushButton("Confirm")
         confirmButton.clicked.connect(self._handleConfirm)
         return confirmButton
 
-
     def _createPreviewText(self):
         previewText = QLabel()
         previewText.setFont(QFont('Arial', 32))
         return previewText
-    
-    
+
     def _createBackButton(self, text):
         button = QPushButton(text)
         button.setMinimumHeight(150)

@@ -29,7 +29,6 @@ class AutoCompleter(QCompleter, metaclass=Singleton):
         self.suggestion = ""
 
     def setHighlighted(self, text):
-        # print("autcomplete suggestion: ", text)
         self.suggestion = text
 
     def getSuggestion(self):
