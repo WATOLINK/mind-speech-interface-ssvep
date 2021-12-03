@@ -5,9 +5,9 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QApplication, QStackedWidget
 from PyQt5.QtWidgets import QMainWindow
 
-from Pages.qa import QuestionAndAnswerWidget
-from Pages.mc import MultipleChoiceWidget
-from Pages.absolute import TrueAndFalseWidget
+from Pages.QAPage.qa import QuestionAndAnswerWidget
+from Pages.MCPage.mc import MultipleChoiceWidget
+from Pages.YNPage.absolute import TrueAndFalseWidget
 
 from Pages.styles import windowStyle
 
