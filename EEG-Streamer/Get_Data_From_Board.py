@@ -1,6 +1,5 @@
-import argparse
+import argparse, socket, pickle
 import time, sys
-import socket
 import numpy as np
 import pandas as pd
 from collections import defaultdict
@@ -9,8 +8,6 @@ from brainflow.board_shim import BoardShim, BrainFlowInputParams
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
 from io import StringIO
 from io import BytesIO
-
-
 
 HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
@@ -24,12 +21,16 @@ def data_stream(board):
     data=''   
     reached_fifty_data = False
     while not reached_fifty_data:
-        if board.get_board_data_count() > 50:
+        if board.get_board_data_count() ==  50:
         # try if board.get_board_data_count() == 50:
-            data = board.get_board_data().transpose()[:, [2,18]]
+            data = board.get_board_data()
+            print(data.shape, '1')
+            data = data.transpose()
+            print(data.shape, '2')
+            data = data[:,2:18] 
+            print(data.shape, '3')
             reached_fifty_data = True
-        else:
-            time.sleep(1)
+            break
 
     return data
 
@@ -96,21 +97,26 @@ if __name__ == "__main__":
     board.prepare_session()
     board.start_stream(45000, args.streamer_params)
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((HOST, PORT))
-        s.listen()
-        conn, addr = s.accept()
-        with conn:
-            print('Connected by', addr)
-            t = time.time()
-            #while (time.time() - t < 10): 
-            out = ndarray2str(data_stream(board))
-            conn.sendall(out)
-            print('image sent')
-            
-            resp = conn.recv(1024)
-            #if not dataout:
-               #print("poop")
-                
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((HOST, PORT))
+    s.listen()
+    conn, addr = s.accept()
+    
+    with conn:
+        
+        print('Connected by', addr)
+        #t = time.time()
+        #while (time.time() - t < 10): 
+        
+        sample     = data_stream( board )
+        sample_out = pickle.dumps( sample )
+        conn.sendall( sample_out )
+        print('Data sent')
+        print(sample.shape, '\n')
+
+        
+        #if not dataout:
+           #print("poop")
+    s.close()        
     board.stop_stream()
     board.release_session()
