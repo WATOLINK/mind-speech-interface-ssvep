@@ -12,7 +12,7 @@ conn, addr = s.accept()
 print('Connected') 
 with conn:
     data_string = pickle.dumps(arr)
-    conn.send(data_string)
+    conn.send(b'Fukv')
     print('sent')
 
     

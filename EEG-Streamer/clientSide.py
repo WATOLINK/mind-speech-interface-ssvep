@@ -1,24 +1,34 @@
+from time import time
 import numpy as np
-from io import StringIO
-from io import BytesIO
-import scipy.io as sio
-from sklearn.cross_decomposition import CCA
+import pandas as pd
 import socket, pickle
 
 
-HOST = '127.0.0.1'  # The server's hostname or IP address
-PORT = 65432        # The port used by the server
+# Constants that must match constant declaration in sembedded script
+HOST = '127.0.0.1'  # Server hostname or IP
+PORT = 65432        # Port used by server
 
-
+# Socket initialization 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((HOST, PORT))
+s.connect( (HOST, PORT) )
 
+data = []
 while True:
     sample = s.recv(100000)
-
-    if not sample: break
-    data = pickle.loads(sample)
     
-print('Data received\n')
-print(data, '\n\n')
-print(data.shape)
+    # If sample is recevied
+    if sample: 
+        data = (pickle.loads(sample))
+        if type(data) == type(''):
+            break
+        
+        
+
+'''
+col = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+for i in range(len(data)):
+    data[i] = pd.DataFrame(data[i], columns=col)
+df = pd.concat(data)#, ignore_index=True)
+print('DONE DONE DONE')
+df.to_csv('full.csv')
+'''

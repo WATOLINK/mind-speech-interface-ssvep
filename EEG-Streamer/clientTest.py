@@ -9,5 +9,9 @@ while True:
     data = s.recv(100000)
     if not data: break
     data_arr = pickle.loads(data)
+    print(data_arr)
+    print(type(data_arr))
+    data = data.decode('utf-8')
+    print('\n\n', data)
 s.close()
 print (data_arr.shape)
