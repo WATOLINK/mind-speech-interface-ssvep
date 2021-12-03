@@ -1,31 +1,34 @@
+from time import time
 import numpy as np
-from io import StringIO
-from io import BytesIO
-import scipy.io as sio
-from sklearn.cross_decomposition import CCA
-import socket
+import pandas as pd
+import socket, pickle
 
 
-HOST = '127.0.0.1'  # The server's hostname or IP address
-PORT = 65432        # The port used by the server
+# Constants that must match constant declaration in sembedded script
+HOST = '127.0.0.1'  # Server hostname or IP
+PORT = 65432        # Port used by server
 
-def str2ndarray(a):
-        # Specify your data type, mine is numpy float64 type, so I am specifying it as np.float64
-        a = np.frombuffer(a)
+# Socket initialization 
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect( (HOST, PORT) )
 
-        return a
+data = []
+while True:
+    sample = s.recv(100000)
+    
+    # If sample is recevied
+    if sample: 
+        data = (pickle.loads(sample))
+        if type(data) == type(''):
+            break
+        
+        
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.connect((HOST, PORT))
-    s.sendall(b'Hello, world')
-    #ultimate_buffer=''
-    while True:
-        receiving_buffer = s.recv(1024)
-        print('test')
-        #receiving_buffer = receiving_buffer.decode()
-        if not receiving_buffer: break
-        #ultimate_buffer += receiving_buffer
-        image = str2ndarray(receiving_buffer)
-
-    print('\nframe received')
-    print(image)
+'''
+col = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+for i in range(len(data)):
+    data[i] = pd.DataFrame(data[i], columns=col)
+df = pd.concat(data)#, ignore_index=True)
+print('DONE DONE DONE')
+df.to_csv('full.csv')
+'''
