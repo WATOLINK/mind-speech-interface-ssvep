@@ -2,8 +2,9 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QHBoxLayout, QPushButton, QWidget
 from Pages.styles import navigationButtonStyle
-from Pages.QApage.keyboard import KeyboardInput
+from Pages.QAPage.keyboard import KeyboardInput
 from PyQt5.QtWidgets import QHBoxLayout, QPushButton, QWidget
+
 
 class QuestionAndAnswerWidget(QWidget):
 
@@ -18,7 +19,7 @@ class QuestionAndAnswerWidget(QWidget):
         # Creates a verticle template that formats whatever widgets are added to it
         layout = QHBoxLayout()
         layout.setSpacing(0)
-        layout.setContentsMargins(100, 100, 100, 100)    
+        layout.setContentsMargins(100, 100, 100, 100)
         centerWidget = KeyboardInput()
         button2 = self._createBackButton(text="→")
         button2.clicked.connect(parent.showTF)
