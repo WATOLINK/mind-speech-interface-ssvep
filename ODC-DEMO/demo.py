@@ -7,16 +7,20 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
 )
 from PyQt5.QtCore import QRect
-import threading
-import random
-import time
-import datetime
+import sys, random, threading, datetime, time
 import circle_stimuli as Stim
-import sys
-import os
+import numpy as np
+import pandas as pd
 
+from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
 
-def thread_function(stop):
+# Constants that must match constant declaration in sembedded script
+HOST = '127.0.0.1'  # Server hostname or IP
+PORT = 65432        # Port used by server
+col = ['Count','Ch1','Ch2','Ch3','Ch4','Ch5','Ch6','Ch7','Ch8','Ch9','Ch10','Ch11','Ch12','Ch13','Ch14','Ch15','Ch16']
+data = []
+
+def thread_function(stop, board, args):
     f = open("ODC-DEMO/"+ filename, 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()}\n\n")
     print("starting")
@@ -76,14 +80,22 @@ def thread_function(stop):
 
             # start simulation period (all stimulis flashing)
             currentStim.toggleIndicator(False)
+
+            
             for x in range(12):
                 stim[x].toggleOn()
-
+                
+            board.start_stream(45000, args)
             time.sleep(5)  # set length of simulation period (5s)
-
+    
+            data.append(board.get_board_data().transpose()[:,1:17])   # get all data and remove it from internal buffer            
+            board.stop_stream()
+  
             # turn off all stimuli and prepare for next trial
             for x in range(12):
                 stim[x].toggleOff()
+
+            
 
         # just for testing otherwise the thread keeps running if you close the window
         if stop():
@@ -99,7 +111,11 @@ def thread_function(stop):
     print("all trials finished")
     f.write("Session finished.\n\n")
     f.close()
-
+    
+    for i in range(len(data)):
+        data[i] = pd.DataFrame(data[i], columns=col)
+    df = pd.concat(data)
+    df.to_csv(filename + ".csv")
 
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
@@ -162,6 +178,9 @@ class Stimuli(QWidget):
 
 
 if __name__ == '__main__':
+
+
+    # File and GUI config
     x = datetime.datetime.now()
 
     global filename 
@@ -186,16 +205,21 @@ if __name__ == '__main__':
     layout.addWidget(grid)
     window.setLayout(layout)
 
+    # BCI Config
+    board_details = Cyton_Board_Config(True)
+
     stopThread = False
-    x = threading.Thread(target=thread_function, args=(lambda: stopThread,))
+    x = threading.Thread(target=thread_function, args=(lambda: stopThread, board_details[0], board_details[1]))
     x.start()
 
     window.resize(1600, 1200) # initial window size
     window.show()
-
+    
     try:
+        Cyton_Board_End()
         sys.exit(app.exec_())
     except SystemExit:
         stopThread = True
         file.close()
         print('Closing Window...')
+
