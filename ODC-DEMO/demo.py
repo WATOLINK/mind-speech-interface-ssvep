@@ -7,32 +7,35 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
 )
 from PyQt5.QtCore import QRect
-import threading
-import random
-import time
-import datetime
+import sys, random, threading, datetime, time
 import circle_stimuli as Stim
-import sys
+import numpy as np
+import pandas as pd
 import os
 
+from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
 
-def thread_function(stop):
-    f = open("ODC-DEMO/"+ filename, 'a')  # modify depending on CWD
+# Constants that must match constant declaration in sembedded script
+HOST = '127.0.0.1'  # Server hostname or IP
+PORT = 65432        # Port used by server
+col = ['Count','Ch1','Ch2','Ch3','Ch4','Ch5','Ch6','Ch7','Ch8','Ch9','Ch10','Ch11','Ch12','Ch13','Ch14','Ch15','Ch16']
+data = []
+
+def thread_function(stop, board, args):
+    f = open("ODC-DEMO/demo_data" + filename + ".txt", 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()}\n\n")
-    print("starting")
 
     time.sleep(2)
-    startDelay = 10
+    startDelay = 20
     for x in range(startDelay):
         label.setText(labelTxt(f"Starting in {str(startDelay-x)}"))
         time.sleep(1)
-
     order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
-    for trial in range(2):  # number of trials (5 times)
+    for trial in range(1):  # number of trials (5 times)
         print("=====Trial "+str(trial+1)+"=====")
         f.write("\n=====Trial "+str(trial+1)+"=====\n")
-
+        
         # each trial will have a different order of stimulus
         random.shuffle(order)
         print(order)
@@ -76,14 +79,22 @@ def thread_function(stop):
 
             # start simulation period (all stimulis flashing)
             currentStim.toggleIndicator(False)
+
+            
             for x in range(12):
                 stim[x].toggleOn()
-
+                
+            board.start_stream(45000, args)
             time.sleep(5)  # set length of simulation period (5s)
-
+    
+            data.append(board.get_board_data().transpose()[:,0:17])   # get all data and remove it from internal buffer            
+            board.stop_stream()
+  
             # turn off all stimuli and prepare for next trial
             for x in range(12):
                 stim[x].toggleOff()
+
+            
 
         # just for testing otherwise the thread keeps running if you close the window
         if stop():
@@ -99,7 +110,13 @@ def thread_function(stop):
     print("all trials finished")
     f.write("Session finished.\n\n")
     f.close()
+    
+    for i in range(len(data)):
+        data[i] = pd.DataFrame(data[i], columns=col)
+    df = pd.concat(data)
+    df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv")
 
+    Cyton_Board_End(board)
 
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
@@ -114,7 +131,7 @@ class Stimuli(QWidget):
 
         global stim
         stim = []
-
+        print("Test")
         # white stims
         stim.append(Stim.CircleFlash(20, 255, 255, 255, 1))
         stim.append(Stim.CircleFlash(18, 255, 255, 255, 2))
@@ -152,22 +169,23 @@ class Stimuli(QWidget):
         l = min(self.width(), self.height())
         center = self.rect().center()
 
-        rect = QRect(0, 0, l*(5/3), l) # 5 x 3 ratio
+        rect = QRect(0, 0, int(l*(5/3)), l) # 5 x 3 ratio
         rect.moveCenter(center)
         self.frame.setGeometry(rect)
 
-        self.gridLayout.setColumnMinimumWidth(1, l/12) # 3 additional columns fill space to make it a 4x3 grid 
-        self.gridLayout.setColumnMinimumWidth(3, l/12)
-        self.gridLayout.setColumnMinimumWidth(5, l/12)
+        self.gridLayout.setColumnMinimumWidth(1, int(l/12)) # 3 additional columns fill space to make it a 4x3 grid 
+        self.gridLayout.setColumnMinimumWidth(3, int(l/12))
+        self.gridLayout.setColumnMinimumWidth(5, int(l/12))
 
 
 if __name__ == '__main__':
+    # File and GUI config
     x = datetime.datetime.now()
 
     global filename 
-    filename =  f"{x.strftime('%j')}_{x.strftime('%Y')}_{x.strftime('%f')}.txt" #day of year, year, millisecond
+    filename =  f"{x.strftime('%j')}_{x.strftime('%Y')}_{x.strftime('%f')}" #day of year, year, millisecond
 
-    file = open("ODC-DEMO/"+ filename, "x") # create log 
+    file = open("ODC-DEMO/demo_data/" + filename + ".txt", "x") # create log 
 
     app = QApplication(sys.argv)
     window = QWidget()
@@ -186,16 +204,20 @@ if __name__ == '__main__':
     layout.addWidget(grid)
     window.setLayout(layout)
 
+    # BCI Config
+    board_details = Cyton_Board_Config(False)
+
     stopThread = False
-    x = threading.Thread(target=thread_function, args=(lambda: stopThread,))
+    x = threading.Thread(target=thread_function, args=(lambda: stopThread, board_details[0], board_details[1]))
     x.start()
 
     window.resize(1600, 1200) # initial window size
     window.show()
-
+    
     try:
         sys.exit(app.exec_())
     except SystemExit:
         stopThread = True
         file.close()
         print('Closing Window...')
+
