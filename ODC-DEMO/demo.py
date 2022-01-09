@@ -22,7 +22,7 @@ col = ['Count','Ch1','Ch2','Ch3','Ch4','Ch5','Ch6','Ch7','Ch8','Ch9','Ch10','Ch1
 data = []
 
 def thread_function(stop, board, args):
-    f = open("ODC-DEMO/demo_data" + filename + ".txt", 'a')  # modify depending on CWD
+    f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()}\n\n")
 
     time.sleep(2)
