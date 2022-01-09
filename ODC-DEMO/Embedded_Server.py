@@ -75,6 +75,8 @@ def Cyton_Board_Config(purpose):
     # Start Acquisition
     board.prepare_session()
 
+    # if purpose=true we're running the whole thing
+    # else we're just running the demo
     if purpose:
         board.start_stream(45000, args.streamer_params)
         return board
@@ -89,8 +91,7 @@ def Socket_Config():
     return sock
 
 def Cyton_Board_End(board):
-    b.stop_stream()
-    b.release_session()
+    board.release_session()
     return
 
 def Socket_End(sock):
