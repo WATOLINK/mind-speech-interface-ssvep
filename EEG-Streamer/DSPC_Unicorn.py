@@ -30,4 +30,4 @@ for i in range(len(data)):
     data[i] = pd.DataFrame(data[i], columns=col)
 df = pd.concat(data)#, ignore_index=True)
 print('DONE DONE DONE')
-df.to_csv('full.csv')
+df.to_csv('fullUnicorn.csv')

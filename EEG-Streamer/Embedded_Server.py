@@ -21,7 +21,7 @@ def data_stream(board, conn):
     ti = time()
     while time() - ti < 10:
         
-        if board.get_board_data_count() ==  50:
+        if board.get_board_data_count() >=  125:
 
             data = board.get_board_data().transpose()[:,1:17] 
             sample_out = pickle.dumps(data)
