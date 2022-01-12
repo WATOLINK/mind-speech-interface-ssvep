@@ -1,0 +1,8 @@
+PyQT5
+qtwidgets
+spacy
+SpeechRecognition
+numpy
+pandas
+openai
+python-dotenv
