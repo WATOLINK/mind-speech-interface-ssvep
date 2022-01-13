@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QGridLayout, QWidget, QVBoxLayout
+import PyQt5
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QGridLayout, QWidget, QVBoxLayout, QHBoxLayout
 from PyQt5.QtCore import Qt
 from pynput.keyboard import Key, Controller
 import sys
@@ -47,25 +48,45 @@ class KeyboardInput(QMainWindow):
         self.label.setStyleSheet("border: 1px solid black; font-weight: 600;")
         self.generalLayout.addWidget(self.label)
 
-        self._createDisplay()
+        # create display and backspace
+        self.topRowLayout = QGridLayout()
+        self.backspaceKey = QPushButton(self)  # backspace buttoon
+        self.backspaceKey.setText("Backspace")
+        # ADD: connect to function to remove text
+        self.backspaceKey.setFixedWidth(400)
+        self.topRowLayout.addWidget(self.backspaceKey, 0, 1)
+        self._createDisplay()  # display
+
+        self.generalLayout.addLayout(self.topRowLayout)
 
         # Create the keyboard buttons
         self._createButtons()
 
+        # create toggle and space button
+        self.bottomRowLayout = QHBoxLayout()
+        self.filler = QPushButton(self)  # empty filler 
+        self.filler.setFixedWidth(200)
+        self.bottomRowLayout.addWidget(self.filler, alignment=Qt.AlignLeft)
+        self.spaceKey = QPushButton(self)  # space buttoon
+        self.spaceKey.setText("Space")
+        self.spaceKey.setFixedWidth(200)
+        self.spaceKey.clicked.connect(lambda: self.setDisplayText(" ")) 
+        self.bottomRowLayout.addWidget(self.spaceKey, alignment=Qt.AlignCenter)
         # Create the toggle/mode switch
         self.toggle = QPushButton(self)
         self.toggle.setText("Toggle Mode")
         self.toggle.clicked.connect(self.toggleClick)
         self.toggle.setFixedWidth(200)
+        self.bottomRowLayout.addWidget(self.toggle, alignment=Qt.AlignRight)
 
-        self.generalLayout.addWidget(self.toggle, alignment=Qt.AlignRight)
+        self.generalLayout.addLayout(self.bottomRowLayout)
 
     def _createDisplay(self):
         """Create the display."""
         # Create the display widget
         self.display = SearchWidget()
         # Add the display to the general layout
-        self.generalLayout.addWidget(self.display)
+        self.topRowLayout.addWidget(self.display, 0, 0)
 
     def _createButtons(self):
         """Create the keyboard buttons."""
@@ -118,10 +139,13 @@ class KeyboardInput(QMainWindow):
             # upon any keyboard presses, return to alpha view and set display
             self.buttons[btnText].clicked.connect(self.setDisplayText)
 
-    def setDisplayText(self):
+    def setDisplayText(self, inputText = ""): # optional argument if we need to type key directly
         """Set display's text."""
-        self.sending_button = self.sender()
-        text = self.sending_button.text()
+        if inputText == "": 
+            self.sending_button = self.sender()
+            text = self.sending_button.text()
+        else:
+            text = inputText
 
         self.display.setFocus()
 
