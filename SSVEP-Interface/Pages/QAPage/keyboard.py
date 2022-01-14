@@ -52,7 +52,7 @@ class KeyboardInput(QMainWindow):
         self.topRowLayout = QGridLayout()
         self.backspaceKey = QPushButton(self)  # backspace buttoon
         self.backspaceKey.setText("Backspace")
-        # ADD: connect to function to remove text
+        self.backspaceKey.clicked.connect(lambda: self.setDisplayText("backspaceCMD")) 
         self.backspaceKey.setFixedWidth(400)
         self.topRowLayout.addWidget(self.backspaceKey, 0, 1)
         self._createDisplay()  # display
@@ -139,20 +139,23 @@ class KeyboardInput(QMainWindow):
             # upon any keyboard presses, return to alpha view and set display
             self.buttons[btnText].clicked.connect(self.setDisplayText)
 
-    def setDisplayText(self, inputText = ""): # optional argument if we need to type key directly
+    def setDisplayText(self, inputText=""): # optional argument if we need to type key directly
         """Set display's text."""
-        if inputText == "": 
-            self.sending_button = self.sender()
-            text = self.sending_button.text()
-        else:
+        self.sending_button = self.sender()
+        text = self.sending_button.text()
+        if inputText:
             text = inputText
-
+        # print(text)
         self.display.setFocus()
 
         keyboard = Controller()
-        for key in text:
-            keyboard.press(key)
-            keyboard.release(key)
+        if text == "backspaceCMD":
+            keyboard.press(Key.backspace)
+            keyboard.release(Key.backspace)
+        else:
+            for key in text:
+                keyboard.press(key)
+                keyboard.release(key)
 
         # return to keyboard view
         self.setAlphaMode()
