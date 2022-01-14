@@ -9,8 +9,9 @@ from PyQt5.QtWidgets import (
     QWidget,
     QHBoxLayout,
     QOpenGLWidget,
+    QSizePolicy
 )
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Qt
 
 from PyQt5.QtGui import QOpenGLVersionProfile
 
@@ -30,6 +31,7 @@ class CircleFlash (QOpenGLWidget):
         self.gValue = g
         self.bValue = b
         self.freqHertz = freqHz
+        self.setAttribute(Qt.WA_AlwaysStackOnTop)
 
         timer = QTimer(self, interval=(1000/(freqHz*2)), timerType = 0)  # using Qt.PreciseTimer, which is accurate to 1ms
         #freq is x2 since the freq needed is by # of times on, instead of times changed between on and 
@@ -40,11 +42,16 @@ class CircleFlash (QOpenGLWidget):
         # set up GL
         version_profile  = QOpenGLVersionProfile() 
         version_profile.setVersion(2,0)
+        
         self.gl = self.context().versionFunctions(version_profile)
+        
         self.gl.initializeOpenGLFunctions()
+        self.gl.glClearColor(0.0, 0.0, 0.0, 0.0)
 
         # depth testing 
         self.gl.glEnable(self.gl.GL_DEPTH_TEST)
+
+
 
     def paintGL(self):
         if self.on:
@@ -53,7 +60,7 @@ class CircleFlash (QOpenGLWidget):
                 sides = 64    
 
                 # radius decides the percentage of the widget the circle occupies
-                radius = 1   
+                radius = 1
 
                 # set circle colour
                 self.gl.glColor3f(self.rValue/255, self.gValue/255, self.bValue/255);
@@ -68,7 +75,7 @@ class CircleFlash (QOpenGLWidget):
 
             self.flag = not self.flag
         else:
-            self.gl.glClearColor(0, 0, 0, 1) # black
+            self.gl.glClearColor(0.0, 0.0, 0.0, 0.0)
     
     def toggleOn(self): 
         self.on = True
