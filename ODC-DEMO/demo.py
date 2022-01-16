@@ -18,6 +18,13 @@ from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
 # Constants that must match constant declaration in sembedded script
 HOST = '127.0.0.1'  # Server hostname or IP
 PORT = 65432        # Port used by server
+
+# Variables to change parameters of the test
+START_DELAY_S = 5 # Seconds
+NUM_TRIALS = 1
+INDICATOR_TIME_VALUE_S = 5 # Seconds
+TRIAL_BREAK_TIME = 10
+
 col = ['Count','Ch1','Ch2','Ch3','Ch4','Ch5','Ch6','Ch7','Ch8','Ch9','Ch10','Ch11','Ch12','Ch13','Ch14','Ch15','Ch16']
 data = []
 
@@ -26,13 +33,13 @@ def thread_function(stop, board, args):
     f.write(f"Session at {datetime.datetime.now()}\n\n")
 
     time.sleep(2)
-    startDelay = 20
+    startDelay = START_DELAY_S
     for x in range(startDelay):
         label.setText(labelTxt(f"Starting in {str(startDelay-x)}"))
         time.sleep(1)
     order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
-    for trial in range(1):  # number of trials (5 times)
+    for trial in range(NUM_TRIALS):  # number of trials (5 times)
         print("=====Trial "+str(trial+1)+"=====")
         f.write("\n=====Trial "+str(trial+1)+"=====\n")
         
@@ -69,11 +76,9 @@ def thread_function(stop, board, args):
             f.write(f"{currentStim.id:02} " + colorCode +
                     f" {currentStim.freqHertz:02}\n")
 
-            indicatorTime = 5
-
-            for x in range(int(indicatorTime)):
+            for x in range(int(INDICATOR_TIME_VALUE_S)):
                 label.setText(
-                    labelTxt(f"Keep you eyes where the red circle is. ({indicatorTime-x})"))
+                    labelTxt(f"Keep you eyes where the red circle is. ({INDICATOR_TIME_VALUE_S-x})"))
                 time.sleep(1)
             label.setText(labelTxt("Keep you eyes where the red circle was."))
 
@@ -100,11 +105,9 @@ def thread_function(stop, board, args):
         if stop():
             break
 
-        trialBreakTime = 120
-
-        for x in range(int(trialBreakTime)):
+        for x in range(int(TRIAL_BREAK_TIME)):
             label.setText(
-                labelTxt(f"Time before next trial: ({trialBreakTime-x})"))
+                labelTxt(f"Time before next trial: ({TRIAL_BREAK_TIME-x})"))
             time.sleep(1)
 
     print("all trials finished")
