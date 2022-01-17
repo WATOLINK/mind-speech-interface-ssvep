@@ -36,6 +36,12 @@ class KeyboardInput(QMainWindow):
             self.sending_button = self.sender()
             letters = self.sending_button.text()
             self.setChars(letters)
+    
+    def word_keyboard_click(self):
+        if self.label.text() == "word mode":
+            self.sending_button = self.sender()
+            self.setDisplayText(setWord=True)
+
 
     # create UI elements
     def initUI(self):
@@ -92,10 +98,12 @@ class KeyboardInput(QMainWindow):
         self.label.setText("word mode")
         # list of suggested words (given by OpenAI integration)
         self.wordLabels = ["Hi", "Bruh", "I'm ok",
-                           "Good, and you?", "Duck Duck Goose ", "MIT of the North"]
+                           "Good, and you?", "Duck Duck Goose", "MIT of the North"]
         i = 0
         for btnText in self.buttons.keys():
             self.buttons[btnText].setText(self.wordLabels[i])
+            self.buttons[btnText].clicked.disconnect()
+            self.buttons[btnText].clicked.connect(self.word_keyboard_click)
             i += 1
 
     def setAlphaMode(self):  # set button text to alphabet
@@ -118,7 +126,7 @@ class KeyboardInput(QMainWindow):
             # upon any keyboard presses, return to alpha view and set display
             self.buttons[btnText].clicked.connect(self.setDisplayText)
 
-    def setDisplayText(self):
+    def setDisplayText(self, setWord=False):
         """Set display's text."""
         self.sending_button = self.sender()
         text = self.sending_button.text()
@@ -131,8 +139,12 @@ class KeyboardInput(QMainWindow):
             keyboard.release(key)
 
         # return to keyboard view
-        self.setAlphaMode()
-        self.toggle.setText("Toggle Mode")
+        if not setWord:
+            self.setAlphaMode()
+            self.toggle.setText("Toggle Mode")
+        else:
+            keyboard.press(" ")
+            keyboard.release(" ")
 
 
 if __name__ == '__main__':
