@@ -24,6 +24,7 @@ class KeyboardInput(QMainWindow):
 
         self.initUI()
 
+    """ signals and events """
     def toggleClick(self):
         if self.label.text() == "keyboard mode":
             self.setWordMode()
@@ -42,7 +43,6 @@ class KeyboardInput(QMainWindow):
         if self.label.text() == "word mode":
             self.sending_button = self.sender()
             self.setDisplayText(setWord=True)
-
 
     # create UI elements
     def initUI(self):
@@ -147,9 +147,8 @@ class KeyboardInput(QMainWindow):
             # upon any keyboard presses, return to alpha view and set display
             self.buttons[btnText].clicked.connect(self.setDisplayText)
 
-
-    def setDisplayText(self, inputText="",setWord=False): # optional argument if we need to type key directly
-        """Set display's text."""
+    """Set display's text."""
+    def setDisplayText(self, inputText="", setWord=False): 
         self.sending_button = self.sender()
         text = self.sending_button.text()
         if inputText:
