@@ -29,7 +29,7 @@ class MultipleChoiceWidget(QWidget):
 
         topLayout = QHBoxLayout()
         self.previewText = self._createPreviewText()
-        topLayout.addWidget(self.previewText)
+        topLayout.addWidget(self.previewText, alignment=Qt.AlignCenter)
 
         bottomLayout = QHBoxLayout()
 
@@ -80,7 +80,7 @@ class MultipleChoiceWidget(QWidget):
 
     def _handleConfirm(self):
         if self.buttonGroup.checkedButton():
-            self.previewText.setText(self.buttonGroup.checkedButton().text())
+            self.previewText.setText(self.buttonGroup.checkedButton().labelText())
 
     def _createConfirmButton(self):
         confirmButton = ButtonContainer("Confirm", horizontal=True, checkable=False, border=False)
