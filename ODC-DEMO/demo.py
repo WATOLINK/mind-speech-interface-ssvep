@@ -12,6 +12,7 @@ import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
 import os
+from datetime import datetime
 
 from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
 
@@ -24,11 +25,16 @@ START_DELAY_S = 5 # Seconds
 NUM_TRIALS = 1
 INDICATOR_TIME_VALUE_S = 5 # Seconds
 TRIAL_BREAK_TIME = 10
+COL = ['Count','Ch1','Ch2','Ch3','Ch4','Ch5','Ch6','Ch7','Ch8','Ch9','Ch10','Ch11','Ch12','Ch13','Ch14','Ch15','Ch16']
 
-col = ['Count','Ch1','Ch2','Ch3','Ch4','Ch5','Ch6','Ch7','Ch8','Ch9','Ch10','Ch11','Ch12','Ch13','Ch14','Ch15','Ch16']
 data = []
+color_code_order = []
+color_freq_order = []
+timestamp = []
 
 def thread_function(stop, board, args):
+    data_index = 0
+
     f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()}\n\n")
 
@@ -54,6 +60,7 @@ def thread_function(stop, board, args):
                 break
 
             currentStim = stim[order[stimPeriod]]
+            
 
             # indicate stimuli to focus on / display indicator
             currentStim.toggleIndicator(True)
@@ -75,6 +82,8 @@ def thread_function(stop, board, args):
             # log code to file
             f.write(f"{currentStim.id:02} " + colorCode +
                     f" {currentStim.freqHertz:02}\n")
+            color_code_order.append(colorCode)
+            color_freq_order.append(currentStim.freqHertz)
 
             for x in range(int(INDICATOR_TIME_VALUE_S)):
                 label.setText(
@@ -88,18 +97,51 @@ def thread_function(stop, board, args):
             
             for x in range(12):
                 stim[x].toggleOn()
-                
+            
+            start_time = time.time()
             board.start_stream(45000, args)
             time.sleep(5)  # set length of simulation period (5s)
-    
-            data.append(board.get_board_data().transpose()[:,0:17])   # get all data and remove it from internal buffer            
+            data.append(board.get_board_data().transpose()[:,0:17])   # get all data and remove it from internal buffer   
             board.stop_stream()
+            
   
             # turn off all stimuli and prepare for next trial
             for x in range(12):
                 stim[x].toggleOff()
 
-            
+        
+            # Corresponding timestamp creation
+            session_timestamp = []
+            timestamp_rows = np.shape(data[data_index])[0] 
+
+            # One-time millisecond extraction
+            ms = repr(start_time).split('.')[1][:3]
+
+            for each_timestamp_index in range(timestamp_rows):
+
+                # Convert Unix time to desired timestamp format
+                formatted_start_time = time.strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), time.localtime(start_time))
+                session_timestamp.append( formatted_start_time )
+                
+                # Add 8ms to formatted_start_time 
+                ms = int(ms) + 8
+
+                # Work-around for floating point error from adding 8 ms
+                if ms > 999:
+                    rem_ms = str(ms - 1000)
+                    start_time += 1  
+                    ms = '00' + rem_ms
+                else:
+                    ms = str(ms)
+                    if len(str(ms)) == 1:
+                        ms = '00' + ms
+                    elif len(str(ms)) == 2:
+                        ms = '0' + ms
+                    else:
+                        pass
+
+            timestamp.append(session_timestamp)
+            data_index += 1            
 
         # just for testing otherwise the thread keeps running if you close the window
         if stop():
@@ -114,9 +156,14 @@ def thread_function(stop, board, args):
     f.write("Session finished.\n\n")
     f.close()
     
+    timestamp_process(data, timestamp)
+
     for i in range(len(data)):
-        data[i] = pd.DataFrame(data[i], columns=col)
+        data[i] = pd.DataFrame(data[i], columns=COL)
     df = pd.concat(data)
+
+    colour_freq_process(df)
+
     df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv")
 
     Cyton_Board_End(board)
@@ -124,6 +171,16 @@ def thread_function(stop, board, args):
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
 
+def timestamp_process( data, timestamp ):
+    for i in range(np.shape( timestamp )[0]):
+        data[i] = np.c_[ timestamp[i] , data[i]  ]
+
+def colour_freq_process(df):
+    # Handles color code and frequency
+    index_epoch_list = df.index[df['Count'] == 0].tolist()
+    for i in range(len(index_epoch_list)):
+        df.loc[index_epoch_list[i], 'Color Code'] = color_code_order[i]
+        df.loc[index_epoch_list[i], 'Frequency'] = color_freq_order[i]
 
 class Stimuli(QWidget):
     def __init__(self):
