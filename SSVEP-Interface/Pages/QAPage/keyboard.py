@@ -24,6 +24,7 @@ class KeyboardInput(QMainWindow):
 
         self.initUI()
 
+    """ signals and events """
     def toggleClick(self):
         if self.label.text() == "keyboard mode":
             self.setWordMode()
@@ -37,6 +38,11 @@ class KeyboardInput(QMainWindow):
             self.sending_button = self.sender()
             letters = self.sending_button.text()
             self.setChars(letters)
+    
+    def word_keyboard_click(self):
+        if self.label.text() == "word mode":
+            self.sending_button = self.sender()
+            self.setDisplayText(setWord=True)
 
     # create UI elements
     def initUI(self):
@@ -113,10 +119,12 @@ class KeyboardInput(QMainWindow):
         self.label.setText("word mode")
         # list of suggested words (given by OpenAI integration)
         self.wordLabels = ["Hi", "Bruh", "I'm ok",
-                           "Good, and you?", "Duck Duck Goose ", "MIT of the North"]
+                           "Good, and you?", "Duck Duck Goose", "MIT of the North"]
         i = 0
         for btnText in self.buttons.keys():
             self.buttons[btnText].setText(self.wordLabels[i])
+            self.buttons[btnText].clicked.disconnect()
+            self.buttons[btnText].clicked.connect(self.word_keyboard_click)
             i += 1
 
     def setAlphaMode(self):  # set button text to alphabet
@@ -139,13 +147,12 @@ class KeyboardInput(QMainWindow):
             # upon any keyboard presses, return to alpha view and set display
             self.buttons[btnText].clicked.connect(self.setDisplayText)
 
-    def setDisplayText(self, inputText=""): # optional argument if we need to type key directly
-        """Set display's text."""
+    """Set display's text."""
+    def setDisplayText(self, inputText="", setWord=False): 
         self.sending_button = self.sender()
         text = self.sending_button.text()
         if inputText:
             text = inputText
-        # print(text)
         self.display.setFocus()
 
         keyboard = Controller()
@@ -158,8 +165,12 @@ class KeyboardInput(QMainWindow):
                 keyboard.release(key)
 
         # return to keyboard view
-        self.setAlphaMode()
-        self.toggle.setText("Toggle Mode")
+        if not setWord:
+            self.setAlphaMode()
+            self.toggle.setText("Toggle Mode")
+        else:
+            keyboard.press(" ")
+            keyboard.release(" ")
 
 
 if __name__ == '__main__':
