@@ -12,18 +12,15 @@ PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
 
 
 def data_stream(board, conn):
-
     data=''
     all_data = []
-    columns = board.get_eeg_names(board_id=2)[1:17]
-
+    columns = board.get_eeg_names(board_id=8)[1:17]
     count = 0
     ti = time()
     while time() - ti < 10:
-        
-        if board.get_board_data_count() >=  125:
-
-            data = board.get_board_data().transpose()[:,1:17] 
+        if board.get_board_data_count() >=  50:
+            data = board.get_board_data().transpose()[:,:]
+            #print(data)
             sample_out = pickle.dumps(data)
             conn.sendall( sample_out )
             print(data.shape)

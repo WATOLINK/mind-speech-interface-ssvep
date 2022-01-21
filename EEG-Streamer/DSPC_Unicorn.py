@@ -16,7 +16,7 @@ data = []
 while True:
     sample = s.recv(100000)
     
-     # If sample is recevied
+    # If sample is recevied
     if sample: 
         egg = pickle.loads(sample)
         if egg is not None:
@@ -25,9 +25,9 @@ while True:
             break
         
 
-col = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+col = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
 for i in range(len(data)):
     data[i] = pd.DataFrame(data[i], columns=col)
 df = pd.concat(data)#, ignore_index=True)
 print('DONE DONE DONE')
-df.to_csv('fullOBCI.csv')
+df.to_csv('fullUnicorn.csv')

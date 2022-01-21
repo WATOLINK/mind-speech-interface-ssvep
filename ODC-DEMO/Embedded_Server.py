@@ -10,6 +10,8 @@ from time import time
 HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
 
+def demo_data_stream( board, conn ):
+    pass
 
 def data_stream(board, conn):
 
@@ -17,18 +19,18 @@ def data_stream(board, conn):
     all_data = []
     columns = board.get_eeg_names(board_id=2)[1:17]
 
-    count = 0
+    #count = 0
     ti = time()
-    while time() - ti < 10:
+    while time() - ti < 5:
         
-        if board.get_board_data_count() >=  125:
+        if board.get_board_data_count() ==  125:
 
             data = board.get_board_data().transpose()[:,1:17] 
             sample_out = pickle.dumps(data)
             conn.sendall( sample_out )
-            print(data.shape)
-            count += 1
-            print('Data sent', count)
+            #print(data.shape)
+            #count += 1
+            #print('Data sent', count)
     
     conn.sendall(pickle.dumps(None))
 
@@ -37,7 +39,7 @@ def data_stream(board, conn):
 
     return
 
-def Cyton_Board_Config():
+def Cyton_Board_Config(purpose):
     
     BoardShim.enable_dev_board_logger()
 
@@ -72,9 +74,14 @@ def Cyton_Board_Config():
 
     # Start Acquisition
     board.prepare_session()
-    board.start_stream(45000, args.streamer_params)
 
-    return board
+    # if purpose=true we're running the whole thing
+    # else we're just running the demo
+    if purpose:
+        board.start_stream(45000, args.streamer_params)
+        return board
+    else:
+        return [board, args.streamer_params]
 
 def Socket_Config():
 
@@ -84,8 +91,7 @@ def Socket_Config():
     return sock
 
 def Cyton_Board_End(board):
-    b.stop_stream()
-    b.release_session()
+    board.release_session()
     return
 
 def Socket_End(sock):
@@ -110,7 +116,7 @@ def CSV(data, col):
     
 if __name__ == "__main__":
 
-    b = Cyton_Board_Config()
+    b = Cyton_Board_Config(False)
     s = Socket_Config()
 
     conn, addr = s.accept()
