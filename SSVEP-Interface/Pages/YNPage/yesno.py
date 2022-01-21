@@ -1,6 +1,3 @@
-import functools
-from multiprocessing import dummy
-from tkinter import Button
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
