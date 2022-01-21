@@ -5,6 +5,7 @@ from pynput.keyboard import Key, Controller
 import sys
 
 from Pages.QAPage.search import SearchWidget
+from Pages.button_container import ButtonContainer
 
 
 class KeyboardInput(QMainWindow):
@@ -29,14 +30,14 @@ class KeyboardInput(QMainWindow):
         if self.label.text() == "keyboard mode":
             self.setWordMode()
         elif self.label.text() == "word mode" or self.label.text() == "char mode" or self.toggle.text() == "Return":
-            self.toggle.setText("Toggle Mode")
+            self.toggle.setLabelText("Toggle\nMode")
             self.setAlphaMode()
 
     def alpha_keyboard_click(self):  # clicking a button in the keyboard view
         if self.label.text() == "keyboard mode":
-            self.toggle.setText("Return")
+            self.toggle.setLabelText("Return")
             self.sending_button = self.sender()
-            letters = self.sending_button.text()
+            letters = self.sending_button.labelText()
             self.setChars(letters)
     
     def word_keyboard_click(self):
@@ -79,8 +80,8 @@ class KeyboardInput(QMainWindow):
         self.spaceKey.clicked.connect(lambda: self.setDisplayText(" ")) 
         self.bottomRowLayout.addWidget(self.spaceKey, alignment=Qt.AlignCenter)
         # Create the toggle/mode switch
-        self.toggle = QPushButton(self)
-        self.toggle.setText("Toggle Mode")
+        self.toggle = ButtonContainer(border=False, checkable=False)
+        self.toggle.setLabelText("Toggle\nMode")
         self.toggle.clicked.connect(self.toggleClick)
         self.toggle.setFixedWidth(200)
         self.bottomRowLayout.addWidget(self.toggle, alignment=Qt.AlignRight)
@@ -108,7 +109,7 @@ class KeyboardInput(QMainWindow):
                    }
         # Create the buttons and add them to the grid layout
         for btnText, pos in buttons.items():
-            self.buttons[btnText] = QPushButton(btnText)
+            self.buttons[btnText] = ButtonContainer(btnText, checkable=False)
             self.buttons[btnText].setFixedSize(500, 200)
             self.buttons[btnText].clicked.connect(self.alpha_keyboard_click)
             buttonsLayout.addWidget(self.buttons[btnText], pos[0], pos[1])
@@ -122,7 +123,7 @@ class KeyboardInput(QMainWindow):
                            "Good, and you?", "Duck Duck Goose", "MIT of the North"]
         i = 0
         for btnText in self.buttons.keys():
-            self.buttons[btnText].setText(self.wordLabels[i])
+            self.buttons[btnText].setLabelText(self.wordLabels[i])
             self.buttons[btnText].clicked.disconnect()
             self.buttons[btnText].clicked.connect(self.word_keyboard_click)
             i += 1
@@ -130,7 +131,7 @@ class KeyboardInput(QMainWindow):
     def setAlphaMode(self):  # set button text to alphabet
         self.label.setText("keyboard mode")
         for btnText in self.buttons.keys():
-            self.buttons[btnText].setText(btnText)
+            self.buttons[btnText].setLabelText(btnText)
             # cancels any previous signals and ensure that each keyboard press ONLY lead to char input
             self.buttons[btnText].clicked.disconnect()
             self.buttons[btnText].clicked.connect(self.alpha_keyboard_click)
@@ -140,7 +141,7 @@ class KeyboardInput(QMainWindow):
         charList = list(letters.split(' | '))
         i = 0
         for btnText in self.buttons.keys():
-            self.buttons[btnText].setText(charList[i])
+            self.buttons[btnText].setLabelText(charList[i])
             i += 1
             # cancels signal to trigger char input mode
             self.buttons[btnText].clicked.disconnect()
@@ -167,7 +168,7 @@ class KeyboardInput(QMainWindow):
         # return to keyboard view
         if not setWord:
             self.setAlphaMode()
-            self.toggle.setText("Toggle Mode")
+            self.toggle.setLabelText("Toggle\nMode")
         else:
             keyboard.press(" ")
             keyboard.release(" ")
