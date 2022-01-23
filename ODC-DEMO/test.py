@@ -19,10 +19,23 @@ def colour_freq_process(df):
     for i in range(len(color_code_order)):
         df.loc[index_epoch_list[i], 'Color Code'] = color_code_order[i]
         df.loc[index_epoch_list[i], 'Frequency'] = color_freq_order[i]
-        '''
-    return df
-
+    print(df.head())
+    df.to_csv('test.csv')
+    
+def timestamp_process( data, timestamp ):
+    for i in range(np.shape( timestamp )[0]):
+        data[i] = np.c_[ timestamp[i] , data[i]  ]
+    
 if __name__ == '__main__':
-    print(pd.read_csv('ODC-DEMO/test.csv').head(1141))
-    print(board.get_sampling_rate)
-  
+    df = pd.read_csv("dummy_test_data.csv")
+    colour_freq_process(df)
+    '''
+    data = []
+    timestamp = []
+    for i in range(4):
+        data.append(np.random.rand(3,3))
+        timestamp.append(np.random.rand(3, 1))
+
+    timestamp_process(data, timestamp)
+    '''
+    

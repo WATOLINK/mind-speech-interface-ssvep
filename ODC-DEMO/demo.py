@@ -23,8 +23,8 @@ PORT = 65432        # Port used by server
 START_DELAY_S = 5 # Seconds
 NUM_TRIALS = 12
 INDICATOR_TIME_VALUE_S = 5 # Seconds
-TRIAL_BREAK_TIME = 5
-STIM_PERIOD_TRIALS = 5
+TRIAL_BREAK_TIME = 10
+STIM_PERIOD_TRIALS = 2
 
 data = []
 color_code_order = []
@@ -93,8 +93,8 @@ def thread_function(stop, board, args):
             # start simulation period (all stimulis flashing)
             currentStim.toggleIndicator(False)
 
-            num_stimuli = 12
-            for x in range(num_stimuli):
+            
+            for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOn()
             
             start_time = time.time()
@@ -105,7 +105,7 @@ def thread_function(stop, board, args):
             
   
             # turn off all stimuli and prepare for next trial
-            for x in range(num_stimuli):
+            for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOff()
         
             # Corresponding timestamp creation
@@ -262,7 +262,6 @@ if __name__ == '__main__':
     
     # BCI Config
     board_details = Cyton_Board_Config(False)
-    print(board_details[0].get_sampling_rate(0))
     stopThread = False
     x = threading.Thread(target=thread_function, args=(lambda: stopThread, board_details[0], board_details[1]))
     x.start()
