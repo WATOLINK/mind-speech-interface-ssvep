@@ -12,7 +12,6 @@ import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
 import os
-from datetime import datetime
 
 from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
 
@@ -22,10 +21,10 @@ PORT = 65432        # Port used by server
 
 # Variables to change parameters of the test
 START_DELAY_S = 5 # Seconds
-NUM_TRIALS = 1
+NUM_TRIALS = 12
 INDICATOR_TIME_VALUE_S = 5 # Seconds
-TRIAL_BREAK_TIME = 10
-COL = ['Count','Ch1','Ch2','Ch3','Ch4','Ch5','Ch6','Ch7','Ch8','Ch9','Ch10','Ch11','Ch12','Ch13','Ch14','Ch15','Ch16']
+TRIAL_BREAK_TIME = 5
+STIM_PERIOD_TRIALS = 5
 
 data = []
 color_code_order = []
@@ -33,6 +32,7 @@ color_freq_order = []
 timestamp = []
 
 def thread_function(stop, board, args):
+
     data_index = 0
 
     f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
@@ -53,14 +53,13 @@ def thread_function(stop, board, args):
         random.shuffle(order)
         print(order)
 
-        for stimPeriod in range(12):
+        for stimPeriod in range(STIM_PERIOD_TRIALS):
 
             # just for testing otherwise the thread keeps running if you close the window
             if stop():
                 break
 
             currentStim = stim[order[stimPeriod]]
-            
 
             # indicate stimuli to focus on / display indicator
             currentStim.toggleIndicator(True)
@@ -94,21 +93,20 @@ def thread_function(stop, board, args):
             # start simulation period (all stimulis flashing)
             currentStim.toggleIndicator(False)
 
-            
-            for x in range(12):
+            num_stimuli = 12
+            for x in range(num_stimuli):
                 stim[x].toggleOn()
             
             start_time = time.time()
             board.start_stream(45000, args)
             time.sleep(5)  # set length of simulation period (5s)
-            data.append(board.get_board_data().transpose()[:,0:17])   # get all data and remove it from internal buffer   
+            data.append(board.get_board_data().transpose()[:,1:17])   # get all data and remove it from internal buffer   
             board.stop_stream()
             
   
             # turn off all stimuli and prepare for next trial
-            for x in range(12):
+            for x in range(num_stimuli):
                 stim[x].toggleOff()
-
         
             # Corresponding timestamp creation
             session_timestamp = []
@@ -120,11 +118,11 @@ def thread_function(stop, board, args):
             for each_timestamp_index in range(timestamp_rows):
 
                 # Convert Unix time to desired timestamp format
-                formatted_start_time = time.strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), time.localtime(start_time))
+                formatted_start_time = time.strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), time.localtime(start_time))[:23]
                 session_timestamp.append( formatted_start_time )
                 
                 # Add 8ms to formatted_start_time 
-                ms = int(ms) + 8
+                ms = int(ms) + 4
 
                 # Work-around for floating point error from adding 8 ms
                 if ms > 999:
@@ -155,43 +153,43 @@ def thread_function(stop, board, args):
     print("all trials finished")
     f.write("Session finished.\n\n")
     f.close()
-    
-    timestamp_process(data, timestamp)
 
-    for i in range(len(data)):
-        data[i] = pd.DataFrame(data[i], columns=COL)
-    df = pd.concat(data)
-
-    colour_freq_process(df)
-
-    df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv")
+    df = post_process(data, timestamp, color_code_order, color_freq_order)
+    df.to_csv("ODC-DEMO/demo_data" + filename + ".csv")
 
     Cyton_Board_End(board)
 
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
 
-def timestamp_process( data, timestamp ):
+def post_process( data, timestamp, color_code, color_freq ):
+
+    header = ['Time']
+    for i in range(1, 17):
+        header.append('CH{}'.format(i))
+
     for i in range(np.shape( timestamp )[0]):
         data[i] = np.c_[ timestamp[i] , data[i]  ]
-
-def colour_freq_process(df):
-    # Handles color code and frequency
-    index_epoch_list = df.index[df['Count'] == 0].tolist()
-    for i in range(len(index_epoch_list)):
-        df.loc[index_epoch_list[i], 'Color Code'] = color_code_order[i]
-        df.loc[index_epoch_list[i], 'Frequency'] = color_freq_order[i]
-
+    
+    for i in range(len(data)):
+        # Color code order going out of range
+        data[i] = pd.DataFrame(data[i], columns=header)
+        data[i].loc[0, 'Color Code'] = color_code[i]
+        data[i].loc[0, 'Frequency'] = color_freq[i]
+    
+    df_all = pd.concat(data)
+    df_all.index.name = 'Count'
+    return df_all
+    
 class Stimuli(QWidget):
     def __init__(self):
         super().__init__()
         self.resize(1200, 900)
 
         self.frame = QFrame(self, objectName="frame") # ensures correct aspect ratio of grid
-
         global stim
         stim = []
-        print("Test")
+
         # white stims
         stim.append(Stim.CircleFlash(20, 255, 255, 255, 1))
         stim.append(Stim.CircleFlash(18, 255, 255, 255, 2))
@@ -212,14 +210,12 @@ class Stimuli(QWidget):
 
         # append stimulis to grid in random order
         random.shuffle(stim)
-
         self.gridLayout = QGridLayout(self.frame)
         for row in range(3):
             for col in range(4):
                 stimNum = row*4+col
                 stim[stimNum].toggleOff()
                 self.gridLayout.addWidget(stim[stimNum], row+3, col*2)
-
         self.gridLayout.setSpacing(225)
 
     # resizes grid during window resize
@@ -258,15 +254,15 @@ if __name__ == '__main__':
     label = QLabel(labelTxt("ODC-DEMO"))
     label.setFixedHeight(100)
     layout.addWidget(label)
-
+    print("Test")
     grid = Stimuli() # stimuli grid widget
-
+    
     layout.addWidget(grid)
     window.setLayout(layout)
-
+    
     # BCI Config
     board_details = Cyton_Board_Config(False)
-
+    print(board_details[0].get_sampling_rate(0))
     stopThread = False
     x = threading.Thread(target=thread_function, args=(lambda: stopThread, board_details[0], board_details[1]))
     x.start()
