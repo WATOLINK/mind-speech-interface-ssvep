@@ -44,6 +44,7 @@ class KeyboardInput(QMainWindow):
         if self.label.text() == "word mode":
             self.sending_button = self.sender()
             self.setDisplayText(setWord=True)
+            self.setAlphaMode()
 
     # create UI elements
     def initUI(self):
@@ -103,9 +104,9 @@ class KeyboardInput(QMainWindow):
         buttons = {'a | b | c | d | e | f': (0, 0),
                    'g | h | i | j | k | l': (0, 1),
                    'm | n | o | p | q | r': (0, 2),
-                   'r | s | t | u | v | w': (1, 0),
-                   'x | y | z | 1 | 2 | 3': (1, 1),
-                   '4 | 5 | 6 | 7 | 8 | 9': (1, 2),  # problem: we can't have 0
+                   's | t | u | v | w | x': (1, 0),
+                   'y | z | 0 | 1 | 2 | 3': (1, 1),
+                   '4 | 5 | 6 | 7 | 8 | 9': (1, 2),  
                    }
         # Create the buttons and add them to the grid layout
         for btnText, pos in buttons.items():
