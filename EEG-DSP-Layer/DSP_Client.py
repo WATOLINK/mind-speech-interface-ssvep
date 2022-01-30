@@ -4,6 +4,7 @@ import pandas as pd
 import socket
 import pickle
 import argparse
+from time import time, sleep
 
 class EEGSocketListener:
     # Socket Object and Params
@@ -33,11 +34,12 @@ class EEGSocketListener:
         self.data = np.empty((output_size*input_len, num_channels))
         self.samples = 0
 
-
-
     def open_socket_conn(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect( (self.host, self.port) )
+    
+    def close_socket_conn(self):
+        self.socket.close()
 
     def recieve_packet(self):
         # the size of the input data = num elements * 8 bytes + 500 for leeway
@@ -51,8 +53,10 @@ class EEGSocketListener:
                 f"Incorrect Shape, Expected: {(self.input_len, self.num_channels)}, Recieved: {sample.shape}"
         return sample
 
-    def listen(self):
-        while True:
+    def listen(self, run_time=None):
+        init_time = time()
+        time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
+        while time_func():
             packet = self.recieve_packet()
             if packet.any():
                 start = self.input_len * self.samples 
