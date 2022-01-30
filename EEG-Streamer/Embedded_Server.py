@@ -9,40 +9,43 @@ from time import time
 
 HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
-
+BOARD_ID = 8        # GTech Unicorn ID is 8
+DURATION = 10       # Data collection for 10 seconds
 
 def data_stream(board, conn):
 
-    data=''
-    all_data = []
-    columns = board.get_eeg_names(board_id=2)[1:17]
-
+    # Data package counter
     count = 0
-    ti = time()
-    while time() - ti < 10:
-        
-        if board.get_board_data_count() >=  125:
 
-            data = board.get_board_data().transpose()[:,1:17] 
+    # Clear buffer
+    dump = board.get_board_data()
+
+    # Start data collection
+    ti = time()
+    while time() - ti < DURATION:
+
+        # Sample rate is 250Hz
+        if board.get_board_data_count() >=  250:
+
+            # -- col[17] == Unix time            
+            data = board.get_board_data(250).transpose()[:,:8] 
             sample_out = pickle.dumps(data)
             conn.sendall( sample_out )
-            print(data.shape)
+            
             count += 1
             print('Data sent', count)
-    
+        
+    conn.sendall(pickle.dumps(board.get_eeg_names(BOARD_ID)))
     conn.sendall(pickle.dumps(None))
-
-    # Call CSV
-    # Thread(CSV(all_data, columns))
-
     return
 
 def Cyton_Board_Config():
     
     BoardShim.enable_dev_board_logger()
 
+    # Terminal parameters
     parser = argparse.ArgumentParser()
-    # use docs to check which parameters are required for specific board, e.g. for Cyton - set serial port
+
     parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False, default=0)
     parser.add_argument('--ip-port', type=int, help='ip port', required=False, default=0)
     parser.add_argument('--ip-protocol', type=int, help='ip protocol, check IpProtocolType enum', required=False, default=0)
@@ -119,7 +122,7 @@ if __name__ == "__main__":
         print('Connected by', addr)
         data_stream(b, conn)
         
-    print('DONE DONE DONE')
+    print('Data Collection Complete.')
 
     Socket_End(s)
     Cyton_Board_End(b)     
