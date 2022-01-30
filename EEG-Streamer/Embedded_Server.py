@@ -11,7 +11,7 @@ HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
 
 
-def data_stream(board, conn):
+def data_stream(board, conn, num_samples=125):
 
     data=''
     all_data = []
@@ -21,14 +21,15 @@ def data_stream(board, conn):
     ti = time()
     while time() - ti < 10:
         
-        if board.get_board_data_count() >=  125:
+        if board.get_board_data_count() >=  num_samples:
 
-            data = board.get_board_data().transpose()[:,1:17] 
+            data = board.get_board_data(num_samples).transpose()[:,1:17] 
             sample_out = pickle.dumps(data)
             conn.sendall( sample_out )
             print(data.shape)
             count += 1
             print('Data sent', count)
+            # time.sleep(num_samples/sampling rate) this could be done to be more efficient
     
     conn.sendall(pickle.dumps(None))
 
