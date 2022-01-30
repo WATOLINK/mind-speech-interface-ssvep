@@ -14,7 +14,7 @@ class KeyboardInput(QMainWindow):
 
         self.setWindowTitle('Toggle Testing')  # Sets name of window
         # Sets location (x, y) and size (width, height) of current window
-        self.setGeometry(0, 0, 1600, 900)
+        self.setGeometry(0, 0, 1600, 1600)
 
         self.generalLayout = QVBoxLayout()
         self.generalLayout.setAlignment(Qt.AlignCenter)
@@ -47,6 +47,12 @@ class KeyboardInput(QMainWindow):
 
     # create UI elements
     def initUI(self):
+
+        # Prompt
+        self.prompt = QLabel("Prompt: Amogus")
+        self.prompt.setStyleSheet("margin: 0px 50px; font-size: 36px;")
+        self.generalLayout.addWidget(self.prompt)
+
         # temporary mode indicator label
         self.label = QLabel(self)
         self.label.setText("keyboard mode")
@@ -57,8 +63,7 @@ class KeyboardInput(QMainWindow):
 
         # create display and backspace
         self.topRowLayout = QGridLayout()
-        self.backspaceKey = QPushButton(self)  # backspace buttoon
-        self.backspaceKey.setText("Backspace")
+        self.backspaceKey = ButtonContainer("Backspace", border=False, horizontal=True)  # backspace buttoon
         self.backspaceKey.clicked.connect(lambda: self.setDisplayText("backspaceCMD")) 
         self.backspaceKey.setFixedWidth(400)
         self.topRowLayout.addWidget(self.backspaceKey, 0, 1)
@@ -74,11 +79,10 @@ class KeyboardInput(QMainWindow):
         self.filler = QPushButton(self)  # empty filler 
         self.filler.setFixedWidth(200)
         self.bottomRowLayout.addWidget(self.filler, alignment=Qt.AlignLeft)
-        self.spaceKey = QPushButton(self)  # space buttoon
-        self.spaceKey.setText("Space")
-        self.spaceKey.setFixedWidth(200)
+        self.spaceKey = ButtonContainer("Space", border=False, horizontal=True)  # space buttoon
+        self.spaceKey.setFixedWidth(400)
         self.spaceKey.clicked.connect(lambda: self.setDisplayText(" ")) 
-        self.bottomRowLayout.addWidget(self.spaceKey, alignment=Qt.AlignCenter)
+        self.bottomRowLayout.addWidget(self.spaceKey)
         # Create the toggle/mode switch
         self.toggle = ButtonContainer(border=False, checkable=False)
         self.toggle.setLabelText("Toggle\nMode")

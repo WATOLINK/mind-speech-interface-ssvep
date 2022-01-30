@@ -58,3 +58,8 @@ windowStyle = """
 stimuliStyle = """
     background-color: #2C2C2C;
 """
+
+promptStyle = """
+    margin: 50px 0px;
+    font-size: 36px;
+""" 
