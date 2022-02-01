@@ -17,6 +17,7 @@
 
 '''
 import argparse
+from tracemalloc import start
 import brainflow
 import pickle
 import socket
@@ -45,12 +46,11 @@ def data_stream(board, queue, conn):
     data_package_counter = 0
 
     # Clear buffer
-    #dump = board.get_board_data()
-
+    board.get_board_data()
+    
     # Start data collection
     start_time = time()
-    while time() - start_time < DATA_COLLECTION_DURATION:
-
+    while data_package_counter < 10 and time() - start_time < DATA_COLLECTION_DURATION + 1:
         if board.get_board_data_count() >=  250:
 
             # -- col[17] == Unix time           
@@ -61,7 +61,7 @@ def data_stream(board, queue, conn):
             data_package_counter += 1
             print('--', data_package_counter, ' Data Packages Sent ', np.shape(data))
 
-    print('-- Data Collection Complete')
+    print('-- Data Collection Complete', time()-start_time)
     conn.sendall(pickle.dumps(None))
     return
 
