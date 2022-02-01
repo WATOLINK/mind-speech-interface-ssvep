@@ -4,9 +4,10 @@ from PyQt5.QtWidgets import (
     QWidget,
     QGridLayout,
     QFrame,
-    QVBoxLayout,
+    QVBoxLayout
 )
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect,Qt
+from PyQt5.QtGui import QPainter, QBrush, QPen
 import sys, random, threading, datetime, time
 import circle_stimuli as Stim
 import numpy as np
@@ -21,12 +22,16 @@ PORT = 65432        # Port used by server
 col = ['Count','Ch1','Ch2','Ch3','Ch4','Ch5','Ch6','Ch7','Ch8','Ch9','Ch10','Ch11','Ch12','Ch13','Ch14','Ch15','Ch16']
 data = []
 
-def thread_function(stop, board, args):
+
+
+
+
+def display_procedure(stop, board, args):
     f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()}\n\n")
 
     time.sleep(2)
-    startDelay = 20
+    startDelay = 5 #Start delay (20s)
     for x in range(startDelay):
         label.setText(labelTxt(f"Starting in {str(startDelay-x)}"))
         time.sleep(1)
@@ -41,15 +46,12 @@ def thread_function(stop, board, args):
         print(order)
 
         for stimPeriod in range(12):
-
             # just for testing otherwise the thread keeps running if you close the window
             if stop():
                 break
 
             currentStim = stim[order[stimPeriod]]
-
-            # indicate stimuli to focus on / display indicator
-            currentStim.toggleIndicator(True)
+            stimLabel = preStimIndicators[order[stimPeriod]]
 
             # log color and hz to terminal
             color = str(currentStim.rValue)+"," + \
@@ -69,15 +71,18 @@ def thread_function(stop, board, args):
             f.write(f"{currentStim.id:02} " + colorCode +
                     f" {currentStim.freqHertz:02}\n")
 
+            # indicate stimuli to focus on / display indicator
+            
+            
             indicatorTime = 5
-
+            currentStim.toggleIndicator(True)
+            label.setText(labelTxt(f"Keep you eyes where the red circle is."))
+            
             for x in range(int(indicatorTime)):
-                label.setText(
-                    labelTxt(f"Keep you eyes where the red circle is. ({indicatorTime-x})"))
+                stimLabel.setText(labelTxt(str(indicatorTime - x)))
                 time.sleep(1)
-            label.setText(labelTxt("Keep you eyes where the red circle was."))
-
-            # start simulation period (all stimulis flashing)
+            stimLabel.setText(labelTxt(""))
+            
             currentStim.toggleIndicator(False)
 
             
@@ -94,19 +99,20 @@ def thread_function(stop, board, args):
             for x in range(12):
                 stim[x].toggleOff()
 
-            
 
         # just for testing otherwise the thread keeps running if you close the window
         if stop():
             break
 
-        trialBreakTime = 120
+        trialBreakTime = 10 #length of break between trials (120s)
 
         for x in range(int(trialBreakTime)):
             label.setText(
                 labelTxt(f"Time before next trial: ({trialBreakTime-x})"))
             time.sleep(1)
 
+    label.setText(
+                labelTxt(f"Trials finished"))
     print("all trials finished")
     f.write("Session finished.\n\n")
     f.close()
@@ -120,7 +126,6 @@ def thread_function(stop, board, args):
 
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
-
 
 class Stimuli(QWidget):
     def __init__(self):
@@ -153,14 +158,29 @@ class Stimuli(QWidget):
         # append stimulis to grid in random order
         random.shuffle(stim)
 
+        # create array of indicators
+        global preStimIndicators
+        preStimIndicators = []
+        for x in range(12):
+            preStim = QLabel(labelTxt(""))
+            preStimIndicators.append(preStim)
+
+
         self.gridLayout = QGridLayout(self.frame)
+        # self.gridLayout.addWidget(QLabel(), 3, 0)
         for row in range(3):
             for col in range(4):
                 stimNum = row*4+col
-                stim[stimNum].toggleOff()
-                self.gridLayout.addWidget(stim[stimNum], row+3, col*2)
 
-        self.gridLayout.setSpacing(225)
+                self.gridLayout.addWidget(preStimIndicators[stimNum], row*2+3, col*2)
+                if (col != 3):
+                    self.gridLayout.addWidget(QLabel(), row*2+3, col*2+1)
+
+                stim[stimNum].toggleOff()
+                self.gridLayout.addWidget(stim[stimNum], row*2+4, col*2)
+
+
+        self.gridLayout.setSpacing(10)
 
     # resizes grid during window resize
     def resizeEvent(self, event): 
@@ -169,14 +189,13 @@ class Stimuli(QWidget):
         l = min(self.width(), self.height())
         center = self.rect().center()
 
-        rect = QRect(0, 0, int(l*(5/3)), l) # 5 x 3 ratio
+        rect = QRect(0, 0, int(l*(7/6)), l) # 5 x 3 ratio
         rect.moveCenter(center)
         self.frame.setGeometry(rect)
 
-        self.gridLayout.setColumnMinimumWidth(1, int(l/12)) # 3 additional columns fill space to make it a 4x3 grid 
-        self.gridLayout.setColumnMinimumWidth(3, int(l/12))
-        self.gridLayout.setColumnMinimumWidth(5, int(l/12))
-
+        # self.gridLayout.setColumnMinimumWidth(1, int(l/12)) # 3 additional columns fill space to make it a 4x3 grid 
+        # self.gridLayout.setColumnMinimumWidth(3, int(l/12))
+        # self.gridLayout.setColumnMinimumWidth(5, int(l/12))
 
 if __name__ == '__main__':
     # File and GUI config
@@ -194,7 +213,7 @@ if __name__ == '__main__':
 
     layout = QVBoxLayout()
 
-    global label
+    # global label
     label = QLabel(labelTxt("ODC-DEMO"))
     label.setFixedHeight(100)
     layout.addWidget(label)
@@ -208,10 +227,10 @@ if __name__ == '__main__':
     board_details = Cyton_Board_Config(False)
 
     stopThread = False
-    x = threading.Thread(target=thread_function, args=(lambda: stopThread, board_details[0], board_details[1]))
+    x = threading.Thread(target=display_procedure, args=(lambda: stopThread, board_details[0], board_details[1]))
     x.start()
 
-    window.resize(1600, 1200) # initial window size
+    window.setFixedSize(1000, 900) # initial window size
     window.show()
     
     try:
