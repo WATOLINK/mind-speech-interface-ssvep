@@ -1,51 +1,75 @@
-import argparse, socket, pickle, sys
+'''
+    * Streamer script that interfaces with both OpenBCI and GTech Unicorn hardware
+    * Uses multiprocessing for simultaneous server-client model with the DSP post-processing script 
+    * Refer to https://brainflow.readthedocs.io/en/stable/UserAPI.html#python-api-reference for useful functions
+    
+    * Terminal call:
+        /EEG-Streamer/
+            python Embedded_Server.py --board-id=<BOARD_ID> --serial-port=<SERIAL_PORT>
+
+
+    OpenBCI Sample Rate:       125Hz
+    GTech Unicorn Sample Rate: 250Hz
+
+    OpenBCI ID:         0
+    GTech Unicorn ID:   8
+    Virutal Board ID:  -1
+
+'''
+import argparse
+import brainflow
+import pickle
+import socket
+import sys
 import numpy as np
 import pandas as pd
-from collections import defaultdict
-import brainflow
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
-from time import time
+from DSP_Client import Client
+from collections import defaultdict
+from multiprocessing import Process, Queue
+from time import time, sleep
 
-HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
-PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
-BOARD_ID = 8        # GTech Unicorn ID is 8
-DURATION = 10       # Data collection for 10 seconds
+# Standard loopback interface address (localhost)
+HOST = '127.0.0.1' 
 
-def data_stream(board, conn):
+# Port to listen on (non-privileged ports are > 1023)
+PORT = 65432        
 
+# GTech Unicorn ID is 8
+BOARD_ID = 8
+DATA_COLLECTION_DURATION = 10       
+
+def data_stream(board, queue, conn):
     # Data package counter
-    count = 0
+    data_package_counter = 0
 
     # Clear buffer
-    dump = board.get_board_data()
+    #dump = board.get_board_data()
 
     # Start data collection
-    ti = time()
-    while time() - ti < DURATION:
+    start_time = time()
+    while time() - start_time < DATA_COLLECTION_DURATION:
 
-        # Sample rate is 250Hz
         if board.get_board_data_count() >=  250:
 
-            # -- col[17] == Unix time            
-            data = board.get_board_data(250).transpose()[:,:8] 
+            # -- col[17] == Unix time           
+            data = board.get_board_data(250).transpose()#[:,:8]
             sample_out = pickle.dumps(data)
             conn.sendall( sample_out )
-            
-            count += 1
-            print('Data sent', count)
-        
-    conn.sendall(pickle.dumps(board.get_eeg_names(BOARD_ID)))
+
+            data_package_counter += 1
+            print('--', data_package_counter, ' Data Packages Sent ', np.shape(data))
+
+    print('-- Data Collection Complete')
     conn.sendall(pickle.dumps(None))
     return
 
 def Cyton_Board_Config():
-    
     BoardShim.enable_dev_board_logger()
 
     # Terminal parameters
     parser = argparse.ArgumentParser()
-
     parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False, default=0)
     parser.add_argument('--ip-port', type=int, help='ip port', required=False, default=0)
     parser.add_argument('--ip-protocol', type=int, help='ip protocol, check IpProtocolType enum', required=False, default=0)
@@ -57,8 +81,8 @@ def Cyton_Board_Config():
     parser.add_argument('--serial-number', type=str, help='serial number', required=False, default='')
     parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards', required=True)
     parser.add_argument('--file', type=str, help='file', required=False, default='')
+    
     args = parser.parse_args()
-
     params = BrainFlowInputParams()
     params.ip_port = args.ip_port
     params.serial_port = args.serial_port
@@ -76,53 +100,49 @@ def Cyton_Board_Config():
     # Start Acquisition
     board.prepare_session()
     board.start_stream(45000, args.streamer_params)
-
     return board
 
 def Socket_Config():
-
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind((HOST, PORT))
     sock.listen()
     return sock
 
 def Cyton_Board_End(board):
-    b.stop_stream()
-    b.release_session()
+    board.stop_stream()
+    board.release_session()
     return
 
 def Socket_End(sock):
     sock.close()
     return
 
-def CSV(data, col):
-    start = 0
-    end   = 50
-    for i in range(len(data)):
-        #timestamp = np.arange(0, 0.4, 0.008)
-        sample_count = [j for j in range(start,end)]
-        data[i] = pd.DataFrame(data=data[i], index=sample_count, columns=col)
-        start +=50
-        end   +=50
-
-    df = pd.concat(data, ignore_index=True)
-    df.index.name = 'Sample Count'
-    print(df.shape)
-    df.to_csv('data.csv')
-    return
-    
-if __name__ == "__main__":
-
+def Streamer(s, q):
     b = Cyton_Board_Config()
-    s = Socket_Config()
-
+    q.get()
     conn, addr = s.accept()
-    
+
     with conn:
-        print('Connected by', addr)
-        data_stream(b, conn)
-        
-    print('Data Collection Complete.')
+        print('-- Connected by', addr)
+        data_stream(b, q, conn)
+
+    print(q.get())
+    Cyton_Board_End(b)
+    return
+
+def main():
+    s = Socket_Config()
+    q = Queue()
+
+    sys_processes = [ Process(target=Streamer, args=(s,q,)), Process(target=Client, args=(q,HOST,PORT,BOARD_ID,)) ]
+    for process in sys_processes:
+        process.start()
+
+    for process in sys_processes:
+        process.join()
 
     Socket_End(s)
-    Cyton_Board_End(b)     
+    return     
+
+if __name__ == "__main__":
+    main()
