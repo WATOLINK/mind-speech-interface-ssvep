@@ -17,7 +17,6 @@
 
 '''
 import argparse
-from tracemalloc import start
 import brainflow
 import pickle
 import socket
@@ -27,9 +26,8 @@ import pandas as pd
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
 from DSP_Client import Client
-from collections import defaultdict
 from multiprocessing import Process, Queue
-from time import time, sleep
+from time import time
 
 # Standard loopback interface address (localhost)
 HOST = '127.0.0.1' 
@@ -53,7 +51,7 @@ def data_stream(board, queue, conn):
     while data_package_counter < 10 and time() - start_time < DATA_COLLECTION_DURATION + 1:
         if board.get_board_data_count() >=  250:
 
-            # -- col[17] == Unix time           
+            # -- col[17] == Unix time  
             data = board.get_board_data(250).transpose()#[:,:8]
             sample_out = pickle.dumps(data)
             conn.sendall( sample_out )
@@ -119,7 +117,11 @@ def Socket_End(sock):
 
 def Streamer(s, q):
     b = Cyton_Board_Config()
+
+    # Wait for signal from DSP that the socket has been connected from the client side
     q.get()
+
+    # Accept socket connection
     conn, addr = s.accept()
 
     with conn:
@@ -132,12 +134,16 @@ def Streamer(s, q):
 
 def main():
     s = Socket_Config()
+
+    # Message queue between server-client processes
     q = Queue()
 
+    # Start concurrent processes
     sys_processes = [ Process(target=Streamer, args=(s,q,)), Process(target=Client, args=(q,HOST,PORT,BOARD_ID,)) ]
     for process in sys_processes:
         process.start()
 
+    # Wait for both processes to complete executing
     for process in sys_processes:
         process.join()
 

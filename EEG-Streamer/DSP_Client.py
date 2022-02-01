@@ -2,27 +2,31 @@ import numpy as np
 import pandas as pd
 import pickle
 import socket
-import sys
-from time import time
 
 def Client(queue, HOST, PORT, ID):
     # Socket initialization 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((HOST, PORT))
+
+    # Send signal to server that socket has been connected
     queue.put(True)
     
     data = []
     while True:
         sample = s.recv(100000)
 
-         # If sample is recevied
+        # If something is recevied over the socket
         if sample: 
             egg = pickle.loads(sample)
+
+            # Data package received
             if egg is not None:
                 data.append(egg)
+
+            # Signal for end of data collectionr received
             else:
                 break
-    
+
     csv_export_done = CSV(data, ID)
     queue.put(csv_export_done)
 
