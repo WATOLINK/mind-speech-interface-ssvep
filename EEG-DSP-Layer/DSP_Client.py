@@ -69,8 +69,8 @@ class EEGSocketListener:
                     # TO IMPLEMENT
                     print("OUTPUT BUFFER FILLED, SEND DATA TO AI")
             
-    def generate_csv(self, data, name="fullOBCI"):
-        df = pd.DataFrame(data=data, columns=list(range(1,17)))
+    def generate_csv(self, name="fullOBCI"):
+        df = pd.DataFrame(data=self.data, columns=list(range(1,17)))
         print(f'{name}.csv Generated')
         df.to_csv(f'{name}.csv')
         return
