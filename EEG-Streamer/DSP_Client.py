@@ -11,9 +11,14 @@ def Client(queue, HOST, PORT, ID):
     # Send signal to server that socket has been connected
     queue.put(True)
     
+    # 
+    # TODO: Receive list for column header ("column titles") from Queue, store it in a
+    #       variable that is passed into the CSV() function as a parameter
+    #
+
     data = []
     while True:
-        sample = s.recv(100000)
+        sample = s.recv(1000000)
 
         # If something is recevied over the socket
         if sample: 
@@ -30,20 +35,14 @@ def Client(queue, HOST, PORT, ID):
     csv_export_done = CSV(data, ID)
     queue.put(csv_export_done)
 
+
 # TODO: Add colour frequency and colour code columns to dataset like in demo.py
 def CSV(data, ID):
 
-    if ID == 0:
-        pass
-    elif ID == 8:
-        pass
-    # Virtual board
-    else:
-        col = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-
-    #header = ['Time']
-    #for i in range(1, 17):
-    #    header.append('CH{}'.format(i))
+    # 
+    # TODO: Use the column header parameter to add the header to EACH DATAFRAME in the for loop
+    #       that converts each element in the "data" list into a dataframe (see the commented out code below)
+    #
 
     for i in range(len(data)):
         data[i] = pd.DataFrame(data[i])#, columns=header)

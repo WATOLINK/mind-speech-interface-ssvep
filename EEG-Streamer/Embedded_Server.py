@@ -7,13 +7,19 @@
         /EEG-Streamer/
             python Embedded_Server.py --board-id=<BOARD_ID> --serial-port=<SERIAL_PORT>
 
+    * Helpful information:
 
-    OpenBCI Sample Rate:       125Hz
-    GTech Unicorn Sample Rate: 250Hz
+        OpenBCI Sample Rate:       125Hz (i.e. 125 rows of data per second)
+        GTech Unicorn Sample Rate: 250Hz (i.e. 250 rows of data per second)
 
-    OpenBCI ID:         0
-    GTech Unicorn ID:   8
-    Virutal Board ID:  -1
+        OpenBCI ID:         0
+        GTech Unicorn ID:   8
+        Virutal Board ID:  -1
+
+        Process 1 = Streamer() function in Embedded_Server.py
+        Process 2 = Client() function in DSP_Client.py
+
+        TEST_DATA.csv in /EEG-Streamer/ directory is the output CSV from DSP_Client.py
 
 '''
 import argparse
@@ -51,7 +57,14 @@ def data_stream(board, queue, conn):
     while data_package_counter < 10 and time() - start_time < DATA_COLLECTION_DURATION + 1:
         if board.get_board_data_count() >=  250:
 
-            # -- col[17] == Unix time  
+            # 
+            # TODO: Drop appropriate columns depending on OpenBCI (id = 0), GTech Unicorn (id = 8), 
+            #       and virtual board (id = -1). See commented out code directly below
+            #
+            #       DO NOT use if-else statements inside this while loop. Code inside this while loop 
+            #       must be minimized to avoid system latency
+            #
+
             data = board.get_board_data(250).transpose()#[:,:8]
             sample_out = pickle.dumps(data)
             conn.sendall( sample_out )
@@ -121,6 +134,11 @@ def Streamer(s, q):
     # Wait for signal from DSP that the socket has been connected from the client side
     q.get()
 
+    # 
+    # TODO: Send appropriate list for columns header ("column title") depending on OpenBCI (id = 0) 
+    #       and GTech Unicorn (id = 8) over the Queue
+    #
+
     # Accept socket connection
     conn, addr = s.accept()
 
@@ -133,13 +151,24 @@ def Streamer(s, q):
     return
 
 def main():
+
+    # 
+    # TODO: Use "os" and "sys" libraries to determine which USB dongle (OpenBCI, GTech, or virtual board) 
+    #       is connected to the PC's serial port
+    #
+
     s = Socket_Config()
 
     # Message queue between server-client processes
     q = Queue()
 
     # Start concurrent processes
-    sys_processes = [ Process(target=Streamer, args=(s,q,)), Process(target=Client, args=(q,HOST,PORT,BOARD_ID,)) ]
+    sys_processes = [ 
+                        Process(target=Streamer, args=(s,q,)), 
+                        Process(target=Client, args=(q,HOST,PORT,BOARD_ID,)) 
+                        
+                        ]
+
     for process in sys_processes:
         process.start()
 
