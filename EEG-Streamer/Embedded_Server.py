@@ -7,41 +7,81 @@ from brainflow.board_shim import BoardShim, BrainFlowInputParams
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
 from time import time
 
-HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
-PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
+class EEGSocketPublisher:
+    # Socket Object and Params
+    socket = None
+    host = ''           # Standard loopback interface address (localhost)
+    port = None         # Port to listen on (non-privileged ports are > 1023)
 
-
-def data_stream(board, conn, num_samples=125):
-
-    data=''
-    all_data = []
-    columns = board.get_eeg_names(board_id=2)[1:17]
-
+    board = None
     count = 0
-    ti = time()
-    while time() - ti < 10:
-        
-        if board.get_board_data_count() >=  num_samples:
 
-            data = board.get_board_data(num_samples).transpose()[:,1:17] 
-            sample_out = pickle.dumps(data)
-            conn.sendall( sample_out )
-            print(data.shape)
-            count += 1
-            print('Data sent', count)
-            # time.sleep(num_samples/sampling rate) this could be done to be more efficient
+    # Data Format Definitions
+    num_channels = None # number of columns in input array 
+    input_len = None    # number of rows in input array
+
+    def __init__(self, host='127.0.0.1', port=65432, num_channels=16, input_len=125):
+        self.host = host
+        self.port = port
+
+        self.input_len = input_len
+        self.num_channels = num_channels
+
+    def open_socket_conn(self):
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.bind( (self.host, self.port) )
+        self.socket.listen()
     
-    conn.sendall(pickle.dumps(None))
+    def close_socket_conn(self):
+        self.socket.close()
+    
+    def open_board_conn(self, board_id, params, streamer_params):
+        BoardShim.enable_dev_board_logger()
+        self.board = BoardShim(board_id, params)
+        # Start Acquisition
+        self.board.prepare_session()
+        self.board.start_stream(45000, streamer_params)
 
-    # Call CSV
-    # Thread(CSV(all_data, columns))
+    def close_board_conn(self):
+        self.board.stop_stream()
+        self.board.release_session()
 
-    return
+    def open_connections(self, board_id, board_params, streamer_params):
+        self.open_socket_conn()
+        self.open_board_conn(board_id, board_params, streamer_params)
+    
+    def close_connections(self):
+        self.close_socket_conn()
+        self.close_board_conn()
+
+    def retrieve_sample(self):
+        sample = self.board.get_board_data(self.input_len).T[:,1:17]
+        assert type(sample) == np.ndarray,  f"Not a Numpy ND Array {type(sample), sample}"
+        assert sample.shape == (self.input_len, self.num_channels), \
+            f"Incorrect Shape, Expected: {(self.input_len, self.num_channels)}, Recieved: {sample.shape}"
+        return sample
+    
+    def send_packet(self, sample):
+        self.connection.sendall(pickle.dumps(sample))
+        print(sample.shape)
+        self.count += 1
+        print('Data sent,', self.count)
+
+    def publish(self, run_time=None):
+        self.connection, self.address = self.socket.accept()
+        with self.connection:
+            print('Connected by', self.address)
+
+            init_time = time()
+            time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
+            while time_func():
+                if self.board.get_board_data_count() >=  self.input_len:
+                    packet = self.retrieve_sample()
+                    self.send_packet(packet)
+
+            self.connection.sendall(pickle.dumps(None))
 
 def Cyton_Board_Config():
-    
-    BoardShim.enable_dev_board_logger()
-
     parser = argparse.ArgumentParser()
     # use docs to check which parameters are required for specific board, e.g. for Cyton - set serial port
     parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False, default=0)
@@ -67,31 +107,8 @@ def Cyton_Board_Config():
     params.ip_protocol = args.ip_protocol
     params.timeout = args.timeout
     params.file = args.file
-    
-    # Cyton Board Object
-    board = BoardShim(args.board_id, params)
 
-    # Start Acquisition
-    board.prepare_session()
-    board.start_stream(45000, args.streamer_params)
-
-    return board
-
-def Socket_Config():
-
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind((HOST, PORT))
-    sock.listen()
-    return sock
-
-def Cyton_Board_End(board):
-    b.stop_stream()
-    b.release_session()
-    return
-
-def Socket_End(sock):
-    sock.close()
-    return
+    return args.board_id, params, args.streamer_params
 
 def CSV(data, col):
     start = 0
@@ -111,16 +128,9 @@ def CSV(data, col):
     
 if __name__ == "__main__":
 
-    b = Cyton_Board_Config()
-    s = Socket_Config()
+    board_id, params, streamer_params = Cyton_Board_Config()
+    publisher = EEGSocketPublisher()
 
-    conn, addr = s.accept()
-    
-    with conn:
-        print('Connected by', addr)
-        data_stream(b, conn)
-        
-    print('DONE DONE DONE')
-
-    Socket_End(s)
-    Cyton_Board_End(b)     
+    publisher.open_connections(board_id, params, streamer_params)
+    publisher.publish(10)
+    publisher.close_connections()
