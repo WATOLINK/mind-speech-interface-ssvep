@@ -11,7 +11,6 @@ class KeyboardInput(QMainWindow):
     # list of suggested words (given by OpenAI integration)
     wordList = ["Hi", "Bruh", "I'm ok",
                            "Good, and you?", "Duck Duck Goose", "MIT of the North"]
-    parent_module = sys.modules
     def __init__(self, parent):
         super(KeyboardInput, self).__init__()
         # connect with parent instance
