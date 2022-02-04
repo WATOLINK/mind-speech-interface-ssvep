@@ -156,7 +156,7 @@ class KeyboardInput(QMainWindow):
     """Set display's text."""
     def setDisplayText(self, inputText="", setWord=False): 
         self.sending_button = self.sender()
-        text = self.sending_button.text()
+        text = self.sending_button.labelText()
         if inputText:
             text = inputText
         self.display.setFocus()
