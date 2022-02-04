@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import QHBoxLayout, QPushButton, QWidget
 
 
 class QuestionAndAnswerWidget(QWidget):
-
     def __init__(self, parent):
         super().__init__(parent)
         layout = self._createLayout(parent)
@@ -20,10 +19,10 @@ class QuestionAndAnswerWidget(QWidget):
         layout = QHBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(100, 100, 100, 100)
-        centerWidget = KeyboardInput()
+        self.centerWidget = KeyboardInput(self)
         button2 = self._createBackButton(text="→")
         button2.clicked.connect(parent.showTF)
-        layout.addWidget(centerWidget)
+        layout.addWidget(self.centerWidget)
         layout.addWidget(button2)
         layout.setAlignment(Qt.AlignVCenter)
         return layout

@@ -7,12 +7,17 @@ import sys
 from Pages.QAPage.search import SearchWidget
 from Pages.button_container import ButtonContainer
 
-
 class KeyboardInput(QMainWindow):
-    def __init__(self):
+    # list of suggested words (given by OpenAI integration)
+    wordList = ["Hi", "Bruh", "I'm ok",
+                           "Good, and you?", "Duck Duck Goose", "MIT of the North"]
+    parent_module = sys.modules
+    def __init__(self, parent):
         super(KeyboardInput, self).__init__()
-
-        self.setWindowTitle('Toggle Testing')  # Sets name of window
+        # connect with parent instance
+        self.parent_module = parent
+        # Sets name of window
+        self.setWindowTitle('Toggle Testing')  
         # Sets location (x, y) and size (width, height) of current window
         self.setGeometry(0, 0, 1600, 1600)
 
@@ -43,6 +48,7 @@ class KeyboardInput(QMainWindow):
     def word_keyboard_click(self):
         if self.label.text() == "word mode":
             self.sending_button = self.sender()
+            print(self.sending_button.labelText())
             self.setDisplayText(setWord=True)
             self.setAlphaMode()
 
@@ -96,7 +102,7 @@ class KeyboardInput(QMainWindow):
     def _createDisplay(self):
         """Create the display."""
         # Create the display widget
-        self.display = SearchWidget()
+        self.display = SearchWidget(self)
         # Add the display to the general layout
         self.topRowLayout.addWidget(self.display, 0, 0)
 
@@ -123,12 +129,9 @@ class KeyboardInput(QMainWindow):
 
     def setWordMode(self):  # set button text to "list of suggested words"
         self.label.setText("word mode")
-        # list of suggested words (given by OpenAI integration)
-        self.wordLabels = ["Hi", "Bruh", "I'm ok",
-                           "Good, and you?", "Duck Duck Goose", "MIT of the North"]
         i = 0
         for btnText in self.buttons.keys():
-            self.buttons[btnText].setLabelText(self.wordLabels[i])
+            self.buttons[btnText].setLabelText(self.wordList[i])
             self.buttons[btnText].clicked.disconnect()
             self.buttons[btnText].clicked.connect(self.word_keyboard_click)
             i += 1
@@ -155,8 +158,8 @@ class KeyboardInput(QMainWindow):
 
     """Set display's text."""
     def setDisplayText(self, inputText="", setWord=False): 
-        self.sending_button = self.sender()
-        text = self.sending_button.text()
+        sending_button = self.sender()
+        text = sending_button.labelText()
         if inputText:
             text = inputText
         self.display.setFocus()
@@ -166,6 +169,7 @@ class KeyboardInput(QMainWindow):
             keyboard.press(Key.backspace)
             keyboard.release(Key.backspace)
         else:
+            
             for key in text:
                 keyboard.press(key)
                 keyboard.release(key)
@@ -178,6 +182,8 @@ class KeyboardInput(QMainWindow):
             keyboard.press(" ")
             keyboard.release(" ")
 
+    def changeWordSuggestion(self,list):
+            self.wordList = list
 
 if __name__ == '__main__':
 

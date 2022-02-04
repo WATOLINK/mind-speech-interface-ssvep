@@ -4,14 +4,20 @@ from PyQt5.QtWidgets import QCompleter, QTextEdit
 from PyQt5.QtGui import QTextCursor, QKeySequence, QFont
 
 from Pages.QAPage.completer import AutoCompleter
-
+import Pages.QAPage.keyboard
 import string
 
 
 class SearchWidget(QTextEdit):
-    def __init__(self, parent=None):
+    parent_module = None
+
+    def __init__(self, parent):
         super(SearchWidget, self).__init__(parent)
 
+        self.parent_module = parent
+        print(self.parent_module.wordList)
+        Pages.QAPage.keyboard.KeyboardInput.changeWordSuggestion(self.parent_module, ["Passed from func", "Bruh", "I'm ok",
+                           "Good, and you?", "Duck Duck Goose", "MIT of the North"])
         # search widget configurations
         font = QFont()
         font.setPointSize(12)
@@ -55,7 +61,7 @@ class SearchWidget(QTextEdit):
         # prevent copy paste
         if event in (QtGui.QKeySequence.Copy, QtGui.QKeySequence.Paste):
             return
-
+        
         tc = self.textCursor()
         if event.key() == Qt.Key_Tab:
             if self.completer.getSuggestion().strip() != "":
