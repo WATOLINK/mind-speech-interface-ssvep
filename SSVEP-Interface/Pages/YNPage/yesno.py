@@ -1,10 +1,10 @@
-import functools
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 from Pages.circle_stimuli import CircleFlash
-from Pages.styles import confirmButtonStyle, stimuliStyle, toggleButtonStyle
+from Pages.styles import confirmButtonStyle, stimuliStyle, toggleButtonStyle, yesLabelStyle
 from Pages.stimuli import Flash
+from Pages.button_container import ButtonContainer
 
 
 class YesNoWindow(QtWidgets.QWidget):
@@ -12,59 +12,45 @@ class YesNoWindow(QtWidgets.QWidget):
     def __init__(self, parent):
         super().__init__(parent)
 
-        # This button is not shown to the user, only exists so that the yes/no buttons can be deselected
-        self.default_toggle = QtWidgets.QPushButton("")
-        self.default_toggle.setCheckable(True)
+        self.generalLayout = QtWidgets.QVBoxLayout()
 
-        self.yes_toggle = QtWidgets.QPushButton("Yes")
-        self.yes_toggle.setCheckable(True)
-        # yes_toggle.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        self.yes_toggle.setStyleSheet(toggleButtonStyle)
 
-        self.no_toggle = QtWidgets.QPushButton("No")
-        self.no_toggle.setCheckable(True)
-        # no_toggle.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        self.no_toggle.setStyleSheet(toggleButtonStyle)
+        topLayout = QtWidgets.QHBoxLayout()
+    
 
-        self.buttonGroup = QtWidgets.QButtonGroup()
-        self.buttonGroup.addButton(self.yes_toggle)
-        self.buttonGroup.addButton(self.no_toggle)
-        self.buttonGroup.addButton(self.default_toggle)
-
-        layout = QtWidgets.QGridLayout()
-
-        layout.addWidget(self.yes_toggle, 0, 0)
-        layout.addWidget(self.no_toggle, 0, 1)
-
-        # Buttons used to test stimuli detect functions
-
-        # self.y = QtWidgets.QPushButton("y")
-        # self.n = QtWidgets.QPushButton("n")
-        # self.y.clicked.connect(self.yes_detect)
-        # self.n.clicked.connect(self.no_detect)
-        # layout.addWidget(self.y, 2, 0)
-        # layout.addWidget(self.n, 2, 2)
+        bottomLayout = QtWidgets.QHBoxLayout()
+        bottomLayout.setStretch(0, 1)
+        bottomLayout.setStretch(1, 1)
+        bottomLayout.setStretch(2, 1)
         
-        #add stims
-        w1 = CircleFlash(400,0,0,255)
-        w1.setStyleSheet(stimuliStyle)
-        w1.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        confirmButton = ButtonContainer("Confirm", horizontal=True, checkable=False, border=False)
+        yesButton = ButtonContainer("Yes")
+        noButton = ButtonContainer("No")
 
+        topLayout.addWidget(yesButton)
+        topLayout.addWidget(noButton)
+
+        dummyWidget = QtWidgets.QWidget()
+        dummyWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        bottomLayout.addWidget(dummyWidget) # Dummy widget
+        bottomLayout.addWidget(confirmButton)
+        bottomLayout.addWidget(dummyWidget) # Dummy widget
         
-        w2 = CircleFlash(50,255,0,0)
-        w2.setStyleSheet(stimuliStyle)
-        w2.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-
-        layout.addWidget(w1, 1, 0, alignment=Qt.AlignCenter)
-        layout.addWidget(w2, 1, 1, alignment=Qt.AlignCenter)
+        self.generalLayout.addLayout(topLayout)
+        self.generalLayout.addLayout(bottomLayout)
 
 
-        self.confirm_button = QtWidgets.QPushButton('Confirm')
-        self.confirm_button.setStyleSheet(confirmButtonStyle)
-        layout.addWidget(self.confirm_button, 2, 1)
-        self.confirm_button.clicked.connect(self.confirm_detect)
+        self.generalLayout.setStretch(0, 3)
+        self.generalLayout.setStretch(1, 1)
+        
 
-        self.setLayout(layout)
+
+        # self.confirm_button = QtWidgets.QPushButton('Confirm')
+        # self.confirm_button.setStyleSheet(confirmButtonStyle)
+        # layout.addWidget(self.confirm_button, 2, 1)
+        # self.confirm_button.clicked.connect(self.confirm_detect)
+
+        self.setLayout(self.generalLayout)
 
     # Following functions are called when a yes, no, or confirm stimuli is detected by event loop (not implemented yet)
 

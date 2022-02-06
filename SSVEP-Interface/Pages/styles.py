@@ -3,7 +3,7 @@ toggleButtonStyle = """
         background-color: #2C2C2C;
         border: 6px solid #FFFFFF;
         border-radius: 30px;
-        font-size: 72px;
+
         margin: 10% 50%;
         width: 349px;
     }
@@ -11,6 +11,25 @@ toggleButtonStyle = """
     QPushButton:checked {
         background-color: #454545;
     }
+"""
+
+toggleButtonStyleNoBorder = """
+    QPushButton {
+        background-color: #2C2C2C;
+        border-radius: 30px;
+
+        margin: 10% 50%;
+        width: 349px;
+    }
+
+    QPushButton:checked {
+        background-color: #454545;
+    }
+"""
+
+yesLabelStyle = """
+    background-color: transparent;
+    font-size: 18px;
 """
 
 confirmButtonStyle = """
@@ -37,7 +56,10 @@ windowStyle = """
 """
 
 stimuliStyle = """
-    min-width: 250px;
-    min-height: 250px;
+    background-color: #2C2C2C;
 """
 
+promptStyle = """
+    margin: 50px 0px;
+    font-size: 36px;
+""" 

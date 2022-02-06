@@ -19,11 +19,18 @@ from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
 # Constants that must match constant declaration in sembedded script
 HOST = '127.0.0.1'  # Server hostname or IP
 PORT = 65432        # Port used by server
-col = ['Count','Ch1','Ch2','Ch3','Ch4','Ch5','Ch6','Ch7','Ch8','Ch9','Ch10','Ch11','Ch12','Ch13','Ch14','Ch15','Ch16']
+
+# Variables to change parameters of the test
+START_DELAY_S = 5 # Seconds
+NUM_TRIALS = 12
+INDICATOR_TIME_VALUE_S = 5 # Seconds
+TRIAL_BREAK_TIME = 10
+STIM_PERIOD_TRIALS = 2
+
 data = []
-
-
-
+color_code_order = []
+color_freq_order = []
+timestamp = []
 
 
 def display_procedure(stop, board, args):
@@ -31,13 +38,13 @@ def display_procedure(stop, board, args):
     f.write(f"Session at {datetime.datetime.now()}\n\n")
 
     time.sleep(2)
-    startDelay = 5 #Start delay (20s)
+    startDelay = START_DELAY_S
     for x in range(startDelay):
         label.setText(labelTxt(f"Starting in {str(startDelay-x)}"))
         time.sleep(1)
     order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
-    for trial in range(1):  # number of trials (5 times)
+    for trial in range(NUM_TRIALS):  # number of trials (5 times)
         print("=====Trial "+str(trial+1)+"=====")
         f.write("\n=====Trial "+str(trial+1)+"=====\n")
         
@@ -45,7 +52,7 @@ def display_procedure(stop, board, args):
         random.shuffle(order)
         print(order)
 
-        for stimPeriod in range(12):
+        for stimPeriod in range(STIM_PERIOD_TRIALS):
             # just for testing otherwise the thread keeps running if you close the window
             if stop():
                 break
@@ -70,45 +77,78 @@ def display_procedure(stop, board, args):
             # log code to file
             f.write(f"{currentStim.id:02} " + colorCode +
                     f" {currentStim.freqHertz:02}\n")
+            color_code_order.append(colorCode)
+            color_freq_order.append(currentStim.freqHertz)
+
 
             # indicate stimuli to focus on / display indicator
-            
-            
-            indicatorTime = 5
             currentStim.toggleIndicator(True)
             label.setText(labelTxt(f"Keep you eyes where the red circle is."))
             
-            for x in range(int(indicatorTime)):
-                stimLabel.setText(labelTxt(str(indicatorTime - x)))
+            for x in range(int(INDICATOR_TIME_VALUE_S)):
+                stimLabel.setText(labelTxt(str(INDICATOR_TIME_VALUE_S - x)))
                 time.sleep(1)
             stimLabel.setText(labelTxt(""))
             
             currentStim.toggleIndicator(False)
 
             
-            for x in range(12):
+            for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOn()
-                
+            
+            start_time = time.time()
             board.start_stream(45000, args)
             time.sleep(5)  # set length of simulation period (5s)
-    
-            data.append(board.get_board_data().transpose()[:,0:17])   # get all data and remove it from internal buffer            
+            data.append(board.get_board_data().transpose()[:,1:17])   # get all data and remove it from internal buffer   
             board.stop_stream()
+            
   
             # turn off all stimuli and prepare for next trial
-            for x in range(12):
+            for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOff()
+        
+            # Corresponding timestamp creation
+            session_timestamp = []
+            timestamp_rows = np.shape(data[data_index])[0] 
+
+            # One-time millisecond extraction
+            ms = repr(start_time).split('.')[1][:3]
+
+            for each_timestamp_index in range(timestamp_rows):
+
+                # Convert Unix time to desired timestamp format
+                formatted_start_time = time.strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), time.localtime(start_time))[:23]
+                session_timestamp.append( formatted_start_time )
+                
+                # Add 8ms to formatted_start_time 
+                ms = int(ms) + 4
+
+                # Work-around for floating point error from adding 8 ms
+                if ms > 999:
+                    rem_ms = str(ms - 1000)
+                    start_time += 1  
+                    ms = '00' + rem_ms
+                else:
+                    ms = str(ms)
+                    if len(str(ms)) == 1:
+                        ms = '00' + ms
+                    elif len(str(ms)) == 2:
+                        ms = '0' + ms
+                    else:
+                        pass
+
+            timestamp.append(session_timestamp)
+            data_index += 1            
 
 
         # just for testing otherwise the thread keeps running if you close the window
         if stop():
             break
 
-        trialBreakTime = 10 #length of break between trials (120s)
 
-        for x in range(int(trialBreakTime)):
+        for x in range(int(TRIAL_BREAK_TIME)):
             label.setText(
-                labelTxt(f"Time before next trial: ({trialBreakTime-x})"))
+                labelTxt(f"Time before next trial: ({TRIAL_BREAK_TIME-x})"))
             time.sleep(1)
 
     label.setText(
@@ -116,16 +156,34 @@ def display_procedure(stop, board, args):
     print("all trials finished")
     f.write("Session finished.\n\n")
     f.close()
-    
-    for i in range(len(data)):
-        data[i] = pd.DataFrame(data[i], columns=col)
-    df = pd.concat(data)
-    df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv")
+
+    df = post_process(data, timestamp, color_code_order, color_freq_order)
+    df.to_csv("ODC-DEMO/demo_data" + filename + ".csv")
 
     Cyton_Board_End(board)
 
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
+
+
+def post_process( data, timestamp, color_code, color_freq ):
+
+    header = ['Time']
+    for i in range(1, 17):
+        header.append('CH{}'.format(i))
+
+    for i in range(np.shape( timestamp )[0]):
+        data[i] = np.c_[ timestamp[i] , data[i]  ]
+    
+    for i in range(len(data)):
+        # Color code order going out of range
+        data[i] = pd.DataFrame(data[i], columns=header)
+        data[i].loc[0, 'Color Code'] = color_code[i]
+        data[i].loc[0, 'Frequency'] = color_freq[i]
+    
+    df_all = pd.concat(data)
+    df_all.index.name = 'Count'
+    return df_all
 
 class Stimuli(QWidget):
     def __init__(self):
@@ -133,10 +191,9 @@ class Stimuli(QWidget):
         self.resize(1200, 900)
 
         self.frame = QFrame(self, objectName="frame") # ensures correct aspect ratio of grid
-
         global stim
         stim = []
-        print("Test")
+
         # white stims
         stim.append(Stim.CircleFlash(20, 255, 255, 255, 1))
         stim.append(Stim.CircleFlash(18, 255, 255, 255, 2))
@@ -164,8 +221,8 @@ class Stimuli(QWidget):
         for x in range(12):
             preStim = QLabel(labelTxt(""))
             preStimIndicators.append(preStim)
-
-
+            
+            
         self.gridLayout = QGridLayout(self.frame)
         # self.gridLayout.addWidget(QLabel(), 3, 0)
         for row in range(3):
@@ -181,6 +238,7 @@ class Stimuli(QWidget):
 
 
         self.gridLayout.setSpacing(10)
+
 
     # resizes grid during window resize
     def resizeEvent(self, event): 
@@ -217,15 +275,14 @@ if __name__ == '__main__':
     label = QLabel(labelTxt("ODC-DEMO"))
     label.setFixedHeight(100)
     layout.addWidget(label)
-
+    print("Test")
     grid = Stimuli() # stimuli grid widget
-
+    
     layout.addWidget(grid)
     window.setLayout(layout)
-
+    
     # BCI Config
     board_details = Cyton_Board_Config(False)
-
     stopThread = False
     x = threading.Thread(target=display_procedure, args=(lambda: stopThread, board_details[0], board_details[1]))
     x.start()

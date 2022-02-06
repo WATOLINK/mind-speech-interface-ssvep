@@ -2,6 +2,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QButtonGroup, QGridLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QVBoxLayout, QWidget
 from Pages.styles import toggleButtonStyle, confirmButtonStyle, navigationButtonStyle
+from Pages.button_container import ButtonContainer
 
 
 class MultipleChoiceWidget(QWidget):
@@ -25,12 +26,31 @@ class MultipleChoiceWidget(QWidget):
         centralLayout = self._createCentralLayout()
 
         buttonLayout = self._createButtonLayout()
-        confirmButton = self._createConfirmButton()
-        self.previewText = self._createPreviewText()
 
-        centralLayout.addWidget(self.previewText, alignment=Qt.AlignCenter)
+        topLayout = QHBoxLayout()
+        self.previewText = self._createPreviewText()
+        topLayout.addWidget(self.previewText, alignment=Qt.AlignCenter)
+
+        bottomLayout = QHBoxLayout()
+
+        dummyWidget = QWidget()
+        confirmButton = self._createConfirmButton()
+        bottomLayout.addWidget(dummyWidget)
+        bottomLayout.addWidget(confirmButton)
+        bottomLayout.addWidget(dummyWidget)
+
+        bottomLayout.setStretch(0, 1)
+        bottomLayout.setStretch(1, 1)
+        bottomLayout.setStretch(2, 1)
+
+
+        centralLayout.addLayout(topLayout)
         centralLayout.addLayout(buttonLayout)
-        centralLayout.addWidget(confirmButton, alignment=Qt.AlignCenter)
+        centralLayout.addLayout(bottomLayout)
+
+        centralLayout.setStretch(0, 1)
+        centralLayout.setStretch(1, 6)
+        centralLayout.setStretch(2, 2)
 
         layout.addWidget(button1)
         layout.addLayout(centralLayout)
@@ -49,10 +69,8 @@ class MultipleChoiceWidget(QWidget):
                    'D': (1, 0), 'E': (1, 1), 'F': (1, 2)}
 
         for buttonText, pos in buttons.items():
-            button = QPushButton(buttonText)
+            button = ButtonContainer(buttonText)
             button.setCheckable(True)
-            button.setStyleSheet(toggleButtonStyle)
-            button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             buttonLayout.addWidget(button, pos[0], pos[1])
             self.buttonGroup.addButton(button)
 
@@ -62,11 +80,10 @@ class MultipleChoiceWidget(QWidget):
 
     def _handleConfirm(self):
         if self.buttonGroup.checkedButton():
-            self.previewText.setText(self.buttonGroup.checkedButton().text())
+            self.previewText.setText(self.buttonGroup.checkedButton().labelText())
 
     def _createConfirmButton(self):
-        confirmButton = QPushButton("Confirm")
-        confirmButton.setStyleSheet(confirmButtonStyle)
+        confirmButton = ButtonContainer("Confirm", horizontal=True, checkable=False, border=False)
         confirmButton.clicked.connect(self._handleConfirm)
         return confirmButton
 
