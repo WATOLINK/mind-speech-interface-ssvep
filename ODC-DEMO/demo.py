@@ -21,11 +21,11 @@ HOST = '127.0.0.1'  # Server hostname or IP
 PORT = 65432        # Port used by server
 
 # Variables to change parameters of the test
-START_DELAY_S = 5 # Seconds
-NUM_TRIALS = 12
+START_DELAY_S = 20 # Seconds
+NUM_TRIALS = 5
 INDICATOR_TIME_VALUE_S = 5 # Seconds
-TRIAL_BREAK_TIME = 10
-STIM_PERIOD_TRIALS = 2
+TRIAL_BREAK_TIME = 120
+STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
 
 data = []
 color_code_order = []
