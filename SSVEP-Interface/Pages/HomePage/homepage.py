@@ -87,7 +87,7 @@ def homeWidget(mainStack):
     button_group = QButtonGroup()
 
     titles = ['MC', 'YN', 'Type']
-    buttons = [ButtonContainer(title, horizontal=True, checkable=True, border=False) for title in titles]
+    buttons = [ButtonContainer(title) for title in titles]
     # buttons = [QPushButton(title) for title in titles]
 
     for button in buttons:
