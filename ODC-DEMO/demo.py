@@ -13,7 +13,7 @@ import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
 import os
-from time import time , sleep
+from time import time, sleep, strftime, localtime
 
 from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
 
@@ -31,15 +31,15 @@ STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
 data = []
 color_code_order = []
 color_freq_order = []
-
 timestamp = []
-
 
 def display_procedure(stop, board, args):
     f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()}\n\n")
-    ti = time()
     board.start_stream(45000, args)
+    
+    # Test 
+    ti = time()
 
     sleep(1)
     startDelay = START_DELAY_S
@@ -56,7 +56,6 @@ def display_procedure(stop, board, args):
         random.shuffle(order)
         print(order)
 
-        
         data.append(board.get_board_data().transpose()[:,1:9]) # get data at start AS WELL AS BETWEEN TRIALS
         timestamp.append(time())
 
@@ -64,7 +63,6 @@ def display_procedure(stop, board, args):
             # just for testing otherwise the thread keeps running if you close the window
             if stop():
                 break
-
             currentStim = stim[order[stimPeriod]]
             stimLabel = preStimIndicators[order[stimPeriod]]
 
@@ -88,7 +86,6 @@ def display_procedure(stop, board, args):
             color_code_order.append(colorCode)
             color_freq_order.append(currentStim.freqHertz)
 
-
             # indicate stimuli to focus on / display indicator
             currentStim.toggleIndicator(True)
             label.setText(labelTxt(f"Keep you eyes where the red circle is."))
@@ -109,107 +106,90 @@ def display_procedure(stop, board, args):
             #start_time = time.time()
             #board.start_stream(45000, args)
 
-
             sleep(5)  # set length of simulation period (5s)
             data.append(board.get_board_data().transpose()[:,1:9])   # get all data for stimuli flash (individual)   
             timestamp.append(time())
 
-
-            #board.stop_stream()
-            
-  
             # turn off all stimuli and prepare for next trial
             for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOff()
 
-
-         #   session_timestamp = []
-          #  timestamp_rows = np.shape(data[data_index])[0] 
-        """
-            # One-time millisecond extraction
-            ms = repr(start_time).split('.')[1][:3]
-
-            for each_timestamp_index in range(timestamp_rows):
-
-                # Convert Unix time to desired timestamp format
-                formatted_start_time = time.strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), time.localtime(start_time))[:23]
-                session_timestamp.append( formatted_start_time )
-                
-                # Add 8ms to formatted_start_time 
-                ms = int(ms) + 4
-
-                # Work-around for floating point error from adding 8 ms
-                if ms > 999:
-                    rem_ms = str(ms - 1000)
-                    start_time += 1  
-                    ms = '00' + rem_ms
-                else:
-                    ms = str(ms)
-                    if len(str(ms)) == 1:
-                        ms = '00' + ms
-                    elif len(str(ms)) == 2:
-                        ms = '0' + ms
-                    else:
-                        pass
-
-            timestamp.append(session_timestamp)
-            data_index += 1            
-        """
-
         # just for testing otherwise the thread keeps running if you close the window
         if stop():
             break
-
-
         for x in range(int(TRIAL_BREAK_TIME)):
             label.setText(
                 labelTxt(f"Time before next trial: ({TRIAL_BREAK_TIME-x})"))
             sleep(1)
         
-
     label.setText(
                 labelTxt(f"Trials finished"))
     print("all trials finished")
     f.write("Session finished.\n\n")
     f.close()
 
-    print(timestamp)
-    print(len(data))
-    for i in data:
-        print(np.shape(i))
-
-    
-
-
-    df = post_process(data, timestamp, color_code_order, color_freq_order)
-    df.to_csv("ODC-DEMO/demo_data" + filename + ".csv")
-
     board.stop_stream()
-    print(time()-ti)
-    Cyton_Board_End(board)
+    try:
+        df = post_process(data, timestamp, color_code_order, color_freq_order)
+        df.to_csv("ODC-DEMO/demo_data" + filename + ".csv")
+    except:
+        print('Post data processing and CSV Export failed')
+    finally:
+        Cyton_Board_End(board)
 
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
 
-
 def post_process( data, timestamp, color_code, color_freq ):
+    for data_block_index in range(len(data)):
+        data_rows, data_cols = np.shape(data[data_block_index])
+        start_time = timestamp[data_block_index]
 
-    #header = ['Time']
-    #for i in range(1, 17):
-     #   header.append('CH{}'.format(i))
-
-   # for i in range(np.shape( timestamp )[0]):
-    #    data[i] = np.c_[ timestamp[i] , data[i]  ]
+        # Extract down to milliseconds
+        ms = repr(start_time).split('.')[1][:3]
+        # Corresponding timestamp creation
+        block_timestamp = []
     
+        for time_increment_index in range(data_rows):
+            # Convert Unix time to desired timestamp format
+            formatted_start_time = strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), localtime(start_time))[:23]
+            block_timestamp.append( formatted_start_time )
+
+            # Increment by 4ms for 250Hz
+            # Increment by 8ms for 125Hz
+            ms = int(ms) + 4
+            # Work-around for floating point error from adding millisecond
+            if ms > 999:
+                rem_ms = str(ms - 1000)
+                start_time += 1  
+                ms = '00' + rem_ms
+            else:
+                ms = str(ms)
+                if len(str(ms)) == 1:
+                    ms = '00' + ms
+                elif len(str(ms)) == 2:
+                    ms = '0' + ms
+                else:
+                    pass       
+
+        # Update timestamp list to contain incremented timestamp block instead of start time
+        timestamp[ data_block_index ] = block_timestamp
+        
+    # Create header row
+    header = ['Time']
+    for i in range(1, 9):
+        header.append('CH{}'.format(i))
+
+    # Put timestamp, color code, and frequency columns together with data blocks
     for i in range(len(data)):
-        # Color code order going out of range
-        data[i] = pd.DataFrame(data[i])
-        #, columns=header)
-       # data[i].loc[0, 'Color Code'] = color_code[i]
+        data[i] = np.c_[ timestamp[i], data[i] ]
+        data[i] = pd.DataFrame(data[i], columns=header)
+        #data[i].loc[0, 'Color Code'] = color_code[i]
         #data[i].loc[0, 'Frequency'] = color_freq[i]
     
+    # Convert to 1 DataFrame
     df_all = pd.concat(data)
-    #df_all.index.name = 'Count'
+    df_all.index.name = 'Count'
     return df_all
 
 class Stimuli(QWidget):
@@ -249,7 +229,6 @@ class Stimuli(QWidget):
             preStim = QLabel(labelTxt(""))
             preStimIndicators.append(preStim)
             
-            
         self.gridLayout = QGridLayout(self.frame)
         # self.gridLayout.addWidget(QLabel(), 3, 0)
         for row in range(3):
@@ -262,10 +241,7 @@ class Stimuli(QWidget):
 
                 stim[stimNum].toggleOff()
                 self.gridLayout.addWidget(stim[stimNum], row*2+4, col*2)
-
-
         self.gridLayout.setSpacing(10)
-
 
     # resizes grid during window resize
     def resizeEvent(self, event): 
