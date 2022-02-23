@@ -5,9 +5,6 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QApplication, QStackedWidget, QVBoxLayout, QWidget, QPushButton
 from PyQt5.QtWidgets import QMainWindow
 
-from Pages.QAPage.qa import QuestionAndAnswerWidget
-from Pages.MCPage.mc import MultipleChoiceWidget
-from Pages.YNPage.absolute import TrueAndFalseWidget
 from Pages.HomePage.homepage import HomePageWidget
 
 from Pages.styles import windowStyle, navigationButtonStyle
@@ -24,16 +21,13 @@ class Home(QMainWindow):
 
          # Make sure to pass in 'self' to the child widget for it to access parent methods
         self.homePage = HomePageWidget(self)
-        self.multiplePage = MultipleChoiceWidget(self)
-        self.questionPage = QuestionAndAnswerWidget(self)
-        self.trueFalsePage = TrueAndFalseWidget(self)
         # We use the Stack Widget to navigate between different pages
         # If new pages need to be added, import it to this file and add it to the stack
         self.stacked = QStackedWidget()
         self.stacked.addWidget((self.homePage))
-        self.stacked.addWidget(self.questionPage)
-        self.stacked.addWidget(self.multiplePage)
-        self.stacked.addWidget(self.trueFalsePage)
+        # self.stacked.addWidget(self.questionPage)
+        # self.stacked.addWidget(self.multiplePage)
+        # self.stacked.addWidget(self.trueFalsePage)
         self.setWindowTitle('Main Window')  # Sets name of window
         # Adds central widget where we are going to do most of our work
         self.setCentralWidget(self.stacked)

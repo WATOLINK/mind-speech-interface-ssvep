@@ -62,7 +62,12 @@ stimuliStyle = """
 promptStyle = """
     margin: 50px 0px;
     font-size: 36px;
-""" 
+"""
+
+instructionsStyle = """
+    margin: 50px 0px;
+    font-size: 30px;
+"""
 
 promptBoxStyle = """
     background-color: #2C2C2C;
