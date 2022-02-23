@@ -122,9 +122,12 @@ def display_procedure(stop, board, args):
     f.close()
 
     board.stop_stream()
+    duration = time()-ti
+    # generate_test_report(board, duration, data, timestamp, color_code_order, color_freq_order)
+
     try:
         df = post_process(data, timestamp, color_code_order, color_freq_order)
-        df.to_csv("ODC-DEMO/demo_data" + filename + ".csv")
+        df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
     except:
         print('Post data processing and CSV Export failed')
     finally:
@@ -158,7 +161,7 @@ def post_process( data, timestamp, color_code, color_freq ):
                 ms = '00' + rem_ms
             else:
                 ms = str(ms)
-                if len(str(ms)) == 1:
+                if len(str(ms)) == 1: 
                     ms = '00' + ms
                 elif len(str(ms)) == 2:
                     ms = '0' + ms
@@ -177,13 +180,55 @@ def post_process( data, timestamp, color_code, color_freq ):
     for i in range(len(data)):
         data[i] = np.c_[ timestamp[i], data[i] ]
         data[i] = pd.DataFrame(data[i], columns=header)
-        #data[i].loc[0, 'Color Code'] = color_code[i]
-        #data[i].loc[0, 'Frequency'] = color_freq[i]
-    
+
+    for i, j in zip(range(2, len(data), 2), range(len(color_code))):
+        data[i].loc[0, 'Color Code'] = color_code[j]
+        data[i].loc[0, 'Frequency'] = color_freq[j]
+        
     # Convert to 1 DataFrame
     df_all = pd.concat(data)
-    df_all.index.name = 'Count'
+    #df_all.index.name = 'Count'
     return df_all
+
+def generate_test_report(board, duration, data, timestamp, color_code_order, color_freq_order):
+    tf = open("ODC-DEMO/test_report.txt", 'w')  
+    tf.write("Data list len: ")
+    tf.write(str(len(data)))
+    tf.write("\n")
+    tf.write("Start time list len: ")
+    tf.write(str(len(timestamp))) 
+    tf.write("\n")
+    tf.write("CC list len: ")
+    tf.write(str(len(color_code_order)))
+    tf.write("\n")
+    tf.write("CF list len: ")
+    tf.write(str(len(color_freq_order)))
+    tf.write("\n\n")
+    tf.write("Column headers: ")
+    tf.write(str(board.get_eeg_names(0)))
+    tf.write("\n")
+    tf.write("Marker channel: ")
+    tf.write(str(board.get_marker_channel(-1)))
+    tf.write("\n\n")
+    tf.write("Sampling duration: ")
+    tf.write(str(duration))
+    tf.write("\n\n")
+    total_data_count = 0
+    for i in data:
+        tf.write(str(np.shape(i)))
+        tf.write("\n")
+        total_data_count += np.shape(i)[0]
+    for i, j in zip(color_code_order, color_freq_order):
+        tf.write(str(i))
+        tf.write(str("\n"))
+    tf.write("\n\n")
+    tf.write("Expected Samples: ")
+    tf.write(str(250*duration)) 
+    tf.write("\n")
+    tf.write("Received Samples: ")
+    tf.write(str(total_data_count))
+    tf.write("\n")
+    tf.close()
 
 class Stimuli(QWidget):
     def __init__(self):
