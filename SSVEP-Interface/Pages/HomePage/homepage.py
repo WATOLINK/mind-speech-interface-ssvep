@@ -82,14 +82,14 @@ def homeWidget(mainStack):
     for button in buttons:
         print(button.text())
 
-    buttons[0].clicked.connect(lambda: disableOtherButton(button_group,buttons[0]))
-    buttons[1].clicked.connect(lambda: disableOtherButton(button_group,buttons[1]))
-    buttons[2].clicked.connect(lambda: disableOtherButton(button_group,buttons[2]))
+    buttons[0].clicked.connect(lambda: disableOtherButtons(button_group,buttons[0]))
+    buttons[1].clicked.connect(lambda: disableOtherButtons(button_group,buttons[1]))
+    buttons[2].clicked.connect(lambda: disableOtherButtons(button_group,buttons[2]))
 
     home.setLayout(layout)
     return home
 
-def disableOtherButton(buttonGroup,selected):
+def disableOtherButtons(buttonGroup,selected):
     if selected.isChecked():
         for button in buttonGroup.buttons():
             if button != selected:
