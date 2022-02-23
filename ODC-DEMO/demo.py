@@ -22,9 +22,9 @@ HOST = '127.0.0.1'  # Server hostname or IP
 PORT = 65432        # Port used by server
 
 # Variables to change parameters of the test
-START_DELAY_S = 2 # 20 Seconds
+START_DELAY_S = 1 # 20 Seconds
 NUM_TRIALS = 1 # 5 Trials
-INDICATOR_TIME_VALUE_S = 2 # 5 Seconds
+INDICATOR_TIME_VALUE_S = 1 # 5 Seconds
 TRIAL_BREAK_TIME = 5 # 120 seconds 
 STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
 
@@ -38,9 +38,10 @@ timestamp = []
 def display_procedure(stop, board, args):
     f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()}\n\n")
+    ti = time()
     board.start_stream(45000, args)
 
-    sleep(2)
+    sleep(1)
     startDelay = START_DELAY_S
     for x in range(startDelay):
         label.setText(labelTxt(f"Starting in {str(startDelay-x)}"))
@@ -56,7 +57,7 @@ def display_procedure(stop, board, args):
         print(order)
 
         
-        data.append(board.get_board_data().transpose()[:,1:17]) # get data at start AS WELL AS BETWEEN TRIALS
+        data.append(board.get_board_data().transpose()[:,1:9]) # get data at start AS WELL AS BETWEEN TRIALS
         timestamp.append(time())
 
         for stimPeriod in range(STIM_PERIOD_TRIALS):
@@ -99,7 +100,7 @@ def display_procedure(stop, board, args):
             
             currentStim.toggleIndicator(False)
 
-            data.append(board.get_board_data().transpose()[:,1:17])   # get all data for in between flashes (null)
+            data.append(board.get_board_data().transpose()[:,1:9])   # get all data for in between flashes (null)
             timestamp.append(time())
             
             for x in range(STIM_PERIOD_TRIALS):
@@ -110,7 +111,7 @@ def display_procedure(stop, board, args):
 
 
             sleep(5)  # set length of simulation period (5s)
-            data.append(board.get_board_data().transpose()[:,1:17])   # get all data for stimuli flash (individual)   
+            data.append(board.get_board_data().transpose()[:,1:9])   # get all data for stimuli flash (individual)   
             timestamp.append(time())
 
 
@@ -121,11 +122,10 @@ def display_procedure(stop, board, args):
             for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOff()
 
-        """      
-            # Corresponding timestamp creation
-            session_timestamp = []
-            timestamp_rows = np.shape(data[data_index])[0] 
 
+         #   session_timestamp = []
+          #  timestamp_rows = np.shape(data[data_index])[0] 
+        """
             # One-time millisecond extraction
             ms = repr(start_time).split('.')[1][:3]
 
@@ -174,36 +174,44 @@ def display_procedure(stop, board, args):
     f.close()
 
     print(timestamp)
+    print(len(data))
+    for i in data:
+        print(np.shape(i))
 
-    #df = post_process(data, timestamp, color_code_order, color_freq_order)
-    #df.to_csv("ODC-DEMO/demo_data" + filename + ".csv")
+    
+
+
+    df = post_process(data, timestamp, color_code_order, color_freq_order)
+    df.to_csv("ODC-DEMO/demo_data" + filename + ".csv")
 
     board.stop_stream()
+    print(time()-ti)
     Cyton_Board_End(board)
 
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
 
-'''
+
 def post_process( data, timestamp, color_code, color_freq ):
 
-    header = ['Time']
-    for i in range(1, 17):
-        header.append('CH{}'.format(i))
+    #header = ['Time']
+    #for i in range(1, 17):
+     #   header.append('CH{}'.format(i))
 
-    for i in range(np.shape( timestamp )[0]):
-        data[i] = np.c_[ timestamp[i] , data[i]  ]
+   # for i in range(np.shape( timestamp )[0]):
+    #    data[i] = np.c_[ timestamp[i] , data[i]  ]
     
     for i in range(len(data)):
         # Color code order going out of range
-        data[i] = pd.DataFrame(data[i], columns=header)
-        data[i].loc[0, 'Color Code'] = color_code[i]
-        data[i].loc[0, 'Frequency'] = color_freq[i]
+        data[i] = pd.DataFrame(data[i])
+        #, columns=header)
+       # data[i].loc[0, 'Color Code'] = color_code[i]
+        #data[i].loc[0, 'Frequency'] = color_freq[i]
     
     df_all = pd.concat(data)
-    df_all.index.name = 'Count'
+    #df_all.index.name = 'Count'
     return df_all
-'''
+
 class Stimuli(QWidget):
     def __init__(self):
         super().__init__()
