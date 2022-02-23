@@ -5,6 +5,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5 import QtCore
 
 from Pages.styles import textBoxStyle, sideBarStyle, mainButtonStyle, promptBoxStyle, instructionsStyle
+from Pages.button_container import ButtonContainer
 
 
 class HomePageWidget(QWidget):
@@ -86,15 +87,16 @@ def homeWidget(mainStack):
     button_group = QButtonGroup()
 
     titles = ['MC', 'YN', 'Type']
-    buttons = [QPushButton(title) for title in titles]
+    buttons = [ButtonContainer(title, horizontal=True, checkable=True, border=False) for title in titles]
+    # buttons = [QPushButton(title) for title in titles]
 
     for button in buttons:
         layout.addWidget(button)
         button_group.addButton(button)
-        button.setCheckable(True)
+        # button.setCheckable(True)
 
     for button in buttons:
-        print(button.text())
+        print(button.labelText())
 
     buttons[0].clicked.connect(
         lambda: focusWidget(button_group, buttons[0], titles[0]))
@@ -121,7 +123,7 @@ def multipleChoiceWidget():
     labels = [["A", "B"], ["C", "D"]]
     for row in range(len(labels)):
         for col in range(len(labels[0])):
-            layout.addWidget(QPushButton(labels[row][col]), row, col)
+            layout.addWidget(ButtonContainer(labels[row][col]), row, col)
 
     return widget
 
@@ -131,7 +133,7 @@ def yesNoWidget():
     layout = QHBoxLayout()
     labels = ["Yes/True", "No/False"]
     for col in range(len(labels)):
-        layout.addWidget(QPushButton(labels[col]))
+        layout.addWidget(ButtonContainer(labels[col]))
     widget.setLayout(layout)
     return widget
 
@@ -163,7 +165,7 @@ def groupedCharacterWidget(mainStack):
 
     buttonArray = []
     for x in range(6):
-        button = QPushButton(labels[x])
+        button = ButtonContainer(labels[x])
         buttonArray.append(button)
         layout.addWidget(button, int(x/3), x % 3)
 
@@ -186,7 +188,7 @@ def individualCharacters1Widget(mainStack):
     labels = [["A", "B", "C"], ["D", "E", "F"]]
     for row in range(len(labels)):
         for col in range(len(labels[0])):
-            button = QPushButton(labels[row][col])
+            button = ButtonContainer(labels[row][col])
             button.clicked.connect(lambda: mainStack.setCurrentIndex(3))
             layout.addWidget(button, row, col)
     widget.setLayout(layout)
@@ -199,7 +201,7 @@ def individualCharacters2Widget(mainStack):
     labels = [["G", "H", "I"], ["J", "K", "L"]]
     for row in range(len(labels)):
         for col in range(len(labels[0])):
-            button = QPushButton(labels[row][col])
+            button = ButtonContainer(labels[row][col])
             button.clicked.connect(lambda: mainStack.setCurrentIndex(3))
             layout.addWidget(button, row, col)
     widget.setLayout(layout)
@@ -212,7 +214,7 @@ def individualCharacters3Widget(mainStack):
     labels = [["M", "N", "O"], ["P", "Q", "R"]]
     for row in range(len(labels)):
         for col in range(len(labels[0])):
-            button = QPushButton(labels[row][col])
+            button = ButtonContainer(labels[row][col])
             button.clicked.connect(lambda: mainStack.setCurrentIndex(3))
             layout.addWidget(button, row, col)
     widget.setLayout(layout)
@@ -225,7 +227,7 @@ def individualCharacters4Widget(mainStack):
     labels = [["S", "T", "U"], ["V", "W", "X"]]
     for row in range(len(labels)):
         for col in range(len(labels[0])):
-            button = QPushButton(labels[row][col])
+            button = ButtonContainer(labels[row][col])
             button.clicked.connect(lambda: mainStack.setCurrentIndex(3))
             layout.addWidget(button, row, col)
     widget.setLayout(layout)
@@ -238,7 +240,7 @@ def individualCharacters5Widget(mainStack):
     labels = [["Y", "Z", "0"], ["1", "2", "3"]]
     for row in range(len(labels)):
         for col in range(len(labels[0])):
-            button = QPushButton(labels[row][col])
+            button = ButtonContainer(labels[row][col])
             button.clicked.connect(lambda: mainStack.setCurrentIndex(3))
             layout.addWidget(button, row, col)
     widget.setLayout(layout)
@@ -251,7 +253,7 @@ def individualCharacters6Widget(mainStack):
     labels = [["4", "5", "6"], ["7", "8", "9"]]
     for row in range(len(labels)):
         for col in range(len(labels[0])):
-            button = QPushButton(labels[row][col])
+            button = ButtonContainer(labels[row][col])
             button.clicked.connect(lambda: mainStack.setCurrentIndex(3))
             layout.addWidget(button, row, col)
     widget.setLayout(layout)
@@ -267,7 +269,7 @@ def sideBar():
     sidebar.setStyleSheet(sideBarStyle)
 
     for x in range(4):
-        layout.addWidget(QPushButton("poop"), x, 0)
+        layout.addWidget(ButtonContainer("poop"), x, 0)
     return sidebar
 
 
@@ -276,7 +278,7 @@ def characterSideBar():
     layout = QVBoxLayout()
     labels = ["Enter Message", "Backspace", "Space", "Toggle"]
     for row in range(len(labels)):
-        layout.addWidget(QPushButton(labels[row]))
+        layout.addWidget(ButtonContainer(labels[row]))
     sidebar.setLayout(layout)
     return sidebar
 
@@ -286,7 +288,7 @@ def characterSideBar():
     layout = QVBoxLayout()
     labels = ["Enter Message", "Backspace", "Space", "Toggle"]
     for row in range(len(labels)):
-        layout.addWidget(QPushButton(labels[row]))
+        layout.addWidget(ButtonContainer(labels[row]))
     sidebar.setLayout(layout)
     return sidebar
 
@@ -295,7 +297,7 @@ def enterOnlySideBar(mainStack):
     # For MC Page and Yes/No Page
     sidebar = QWidget()
     layout = QVBoxLayout()
-    button = QPushButton("Enter")
+    button = ButtonContainer("Enter")
     button.clicked.connect(lambda: mainStack.setCurrentIndex(0))
     layout.addWidget(button)
     sidebar.setLayout(layout)
