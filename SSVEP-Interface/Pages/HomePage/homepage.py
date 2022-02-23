@@ -1,6 +1,6 @@
 from inspect import stack
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QLineEdit, QLabel, QPushButton, QStackedWidget, QHBoxLayout, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QButtonGroup, QWidget, QGridLayout, QLineEdit, QLabel, QPushButton, QStackedWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtCore
 
@@ -67,22 +67,34 @@ def homeWidget(mainStack):
     home = QWidget()
     layout = QHBoxLayout()
 
-    mc = QPushButton("Multiple Choice")
-    mc.clicked.connect(lambda : mainStack.setCurrentIndex(1))
-    # mc.clicked.connect(lambda : sidebar.setCurrentIndex(0))
 
-    yn = QPushButton("Yes/No")
-    yn.clicked.connect(lambda : mainStack.setCurrentIndex(2))
+    button_group = QButtonGroup()
 
-    type = QPushButton("Type")
-    type.clicked.connect(lambda : mainStack.setCurrentIndex(3))
+    titles = ['MC', 'YN', 'Type']
+    buttons = [QPushButton(title) for title in titles]
 
-    layout.addWidget(mc)
-    layout.addWidget(yn)
-    layout.addWidget(type)
+
+    for button in buttons:
+        layout.addWidget(button)
+        button_group.addButton(button)
+        button.setCheckable(True)
+    
+    for button in buttons:
+        print(button.text())
+
+    buttons[0].clicked.connect(lambda: disableOtherButton(button_group,buttons[0]))
+    buttons[1].clicked.connect(lambda: disableOtherButton(button_group,buttons[1]))
+    buttons[2].clicked.connect(lambda: disableOtherButton(button_group,buttons[2]))
 
     home.setLayout(layout)
     return home
+
+def disableOtherButton(buttonGroup,selected):
+    if selected.isChecked():
+        for button in buttonGroup.buttons():
+            if button != selected:
+                button.setChecked (False)
+
 
 def multipleChoiceWidget():
     widget = QWidget()
