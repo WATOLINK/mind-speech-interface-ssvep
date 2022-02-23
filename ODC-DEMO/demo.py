@@ -17,10 +17,6 @@ from time import time, sleep, strftime, localtime
 
 from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
 
-# Constants that must match constant declaration in sembedded script
-HOST = '127.0.0.1'  # Server hostname or IP
-PORT = 65432        # Port used by server
-
 # Variables to change parameters of the test
 START_DELAY_S = 1 # 20 Seconds
 NUM_TRIALS = 1 # 5 Trials
@@ -36,7 +32,7 @@ timestamp = []
 def display_procedure(stop, board, args):
     f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()}\n\n")
-    board.start_stream(45000, args)
+    board.start_stream(70000, args)
     
     # Test 
     ti = time()
@@ -102,10 +98,7 @@ def display_procedure(stop, board, args):
             
             for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOn()
-            
-            #start_time = time.time()
-            #board.start_stream(45000, args)
-
+        
             sleep(5)  # set length of simulation period (5s)
             data.append(board.get_board_data().transpose()[:,1:9])   # get all data for stimuli flash (individual)   
             timestamp.append(time())
