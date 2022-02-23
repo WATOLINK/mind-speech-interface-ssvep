@@ -37,6 +37,8 @@ def display_procedure(stop, board, args):
     f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()}\n\n")
 
+    data_index = 0
+
     time.sleep(2)
     startDelay = START_DELAY_S
     for x in range(startDelay):
