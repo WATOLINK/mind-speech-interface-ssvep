@@ -36,6 +36,7 @@ class HomePageWidget(QWidget):
 
 
 def title():
+    global title
     title = QLabel("test")
     title.setMaximumHeight(40)
     return title
@@ -73,6 +74,11 @@ def mainStack():
     return stack
 
 
+def focusWidget(button_group, button, text):
+    disableOtherButtons(button_group, button)
+    title.setText(text)
+
+
 def homeWidget(mainStack):
     home = QWidget()
     layout = QHBoxLayout()
@@ -91,11 +97,11 @@ def homeWidget(mainStack):
         print(button.text())
 
     buttons[0].clicked.connect(
-        lambda: disableOtherButtons(button_group, buttons[0]))
+        lambda: focusWidget(button_group, buttons[0], titles[0]))
     buttons[1].clicked.connect(
-        lambda: disableOtherButtons(button_group, buttons[1]))
+        lambda: focusWidget(button_group, buttons[1], titles[1]))
     buttons[2].clicked.connect(
-        lambda: disableOtherButtons(button_group, buttons[2]))
+        lambda: focusWidget(button_group, buttons[2], titles[2]))
 
     home.setLayout(layout)
     return home
