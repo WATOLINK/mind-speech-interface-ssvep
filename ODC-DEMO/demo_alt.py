@@ -1,4 +1,3 @@
-from turtle import color
 from PyQt5.QtWidgets import (
     QApplication,
     QLabel,
@@ -9,16 +8,12 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import QRect,Qt
 from PyQt5.QtGui import QPainter, QBrush, QPen
-import sys, random, threading, datetime
-
-from flask import session
+from time import time, sleep, strftime, localtime
+from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
+import sys, random, threading, datetime, os
 import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
-import os
-from time import time, sleep, strftime, localtime
-
-from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
 
 # Variables to change parameters of the test
 START_DELAY_S = 1 # 20 Seconds
@@ -52,7 +47,7 @@ def display_procedure(stop, board, args):
         random.shuffle(order)
         print(order)
 
-        board.insert_marker(999999.999) # insert marker for start AS WELL AS BETWEEN TRIALS
+        board.insert_marker(0.666) # insert marker for start AS WELL AS BETWEEN TRIALS
         timestamp.append(time())
 
         for stimPeriod in range(STIM_PERIOD_TRIALS):
@@ -115,7 +110,7 @@ def display_procedure(stop, board, args):
                 labelTxt(f"Time before next trial: ({TRIAL_BREAK_TIME-x})"))
             sleep(1)
 
-    data = board.get_board_data().transpose()[:,1:9]
+    data = board.get_board_data().transpose()
     label.setText(
                 labelTxt(f"Trials finished"))
     print("all trials finished")
@@ -125,10 +120,9 @@ def display_procedure(stop, board, args):
     board.stop_stream()
     duration = time()-ti
     generate_test_report(board, duration, data, timestamp, color_code_order, color_freq_order)
-
+    df = post_process(data, timestamp, color_code_order, color_freq_order)
     try:
-        df = post_process(data, timestamp, color_code_order, color_freq_order)
-        df.to_csv("ODC-DEMO/test.csv", index=False)
+        df.to_csv("ODC-DEMO/this_one.csv", index=False)
         #df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
     except:
         print('Post data processing and CSV Export failed')
@@ -230,7 +224,7 @@ def post_process( data, timestamp, color_code, color_freq ):
     return df_all
 
 def generate_test_report(board, duration, data, timestamp, color_code_order, color_freq_order):
-    tf = open("ODC-DEMO/test_report.txt", 'w')  
+    tf = open("ODC-DEMO/this_one.txt", 'w')  
     tf.write("Size of Data List: ")
     tf.write(str(len(data)))
     tf.write("\n")
@@ -244,7 +238,7 @@ def generate_test_report(board, duration, data, timestamp, color_code_order, col
     tf.write(str(len(color_freq_order)))
     tf.write("\n")
     tf.write("Marker Channel: ")
-    tf.write(str(board.get_marker_channel(-1)))
+    tf.write(str(board.get_marker_channel(0)))
     tf.write("\n")
     tf.write("Data Acquisition Duration: ")
     tf.write(str(duration))
