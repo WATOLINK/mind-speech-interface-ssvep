@@ -1,3 +1,4 @@
+from turtle import color
 from PyQt5.QtWidgets import (
     QApplication,
     QLabel,
@@ -9,6 +10,8 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QRect,Qt
 from PyQt5.QtGui import QPainter, QBrush, QPen
 import sys, random, threading, datetime
+
+from flask import session
 import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
@@ -19,9 +22,9 @@ from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
 
 # Variables to change parameters of the test
 START_DELAY_S = 1 # 20 Seconds
-NUM_TRIALS = 1 # 5 Trials
+NUM_TRIALS = 2 # 5 Trials
 INDICATOR_TIME_VALUE_S = 1 # 5 Seconds
-TRIAL_BREAK_TIME = 5 # 120 seconds 
+TRIAL_BREAK_TIME = 1 # 120 seconds 
 STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
 
 data = []
@@ -123,7 +126,7 @@ def display_procedure(stop, board, args):
 
     board.stop_stream()
     duration = time()-ti
-    # generate_test_report(board, duration, data, timestamp, color_code_order, color_freq_order)
+    generate_test_report(board, duration, data, timestamp, color_code_order, color_freq_order)
 
     try:
         df = post_process(data, timestamp, color_code_order, color_freq_order)
@@ -180,10 +183,43 @@ def post_process( data, timestamp, color_code, color_freq ):
     for i in range(len(data)):
         data[i] = np.c_[ timestamp[i], data[i] ]
         data[i] = pd.DataFrame(data[i], columns=header)
+ 
+    main_ctr = 0
+    session_ctr = 0
+    done_adding_cols = False
+    is_two_block = True
+    is_stimulus_session = False
+    while not done_adding_cols:
+        if is_two_block and not is_stimulus_session:
+            data[main_ctr].loc[0, 'Color Code'] = 0
+            data[main_ctr].loc[0, 'Frequency'] = 0
 
-    for i, j in zip(range(2, len(data), 2), range(len(color_code))):
-        data[i].loc[0, 'Color Code'] = color_code[j]
-        data[i].loc[0, 'Frequency'] = color_freq[j]
+            data[main_ctr + 1].loc[0, 'Color Code'] = 0
+            data[main_ctr + 1].loc[0, 'Frequency'] = 0       
+            
+            main_ctr += 2
+            is_two_block = False
+            is_stimulus_session = True
+
+        if not is_two_block and is_stimulus_session:
+            data[main_ctr].loc[0, 'Color Code'] = color_code[session_ctr]
+            data[main_ctr].loc[0, 'Frequency'] = color_freq[session_ctr]
+
+            main_ctr += 1
+            session_ctr += 1
+            if session_ctr == STIM_PERIOD_TRIALS:
+                is_two_block = True
+            is_stimulus_session = False
+
+            if main_ctr == (len(data)) and session_ctr == (len(color_code)):
+                is_stimulus_session = True
+                done_adding_cols = True
+
+        if not is_two_block and not is_stimulus_session:
+            data[main_ctr].loc[0, 'Color Code'] = 0
+            data[main_ctr].loc[0, 'Frequency'] = 0
+            main_ctr += 1
+            is_stimulus_session = True
         
     # Convert to 1 DataFrame
     df_all = pd.concat(data)
@@ -192,25 +228,22 @@ def post_process( data, timestamp, color_code, color_freq ):
 
 def generate_test_report(board, duration, data, timestamp, color_code_order, color_freq_order):
     tf = open("ODC-DEMO/test_report.txt", 'w')  
-    tf.write("Data list len: ")
+    tf.write("Size of Data List: ")
     tf.write(str(len(data)))
     tf.write("\n")
-    tf.write("Start time list len: ")
+    tf.write("Size of Start Time List: ")
     tf.write(str(len(timestamp))) 
     tf.write("\n")
-    tf.write("CC list len: ")
+    tf.write("Size of Color Code List: ")
     tf.write(str(len(color_code_order)))
     tf.write("\n")
-    tf.write("CF list len: ")
+    tf.write("Size of Color Freq List: ")
     tf.write(str(len(color_freq_order)))
-    tf.write("\n\n")
-    tf.write("Column headers: ")
-    tf.write(str(board.get_eeg_names(0)))
     tf.write("\n")
-    tf.write("Marker channel: ")
+    tf.write("Marker Channel: ")
     tf.write(str(board.get_marker_channel(-1)))
-    tf.write("\n\n")
-    tf.write("Sampling duration: ")
+    tf.write("\n")
+    tf.write("Data Acquisition Duration: ")
     tf.write(str(duration))
     tf.write("\n\n")
     total_data_count = 0
@@ -218,9 +251,6 @@ def generate_test_report(board, duration, data, timestamp, color_code_order, col
         tf.write(str(np.shape(i)))
         tf.write("\n")
         total_data_count += np.shape(i)[0]
-    for i, j in zip(color_code_order, color_freq_order):
-        tf.write(str(i))
-        tf.write(str("\n"))
     tf.write("\n\n")
     tf.write("Expected Samples: ")
     tf.write(str(250*duration)) 

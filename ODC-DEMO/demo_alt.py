@@ -1,3 +1,4 @@
+from turtle import color
 from PyQt5.QtWidgets import (
     QApplication,
     QLabel,
@@ -9,6 +10,8 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QRect,Qt
 from PyQt5.QtGui import QPainter, QBrush, QPen
 import sys, random, threading, datetime
+
+from flask import session
 import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
@@ -19,9 +22,9 @@ from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
 
 # Variables to change parameters of the test
 START_DELAY_S = 1 # 20 Seconds
-NUM_TRIALS = 1 # 5 Trials
+NUM_TRIALS = 2 # 5 Trials
 INDICATOR_TIME_VALUE_S = 1 # 5 Seconds
-TRIAL_BREAK_TIME = 5 # 120 seconds 
+TRIAL_BREAK_TIME = 1 # 120 seconds 
 STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
 
 color_code_order = []
@@ -32,8 +35,6 @@ def display_procedure(stop, board, args):
     f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()}\n\n")
     board.start_stream(70000, args)
-    
-    # Test 
     ti = time()
 
     sleep(1)
@@ -51,8 +52,8 @@ def display_procedure(stop, board, args):
         random.shuffle(order)
         print(order)
 
+        board.insert_marker(999999.999) # insert marker for start AS WELL AS BETWEEN TRIALS
         timestamp.append(time())
-        board.insert_marker(0.666)
 
         for stimPeriod in range(STIM_PERIOD_TRIALS):
             # just for testing otherwise the thread keeps running if you close the window
@@ -92,15 +93,15 @@ def display_procedure(stop, board, args):
             
             currentStim.toggleIndicator(False)
 
+            board.insert_marker(0.666)   # insert marker for in between flashes (null)
             timestamp.append(time())
-            board.insert_marker(0.666)
             
             for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOn()
         
             sleep(5)  # set length of simulation period (5s)
+            board.insert_marker(0.666)   # insert marker for stimuli flash (individual)   
             timestamp.append(time())
-            board.insert_marker(0.666)
 
             # turn off all stimuli and prepare for next trial
             for x in range(STIM_PERIOD_TRIALS):
@@ -113,20 +114,22 @@ def display_procedure(stop, board, args):
             label.setText(
                 labelTxt(f"Time before next trial: ({TRIAL_BREAK_TIME-x})"))
             sleep(1)
-        
+
+    data = board.get_board_data().transpose()[:,1:9]
     label.setText(
                 labelTxt(f"Trials finished"))
     print("all trials finished")
     f.write("Session finished.\n\n")
     f.close()
-    data = board.get_board_data().transpose() 
+
     board.stop_stream()
     duration = time()-ti
     generate_test_report(board, duration, data, timestamp, color_code_order, color_freq_order)
 
     try:
-        df = pd.DataFrame(data)
-        df.to_csv("ODC-DEMO/test_data.csv", index=False)
+        df = post_process(data, timestamp, color_code_order, color_freq_order)
+        df.to_csv("ODC-DEMO/test.csv", index=False)
+        #df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
     except:
         print('Post data processing and CSV Export failed')
     finally:
@@ -135,31 +138,128 @@ def display_procedure(stop, board, args):
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
 
+def post_process( data, timestamp, color_code, color_freq ):
+    split_indices = np.where(data=0.666)[0]
+    data = np.delete(data, 0,1)
+    data = np.delete(data, range(8,23),1) 
+    data = np.split(data, split_indices)
+
+    for data_block_index in range(len(data)):
+        data_rows, data_cols = np.shape(data[data_block_index])
+        start_time = timestamp[data_block_index]
+
+        # Extract down to milliseconds
+        ms = repr(start_time).split('.')[1][:3]
+        # Corresponding timestamp creation
+        block_timestamp = []
+    
+        for time_increment_index in range(data_rows):
+            # Convert Unix time to desired timestamp format
+            formatted_start_time = strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), localtime(start_time))[:23]
+            block_timestamp.append( formatted_start_time )
+
+            # Increment by 4ms for 250Hz
+            # Increment by 8ms for 125Hz
+            ms = int(ms) + 4
+            # Work-around for floating point error from adding millisecond
+            if ms > 999:
+                rem_ms = str(ms - 1000)
+                start_time += 1  
+                ms = '00' + rem_ms
+            else:
+                ms = str(ms)
+                if len(str(ms)) == 1: 
+                    ms = '00' + ms
+                elif len(str(ms)) == 2:
+                    ms = '0' + ms
+                else:
+                    pass       
+
+        # Update timestamp list to contain incremented timestamp block instead of start time
+        timestamp[ data_block_index ] = block_timestamp
+        
+    # Create header row
+    header = ['Time']
+    for i in range(1, 9):
+        header.append('CH{}'.format(i))
+
+    # Put timestamp, color code, and frequency columns together with data blocks
+    for i in range(len(data)):
+        data[i] = np.c_[ timestamp[i], data[i] ]
+        data[i] = pd.DataFrame(data[i], columns=header)
+ 
+    main_ctr = 0
+    session_ctr = 0
+    done_adding_cols = False
+    is_two_block = True
+    is_stimulus_session = False
+    while not done_adding_cols:
+        if is_two_block and not is_stimulus_session:
+            data[main_ctr].loc[0, 'Color Code'] = 0
+            data[main_ctr].loc[0, 'Frequency'] = 0
+
+            data[main_ctr + 1].loc[0, 'Color Code'] = 0
+            data[main_ctr + 1].loc[0, 'Frequency'] = 0       
+            
+            main_ctr += 2
+            is_two_block = False
+            is_stimulus_session = True
+
+        if not is_two_block and is_stimulus_session:
+            data[main_ctr].loc[0, 'Color Code'] = color_code[session_ctr]
+            data[main_ctr].loc[0, 'Frequency'] = color_freq[session_ctr]
+
+            main_ctr += 1
+            session_ctr += 1
+            if session_ctr == STIM_PERIOD_TRIALS:
+                is_two_block = True
+            is_stimulus_session = False
+
+        if not is_two_block and not is_stimulus_session:
+            data[main_ctr].loc[0, 'Color Code'] = 0
+            data[main_ctr].loc[0, 'Frequency'] = 0
+            main_ctr += 1
+            is_stimulus_session = True
+
+        if main_ctr == (len(data) + 1) and session_ctr == (len(color_code)):
+            done_adding_cols = True
+        
+    # Convert to 1 DataFrame
+    df_all = pd.concat(data)
+    #df_all.index.name = 'Count'
+    return df_all
+
 def generate_test_report(board, duration, data, timestamp, color_code_order, color_freq_order):
     tf = open("ODC-DEMO/test_report.txt", 'w')  
-    tf.write("Data list len: ")
-    tf.write(str(np.shape(data)))
+    tf.write("Size of Data List: ")
+    tf.write(str(len(data)))
     tf.write("\n")
-    tf.write("Start time list len: ")
+    tf.write("Size of Start Time List: ")
     tf.write(str(len(timestamp))) 
     tf.write("\n")
-    tf.write("CC list len: ")
+    tf.write("Size of Color Code List: ")
     tf.write(str(len(color_code_order)))
     tf.write("\n")
-    tf.write("CF list len: ")
+    tf.write("Size of Color Freq List: ")
     tf.write(str(len(color_freq_order)))
-    tf.write("\n\n")
-    tf.write("Marker channel: ")
-    tf.write(str(board.get_marker_channel(0)))
-    tf.write("\n\n")
-    tf.write("Sampling duration: ")
+    tf.write("\n")
+    tf.write("Marker Channel: ")
+    tf.write(str(board.get_marker_channel(-1)))
+    tf.write("\n")
+    tf.write("Data Acquisition Duration: ")
     tf.write(str(duration))
+    tf.write("\n\n")
+    total_data_count = 0
+    for i in data:
+        tf.write(str(np.shape(i)))
+        tf.write("\n")
+        total_data_count += np.shape(i)[0]
     tf.write("\n\n")
     tf.write("Expected Samples: ")
     tf.write(str(250*duration)) 
     tf.write("\n")
     tf.write("Received Samples: ")
-    tf.write(str(np.shape(data)[0]))
+    tf.write(str(total_data_count))
     tf.write("\n")
     tf.close()
 
