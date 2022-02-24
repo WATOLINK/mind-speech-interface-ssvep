@@ -226,7 +226,7 @@ def post_process( data, timestamp, color_code, color_freq ):
 def generate_test_report(board, duration, data, timestamp, color_code_order, color_freq_order):
     tf = open("ODC-DEMO/this_one.txt", 'w')  
     tf.write("Size of Data List: ")
-    tf.write(str(len(data)))
+    tf.write(str(np.shape(data)))
     tf.write("\n")
     tf.write("Size of Start Time List: ")
     tf.write(str(len(timestamp))) 
@@ -243,17 +243,11 @@ def generate_test_report(board, duration, data, timestamp, color_code_order, col
     tf.write("Data Acquisition Duration: ")
     tf.write(str(duration))
     tf.write("\n\n")
-    total_data_count = 0
-    for i in data:
-        tf.write(str(np.shape(i)))
-        tf.write("\n")
-        total_data_count += np.shape(i)[0]
-    tf.write("\n\n")
     tf.write("Expected Samples: ")
     tf.write(str(250*duration)) 
     tf.write("\n")
     tf.write("Received Samples: ")
-    tf.write(str(total_data_count))
+    tf.write(str(np.shape(data)[0]))
     tf.write("\n")
     tf.close()
 
