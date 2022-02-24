@@ -133,7 +133,7 @@ def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
 
 def post_process( data, timestamp, color_code, color_freq ):
-    split_indices = np.where(data=0.666)[0]
+    split_indices = np.where(data==0.666)[0]
     data = np.delete(data, 0,1)
     data = np.delete(data, range(8,23),1) 
     data = np.split(data, split_indices)
