@@ -113,8 +113,8 @@ def display_procedure(stop, board, args):
     board.stop_stream()
     #duration = time()-start_time
     #generate_test_report(board, duration, data, color_code_order, color_freq_order)
+    df = post_process(data, start_time, color_code_order, color_freq_order)
     try:
-        df = post_process(data, start_time, color_code_order, color_freq_order)
         df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
         #df.to_csv("ODC-DEMO/test_data.csv", index=False)
     except:
