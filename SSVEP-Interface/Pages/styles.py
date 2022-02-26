@@ -1,6 +1,6 @@
 toggleButtonStyle = """
     QPushButton {
-        background-color: #2C2C2C;
+        background-color: #000000;
         border: 6px solid #FFFFFF;
         border-radius: 30px;
 

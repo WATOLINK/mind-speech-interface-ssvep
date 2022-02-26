@@ -1,4 +1,3 @@
-from inspect import stack
 import sys
 from PyQt5.QtWidgets import QApplication, QButtonGroup, QWidget, QGridLayout, QLineEdit, QLabel, QPushButton, QStackedWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtGui import QIcon
@@ -6,10 +5,13 @@ from PyQt5 import QtCore
 
 from Pages.styles import textBoxStyle, sideBarStyle, mainButtonStyle, promptBoxStyle, instructionsStyle
 from Pages.button_container import ButtonContainer
+from Pages.MCPage.mc2 import MultipleChoiceWidget
+from Pages.YNPage.yesno2 import YesNoWidget
+from Pages.HelpPage.help import HelpWidget
+from Pages.sidebar.sidebar import Sidebar
 
 
 class HomePageWidget(QWidget):
-
     def __init__(self, parent):
         super().__init__()
 
@@ -18,12 +20,13 @@ class HomePageWidget(QWidget):
 
         width = 4
         height = 6
-
+        mainWidget = mainStack(self)
+        
         layout.addWidget(title(), 0, 0, 1, 1)
         layout.addWidget(promptBox(), 1, 0, 1, 3)
         layout.addWidget(inputBox(), 2, 0, 1, 3)
-        layout.addWidget(mainStack(), 3, 0, 4, 3)
-        layout.addWidget(sideBar(), 1, 4, height, 1)
+        layout.addWidget(mainWidget, 3, 0, 4, 3)
+        layout.addWidget(Sidebar(self), 1, 4, height, 1)
 
         self.initUI()
 
@@ -47,22 +50,25 @@ def promptBox():
     prompt = QLabel("AMONG US")
     prompt.setStyleSheet(promptBoxStyle)
     prompt.setAlignment(QtCore.Qt.AlignCenter)
+    prompt.setObjectName("Prompt")
     return prompt
 
 
 def inputBox():
     textbox = QLineEdit()
     textbox.setStyleSheet(textBoxStyle)
+    textbox.setObjectName("Input")
     return textbox
 
 
-def mainStack():
+def mainStack(parent):
     stack = QStackedWidget()
+    stack.setObjectName("Main Stack")
     stack.setStyleSheet(mainButtonStyle)
 
-    stack.addWidget(homeWidget(stack))  # 0
-    stack.addWidget(multipleChoiceWidget())  # 1
-    stack.addWidget(yesNoWidget())  # 2
+    stack.addWidget(homeWidget(parent))  # 0
+    stack.addWidget(MultipleChoiceWidget(parent))  # 1
+    stack.addWidget(YesNoWidget(parent))  # 2
     stack.addWidget(groupedCharacterWidget(stack))  # 3
     stack.addWidget(individualCharacters1Widget(stack))  # 4
     stack.addWidget(individualCharacters2Widget(stack))  # 5
@@ -70,92 +76,46 @@ def mainStack():
     stack.addWidget(individualCharacters4Widget(stack))  # 7
     stack.addWidget(individualCharacters5Widget(stack))  # 8
     stack.addWidget(individualCharacters6Widget(stack))  # 9
-    stack.addWidget(helpWidget())  # 10
+    stack.addWidget(HelpWidget(parent))  # 10
 
     return stack
 
 
-def focusWidget(button_group, button, text):
-    disableOtherButtons(button_group, button)
-    title.setText(text)
-
-
-def homeWidget(mainStack):
+def homeWidget(parent):
     home = QWidget()
     layout = QHBoxLayout()
 
-    button_group = QButtonGroup()
+    labels = ['MC', 'YN', 'Type']
+    buttons = []
 
-    titles = ['MC', 'YN', 'Type']
-    buttons = [ButtonContainer(title) for title in titles]
-    # buttons = [QPushButton(title) for title in titles]
-
-    for button in buttons:
+    for label in labels:
+        button = ButtonContainer(label) 
+        button.setObjectName(label)
+        buttons.append(button)
         layout.addWidget(button)
-        button_group.addButton(button)
-        # button.setCheckable(True)
-
-    for button in buttons:
-        print(button.labelText())
 
     buttons[0].clicked.connect(
-        lambda: focusWidget(button_group, buttons[0], titles[0]))
+        lambda: disableOtherButtons(buttons, buttons[0]))
     buttons[1].clicked.connect(
-        lambda: focusWidget(button_group, buttons[1], titles[1]))
+        lambda: disableOtherButtons(buttons, buttons[1]))
     buttons[2].clicked.connect(
-        lambda: focusWidget(button_group, buttons[2], titles[2]))
+        lambda: disableOtherButtons(buttons, buttons[2]))
 
     home.setLayout(layout)
     return home
 
-
-def disableOtherButtons(buttonGroup, selected):
+def disableOtherButtons(buttons, selected):
+    
     if selected.isChecked():
-        for button in buttonGroup.buttons():
+        title.setText(selected.label.text())
+        for button in buttons:
             if button != selected:
                 button.setChecked(False)
+    else:
+        title.setText("")
 
 
-def multipleChoiceWidget():
-    widget = QWidget()
-    layout = QGridLayout()
-    widget.setLayout(layout)
-    labels = [["A", "B"], ["C", "D"]]
-    for row in range(len(labels)):
-        for col in range(len(labels[0])):
-            layout.addWidget(ButtonContainer(labels[row][col]), row, col)
 
-    return widget
-
-
-def yesNoWidget():
-    widget = QWidget()
-    layout = QHBoxLayout()
-    labels = ["Yes/True", "No/False"]
-    for col in range(len(labels)):
-        layout.addWidget(ButtonContainer(labels[col]))
-    widget.setLayout(layout)
-    return widget
-
-
-def helpWidget():
-    instructions = QLabel("""Instructions:
-
-    Home Page
-    - Select mode of text entry
-    - Select “Enter” to confirm your selection 
-
-    Yes/No and Multiple Choice
-    - Select choice of response
-    - To change choice, select a different option
-    - Select “Enter” to confirm your selection
-
-    Typing 
-    - Words/Sentences: Select AI recommended words and phrases to complete your response
-    - Grouped Characters: Select groupings of characters to choose individual characters
-    - Individual Characters: Select individual characters to submit custom text""")
-    instructions.setStyleSheet(instructionsStyle)
-    return instructions
 
 
 def groupedCharacterWidget(mainStack):
@@ -169,7 +129,7 @@ def groupedCharacterWidget(mainStack):
         buttonArray.append(button)
         layout.addWidget(button, int(x/3), x % 3)
 
-    # when you do this with a for loop, it dont wory, we don't know why
+    # when you do this with a for loop, it dont work, we don't know why
     # but hardcoding works! so haha!
     buttonArray[0].clicked.connect(lambda: mainStack.setCurrentIndex(4))
     buttonArray[1].clicked.connect(lambda: mainStack.setCurrentIndex(5))
@@ -194,7 +154,6 @@ def individualCharacters1Widget(mainStack):
     widget.setLayout(layout)
     return widget
 
-
 def individualCharacters2Widget(mainStack):
     widget = QWidget()
     layout = QGridLayout()
@@ -206,7 +165,6 @@ def individualCharacters2Widget(mainStack):
             layout.addWidget(button, row, col)
     widget.setLayout(layout)
     return widget
-
 
 def individualCharacters3Widget(mainStack):
     widget = QWidget()
@@ -220,7 +178,6 @@ def individualCharacters3Widget(mainStack):
     widget.setLayout(layout)
     return widget
 
-
 def individualCharacters4Widget(mainStack):
     widget = QWidget()
     layout = QGridLayout()
@@ -232,7 +189,6 @@ def individualCharacters4Widget(mainStack):
             layout.addWidget(button, row, col)
     widget.setLayout(layout)
     return widget
-
 
 def individualCharacters5Widget(mainStack):
     widget = QWidget()
@@ -246,7 +202,6 @@ def individualCharacters5Widget(mainStack):
     widget.setLayout(layout)
     return widget
 
-
 def individualCharacters6Widget(mainStack):
     widget = QWidget()
     layout = QGridLayout()
@@ -258,47 +213,3 @@ def individualCharacters6Widget(mainStack):
             layout.addWidget(button, row, col)
     widget.setLayout(layout)
     return widget
-
-
-def sideBar():
-    sidebar = QStackedWidget()
-
-    sidebar = QWidget()
-    layout = QGridLayout()
-    sidebar.setLayout(layout)
-    sidebar.setStyleSheet(sideBarStyle)
-
-    for x in range(4):
-        layout.addWidget(ButtonContainer("poop"), x, 0)
-    return sidebar
-
-
-def characterSideBar():
-    sidebar = QWidget()
-    layout = QVBoxLayout()
-    labels = ["Enter Message", "Backspace", "Space", "Toggle"]
-    for row in range(len(labels)):
-        layout.addWidget(ButtonContainer(labels[row]))
-    sidebar.setLayout(layout)
-    return sidebar
-
-
-def characterSideBar():
-    sidebar = QWidget()
-    layout = QVBoxLayout()
-    labels = ["Enter Message", "Backspace", "Space", "Toggle"]
-    for row in range(len(labels)):
-        layout.addWidget(ButtonContainer(labels[row]))
-    sidebar.setLayout(layout)
-    return sidebar
-
-
-def enterOnlySideBar(mainStack):
-    # For MC Page and Yes/No Page
-    sidebar = QWidget()
-    layout = QVBoxLayout()
-    button = ButtonContainer("Enter")
-    button.clicked.connect(lambda: mainStack.setCurrentIndex(0))
-    layout.addWidget(button)
-    sidebar.setLayout(layout)
-    return sidebar
