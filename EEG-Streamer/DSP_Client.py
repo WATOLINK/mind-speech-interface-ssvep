@@ -43,11 +43,19 @@ def CSV(data, ID):
     # TODO: Use the column header parameter to add the header to EACH DATAFRAME in the for loop
     #       that converts each element in the "data" list into a dataframe (see the commented out code below)
     #
-
+    
+    if ID == 0:
+        header_size = ['CH1', 'CH2', 'CH3', 'CH4', 'CH5', 'CH6', 'CH7', 'CH8']
+    elif ID == 8:
+        header_size = ['CH1', 'CH2', 'CH3', 'CH4', 'CH5', 'CH6', 'CH7', 'CH8', 'CH9']
+    elif ID == -1:
+        header_size = ['CH1', 'CH2', 'CH3', 'CH4', 'CH5', 'CH6', 'CH7', 'CH8', 'CH9', 'CH10']
+    
     for i in range(len(data)):
-        data[i] = pd.DataFrame(data[i])#, columns=header)
+        data[i] = pd.DataFrame(data[i], columns = header_size)
 
     df = pd.concat(data)
+    
     df.index.name = 'Count'
     df.to_csv("TEST_DATA.csv")
     return '-- CSV Exported ' + str(df.shape)

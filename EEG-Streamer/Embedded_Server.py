@@ -43,15 +43,29 @@ PORT = 65432
 
 # GTech Unicorn ID is 8
 BOARD_ID = 8
-DATA_COLLECTION_DURATION = 10       
+DATA_COLLECTION_DURATION = 10    
 
-def data_stream(board, queue, conn):
+#Num of Cols:
+OPEN_BCI_COL = 8
+GTECH_COL = 9
+SYNTHETIC_COL = 10
+
+def data_stream(board, queue, conn, id):
     # Data package counter
     data_package_counter = 0
+    
+    # Open BCI = keep all rows, keep columns 0-8
+    # GTech = keep all rows, keep columns 0-9
+    if id == 0:
+        col_range = OPEN_BCI_COL
+    elif id == 8:
+        col_range = GTECH_COL
+    elif id == -1:
+        col_range = SYNTHETIC_COL
 
     # Clear buffer
     board.get_board_data()
-    
+
     # Start data collection
     start_time = time()
     while data_package_counter < 10 and time() - start_time < DATA_COLLECTION_DURATION + 1:
@@ -65,7 +79,7 @@ def data_stream(board, queue, conn):
             #       must be minimized to avoid system latency
             #
 
-            data = board.get_board_data(250).transpose()#[:,:8]
+            data = board.get_board_data(250).transpose()[:,:col_range]
             sample_out = pickle.dumps(data)
             conn.sendall( sample_out )
 
@@ -74,6 +88,7 @@ def data_stream(board, queue, conn):
 
     print('-- Data Collection Complete', time()-start_time)
     conn.sendall(pickle.dumps(None))
+    print(board.get_board_id())
     return
 
 def Cyton_Board_Config():
@@ -128,7 +143,7 @@ def Socket_End(sock):
     sock.close()
     return
 
-def Streamer(s, q):
+def Streamer(s, q, id):
     b = Cyton_Board_Config()
 
     # Wait for signal from DSP that the socket has been connected from the client side
@@ -144,7 +159,7 @@ def Streamer(s, q):
 
     with conn:
         print('-- Connected by', addr)
-        data_stream(b, q, conn)
+        data_stream(b, q, conn, id)
 
     print(q.get())
     Cyton_Board_End(b)
@@ -157,6 +172,7 @@ def main():
     #       is connected to the PC's serial port
     #
 
+    id = -1
     s = Socket_Config()
 
     # Message queue between server-client processes
@@ -164,10 +180,9 @@ def main():
 
     # Start concurrent processes
     sys_processes = [ 
-                        Process(target=Streamer, args=(s,q,)), 
-                        Process(target=Client, args=(q,HOST,PORT,BOARD_ID,)) 
-                        
-                        ]
+                        Process(target=Streamer, args=(s,q,id,)), 
+                        Process(target=Client, args=(q,HOST,PORT,id,))    
+                    ]
 
     for process in sys_processes:
         process.start()
