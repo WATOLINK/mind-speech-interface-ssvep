@@ -7,17 +7,23 @@ import sys
 from Pages.QAPage.search import SearchWidget
 from Pages.button_container import ButtonContainer
 
+DEFAULT_WORDLIST = ["ඞ" for i in range(6)]
+autocompleteButtonPress = False
+
+
 class KeyboardInput(QMainWindow):
     # list of suggested words (given by OpenAI integration)
-    wordList = ["Hi", "Bruh", "I'm ok",
-                           "Good, and you?", "Duck Duck Goose", "MIT of the North"]
+    wordList = DEFAULT_WORDLIST
+    alphaToggle = True
+
     parent_module = sys.modules
+
     def __init__(self, parent):
         super(KeyboardInput, self).__init__()
         # connect with parent instance
         self.parent_module = parent
         # Sets name of window
-        self.setWindowTitle('Toggle Testing')  
+        self.setWindowTitle('Toggle Testing')
         # Sets location (x, y) and size (width, height) of current window
         self.setGeometry(0, 0, 1600, 1600)
 
@@ -31,6 +37,7 @@ class KeyboardInput(QMainWindow):
         self.initUI()
 
     """ signals and events """
+
     def toggleClick(self):
         if self.label.text() == "keyboard mode":
             self.setWordMode()
@@ -44,7 +51,7 @@ class KeyboardInput(QMainWindow):
             self.sending_button = self.sender()
             letters = self.sending_button.labelText()
             self.setChars(letters)
-    
+
     def word_keyboard_click(self):
         if self.label.text() == "word mode":
             self.sending_button = self.sender()
@@ -70,8 +77,10 @@ class KeyboardInput(QMainWindow):
 
         # create display and backspace
         self.topRowLayout = QGridLayout()
-        self.backspaceKey = ButtonContainer("Backspace", border=False, horizontal=True)  # backspace buttoon
-        self.backspaceKey.clicked.connect(lambda: self.setDisplayText("backspaceCMD")) 
+        self.backspaceKey = ButtonContainer(
+            "Backspace", border=False, horizontal=True)  # backspace buttoon
+        self.backspaceKey.clicked.connect(
+            lambda: self.setDisplayText("backspaceCMD"))
         self.backspaceKey.setFixedWidth(400)
         self.topRowLayout.addWidget(self.backspaceKey, 0, 1)
         self._createDisplay()  # display
@@ -83,12 +92,13 @@ class KeyboardInput(QMainWindow):
 
         # create toggle and space button
         self.bottomRowLayout = QHBoxLayout()
-        self.filler = QPushButton(self)  # empty filler 
+        self.filler = QPushButton(self)  # empty filler
         self.filler.setFixedWidth(200)
         self.bottomRowLayout.addWidget(self.filler, alignment=Qt.AlignLeft)
-        self.spaceKey = ButtonContainer("Space", border=False, horizontal=True)  # space buttoon
+        self.spaceKey = ButtonContainer(
+            "Space", border=False, horizontal=True)  # space buttoon
         self.spaceKey.setFixedWidth(400)
-        self.spaceKey.clicked.connect(lambda: self.setDisplayText(" ")) 
+        self.spaceKey.clicked.connect(lambda: self.setDisplayText(" "))
         self.bottomRowLayout.addWidget(self.spaceKey)
         # Create the toggle/mode switch
         self.toggle = ButtonContainer(border=False, checkable=False)
@@ -116,7 +126,7 @@ class KeyboardInput(QMainWindow):
                    'm | n | o | p | q | r': (0, 2),
                    's | t | u | v | w | x': (1, 0),
                    'y | z | 0 | 1 | 2 | 3': (1, 1),
-                   '4 | 5 | 6 | 7 | 8 | 9': (1, 2),  
+                   '4 | 5 | 6 | 7 | 8 | 9': (1, 2),
                    }
         # Create the buttons and add them to the grid layout
         for btnText, pos in buttons.items():
@@ -128,6 +138,7 @@ class KeyboardInput(QMainWindow):
         self.generalLayout.addLayout(buttonsLayout)
 
     def setWordMode(self):  # set button text to "list of suggested words"
+        self.alphaToggle = False
         self.label.setText("word mode")
         i = 0
         for btnText in self.buttons.keys():
@@ -137,6 +148,7 @@ class KeyboardInput(QMainWindow):
             i += 1
 
     def setAlphaMode(self):  # set button text to alphabet
+        self.alphaToggle = True
         self.label.setText("keyboard mode")
         for btnText in self.buttons.keys():
             self.buttons[btnText].setLabelText(btnText)
@@ -157,11 +169,14 @@ class KeyboardInput(QMainWindow):
             self.buttons[btnText].clicked.connect(self.setDisplayText)
 
     """Set display's text."""
-    def setDisplayText(self, inputText="", setWord=False): 
+
+    def setDisplayText(self, inputText="", setWord=False):
         sending_button = self.sender()
         text = sending_button.labelText()
+
         if inputText:
             text = inputText
+
         self.display.setFocus()
 
         keyboard = Controller()
@@ -169,7 +184,7 @@ class KeyboardInput(QMainWindow):
             keyboard.press(Key.backspace)
             keyboard.release(Key.backspace)
         else:
-            
+            print("text: ", text)
             for key in text:
                 keyboard.press(key)
                 keyboard.release(key)
@@ -179,11 +194,16 @@ class KeyboardInput(QMainWindow):
             self.setAlphaMode()
             self.toggle.setLabelText("Toggle\nMode")
         else:
-            keyboard.press(" ")
-            keyboard.release(" ")
+            self.display.useAutoText(" ")
 
-    def changeWordSuggestion(self,list):
-            self.wordList = list
+    def changeWordSuggestion(self, list):
+        self.wordList = list
+
+        if not self.alphaToggle:
+            self.setWordMode()
+        else:
+            self.update()
+
 
 if __name__ == '__main__':
 
