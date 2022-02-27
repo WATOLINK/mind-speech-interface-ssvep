@@ -5,13 +5,15 @@ import numpy as np
 import scipy.io as sio
 import argparse
 from sklearn.cross_decomposition import CCA
+from sklearn.neighbors import KNeighborsClassifier 
 import pickle
 import pandas as pd
 from joblib import dump, load
 import argparse
+from sklearn.model_selection import train_test_split
 
 # Helper functions
-from .ssvep_utils import get_filtered_eeg, get_segmented_epochs
+from ssvep_utils import get_filtered_eeg, get_segmented_epochs
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
 
 
@@ -34,8 +36,7 @@ class CCAKNNModel:
                             10.25, 12.25, 14.25, 10.75, 12.75, 14.75])
     
     def load_model(self, model_path: os.PathLike):
-        with open(model_path, 'rb') as f:
-            return pickle.load(f)
+        self.KNN = load(model_path)
     
     def save_model(self, filepath):
         dump(self.KNN, filepath)
@@ -78,60 +79,137 @@ class CCAKNNModel:
 
         cca = CCA(n_components=n_components)
         result = np.zeros(reference.shape[0])
+        print(reference.shape)
+        print(signals.shape)
         for timestep in range(reference.shape[0]):
-            cca.fit(signals.T, np.squeeze(reference[timestep, :, :]).T)
-            x_corr, t_corr = cca.transform(signals.T, np.squeeze(reference[timestep, :, :]).T)
+            print(signals.shape)
+            print(reference.shape)
+            cca.fit(signals, np.squeeze(reference[timestep, :, :]).T)
+            x_corr, y_corr = cca.transform(signals, np.squeeze(reference[timestep, :, :]).T)
             result[timestep] = np.max(np.corrcoef(x_corr[:, 0], y_corr[:, 0])[0, 1])
         return result
     
     def train(self, hparams, train_data, train_labels):
         """"""
-        clf = sklearn.neighbors.KNeighborsClassifier(hparams.neighbors)
-        clf.fit(train_data, train_labels)
+        clf = KNeighborsClassifier(hparams.neighbors)
+        target_freqs = np.unique(train_labels).tolist()
+        reference_templates = []
+        duration = hparams.window_len * hparams.sample_rate
+        data_overlap = (hparams.window_len - hparams.shift_len)*hparams.sample_rate
+        for freq in target_freqs:
+            reference_templates.append(self.get_reference_signals(duration, freq, hparams.sample_rate))
+        reference_templates = np.array(reference_templates, dtype='float64')
+        if train_data.shape[0] % duration != 0:
+            train_data = train_data[:-(train_data.shape[0] % duration)]
+        segments = buffer(train_data, duration, data_overlap)
+        for segment in segments:
+            correlations = self.calculate_correlation(segments, reference_templates)
+        clf.fit(correlations, train_labels)
         self.KNN = clf
     
     def test(self, hparams, test_data, test_labels):
         """"""
+        target_freqs = np.unique(test_labels)
+        reference_templates = self.get_reference_signals(test_data.shape[0], target_freqs, hparams.sample_rate)
+        correlations = self.calculate_correlation(test_data, reference_templates)
         predictions = self.KNN.predict(test_data)
         print(f'accuracy: {accuracy_score(test_labels, predictions):.4f}')
-        print(f'precision: {precision_score(test_labels, predictions):.4f}')
-        print(f'recall: {recall_score(test_labels, predictions):.4f}')
+        # print(f'precision: {precision_score(test_labels, predictions):.4f}')
+        # print(f'recall: {recall_score(test_labels, predictions):.4f}')
         if hparams.verbose:
-            print(confusion_matrix(test_labels, predictions))
+            unique_labels = sorted(np.unique(test_labels).tolist())
+            print(unique_labels)
+            print(confusion_matrix(test_labels, predictions, labels=unique_labels))
 
 def get_args(parser):
-    parser.add_argument('--neighbours', type=int, default=15, help="The number of neighbours to pass to a KNN")
-    parser.add_argument('--training-data', type=os.PathLike, help="Filepath for the training data (csv)")
-    parser.add_argument('--testing-data', type=os.PathLike, help="Filepath for the testing data (csv)")
-    parser.add_argument('--model-path', type=os.PathLike, help="Filepath for a trained KNN model")
+    parser.add_argument('--train', action="store_true", help="Whether to train a model")
+    parser.add_argument('--verbose', action="store_true", help="Verbosity. Will print a confusion matrix if set")
+    parser.add_argument('--neighbors', type=int, default=15, help="The number of neighbors to pass to a KNN")
+    parser.add_argument('--training-data', type=str, help="Filepath for the training data (csv)")
+    parser.add_argument('--testing-data', type=str, help="Filepath for the testing data (csv)")
+    parser.add_argument('--model-path', type=str, help="Filepath for a trained KNN model")
+    parser.add_argument('--data', type=str, help="Filepath for a dataset. Will perform a train/test split.")
     parser.add_argument('--sample-rate', type=int, default=250, help="Sampling rate (hz)")
     parser.add_argument('--window-len', type=int, default=1, help="Window length for data processing")
     parser.add_argument('--shift-len', type=int, default=1, help="Shift length for data processing")
     parser.add_argument('--lower-freq', type=float, default=5, help="Lower frequency bound for a bandpass filter")
     parser.add_argument('--upper-freq', type=float, default=5, help="Upper frequency bound for a bandpass filter")
+    parser.add_argument('--random-state', type=int, default=42, help="Random State")
 
     return parser.parse_args()
 
-def train(hparams, model):
-    train_data = pd.read_csv(hparams.training_data)
+def buffer(data, duration, data_overlap):
+    '''
+    Returns segmented data based on the provided input window duration and overlap.
 
-    model.train(train_data, train_labels)
+    Args:
+        data (numpy.ndarray): array of samples. 
+        duration (int): window length (number of samples).
+        data_overlap (int): number of samples of overlap.
 
-def test(hparams, model):
-    test_data = pd.read_csv(hparams.testing_data)
+    Returns:
+        (numpy.ndarray): segmented data of shape (number_of_segments, duration).
+    '''
+    
+    number_segments = int(math.ceil((len(data) - data_overlap)/(duration - data_overlap)))
+    temp_buf = [data[i:i+duration] for i in range(0, len(data), (duration - int(data_overlap)))]
+    print("temp_buf:", len(temp_buf))
+    temp_buf[number_segments-1] = np.pad(temp_buf[number_segments-1],
+                                         (0, duration-temp_buf[number_segments-1].shape[0]),
+                                         'constant')
+    return segmented_data
 
-    model.test(test_data, test_labels)
+def parse_eeg(data: pd.DataFrame):
+    # trials = split_trials(data)
+    data['Frequency'] = data['Frequency'].ffill()
+    data = data[1:]
+    data.index = range(data.shape[0])
+    return data
+
+def train(hparams, model, data):
+    labels = data['Frequency'].to_numpy().astype('float64')
+    data = data.drop(columns=['Time', 'Frequency', 'Color Code'])
+    data = data.to_numpy().astype('float64')
+    model.train(hparams, data, labels)
+
+def test(hparams, model, data):
+    labels = data['Frequency']
+    data = data.drop(columns=['Time', 'Frequency', 'Color Code'])
+    
+    model.test(hparams, data, labels)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    args, _ = get_args(parser)
+    args = get_args(parser)
 
     model = CCAKNNModel()
     if args.model_path:
         model.load_model(args.model_path)
+    train_data, test_data = None, None
     
+    if args.data:
+        data = pd.read_csv(args.data)
+        data = parse_eeg(data)
+        data = data.loc[data['Frequency'] != 0]
+        train_data, test_data = train_test_split(data, test_size = 0.3, random_state=args.random_state)
+        train_data.to_csv('train_data.csv', index=False)
+        test_data.to_csv('test_data.csv', index=False)
+
     if args.training_data:
-        train(args, model)
+        train_data = pd.read_csv(args.training_data)
+        train_data = parse_eeg(train_data)
 
     if args.testing_data:
-        test(args, model)
+        test_data = pd.read_csv(args.testing_data)
+        test_data = parse_eeg(test_data)
+    
+    if args.train:
+        train(args, model, train_data)
+        data_path = args.data
+        if args.training_data:
+            data_path = args.training_data
+        model_save_path = data_path.split("/")[-1][:-4] + '.model'
+        print(f"saving at {model_save_path}")
+        model.save_model(model_save_path)
+    
+    test(args, model, test_data)
