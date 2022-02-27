@@ -5,6 +5,7 @@ import socket
 import pickle
 import argparse
 from time import time, sleep
+from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions
 
 class EEGSocketListener:
     # Socket Object and Params
@@ -72,9 +73,18 @@ class EEGSocketListener:
                 del packet
                 self.samples = (self.samples + 1) % self.output_size
                 if self.samples == 0:
+                    self.filter()
                     # TO IMPLEMENT
                     print("OUTPUT BUFFER FILLED, SEND DATA TO AI")
-            
+        
+    def filter(self):
+        num_eeg_channels = 8
+        sampling_rate = 256
+        mid_freq = 8
+        band_width = 8
+        for channel in range(num_eeg_channels):
+                DataFilter.perform_bandpass(self.data[channel], sampling_rate, mid_freq, band_width, 2, FilterTypes.BUTTERWORTH, 0)
+
     def generate_csv(self, data, name="fullOBCI"):
         df = pd.DataFrame(data=data, columns=list(range(1,17)))
         print(f'{name}.csv Generated')
