@@ -29,18 +29,9 @@ class CCAKNNModel:
     """
 
     def __init__(self):
-
-        # self.window_len = window_len
-        # self.shift_len = shift_len
-        # self.sample_rate = sample_rate
-        # self.duration = self.window_len * self.sample_rate
-
         # possible flicker frequencies shown to the user
         self.flicker_freq = np.array([9.25, 11.25, 13.25, 9.75, 11.75, 13.75, 
                             10.25, 12.25, 14.25, 10.75, 12.75, 14.75])
-        # self.flicker_freq = np.arange(left_freq, right_freq)
-
-        # self.KNN = self.load_model(model_path)
     
     def load_model(self, model_path: os.PathLike):
         with open(model_path, 'rb') as f:
