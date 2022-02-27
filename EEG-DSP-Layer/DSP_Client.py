@@ -48,6 +48,9 @@ class EEGSocketListener:
             print("Recieved nothing")
         else: # If not null sample is recevied
             sample = pickle.loads(sample)
+            if sample is None:
+                print("End of stream")
+                return None
             assert type(sample) == np.ndarray,  f"Not a Numpy ND Array {type(sample), sample}"
             assert sample.shape == (self.input_len, self.num_channels), \
                 f"Incorrect Shape, Expected: {(self.input_len, self.num_channels)}, Recieved: {sample.shape}"
@@ -58,6 +61,9 @@ class EEGSocketListener:
         time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
         while time_func():
             packet = self.recieve_packet()
+            if packet is None:
+                print("Streaming stopped suddenly")
+                return
             if packet.any():
                 start = self.input_len * self.samples 
                 end = self.input_len * (self.samples + 1)
