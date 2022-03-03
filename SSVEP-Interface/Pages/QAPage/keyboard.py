@@ -8,10 +8,16 @@ from Pages.QAPage.search import SearchWidget
 from Pages.button_container import ButtonContainer
 
 
+DEFAULT_WORDLIST = ["ඞ" for i in range(6)]
+autocompleteButtonPress = False
+
+
 class KeyboardInput(QMainWindow):
     # list of suggested words (given by OpenAI integration)
-    wordList = ["Hi", "Bruh", "I'm ok",
-                "Good, and you?", "Duck Duck Goose", "MIT of the North"]
+    wordList = DEFAULT_WORDLIST
+    alphaToggle = True
+
+    parent_module = sys.modules
 
     def __init__(self, parent):
         super(KeyboardInput, self).__init__()
@@ -133,6 +139,7 @@ class KeyboardInput(QMainWindow):
         self.generalLayout.addLayout(buttonsLayout)
 
     def setWordMode(self):  # set button text to "list of suggested words"
+        self.alphaToggle = False
         self.label.setText("word mode")
         i = 0
         for btnText in self.buttons.keys():
@@ -142,6 +149,7 @@ class KeyboardInput(QMainWindow):
             i += 1
 
     def setAlphaMode(self):  # set button text to alphabet
+        self.alphaToggle = True
         self.label.setText("keyboard mode")
         for btnText in self.buttons.keys():
             self.buttons[btnText].setLabelText(btnText)
@@ -162,12 +170,13 @@ class KeyboardInput(QMainWindow):
             self.buttons[btnText].clicked.connect(self.setDisplayText)
 
     """Set display's text."""
-
-    def setDisplayText(self, inputText="", setWord=False):
-        sending_button = self.sender()
-        text = sending_button.labelText()
+    def setDisplayText(self, inputText="", setWord=False): 
+        self.sending_button = self.sender()
+        text = self.sending_button.labelText()
+       
         if inputText:
             text = inputText
+
         self.display.setFocus()
 
         keyboard = Controller()
@@ -175,6 +184,7 @@ class KeyboardInput(QMainWindow):
             keyboard.press(Key.backspace)
             keyboard.release(Key.backspace)
         else:
+            print("text: ", text)
 
             for key in text:
                 keyboard.press(key)
@@ -185,13 +195,15 @@ class KeyboardInput(QMainWindow):
             self.setAlphaMode()
             self.toggle.setLabelText("Toggle\nMode")
         else:
-            keyboard.press(" ")
-            keyboard.release(" ")
+            self.display.useAutoText(" ")
 
     def changeWordSuggestion(self, list):
         self.wordList = list
-        self.update()
 
+        if not self.alphaToggle:
+            self.setWordMode()
+        else:
+            self.update()
 
 if __name__ == '__main__':
 

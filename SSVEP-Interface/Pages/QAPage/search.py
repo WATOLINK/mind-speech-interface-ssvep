@@ -1,10 +1,13 @@
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QCompleter, QLineEdit, QListView
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QCompleter
-from utils.autocomplete import process_corpus
-
+import string
 import Pages.QAPage.keyboard
+
+from PyQt5 import QtGui, QtCore
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QTextEdit, QLineEdit, QListView, QCompleter
+from PyQt5.QtGui import QTextCursor, QKeySequence, QFont
+from utils.autocomplete import process_corpus
+from Pages.QAPage.completer import AutoCompleter
+
 
 
 class SearchWidget(QLineEdit):
@@ -15,12 +18,6 @@ class SearchWidget(QLineEdit):
 
         self.parent_module = parent
 
-        # create auto completer
-        corpus = process_corpus()
-        self.completer = QCompleter(corpus, self)
-        self.completer.setCompletionMode(QCompleter.InlineCompletion)
-        self.setCompleter(self.completer)
-
         # search widget configurations
         font = QFont()
         font.setPointSize(12)
@@ -30,10 +27,10 @@ class SearchWidget(QLineEdit):
 
         self.textChanged.connect(self._search)
 
-    def _search(self):
-        ''' completion is the expected word to be autocompleted for '''
+    def _handleTextChange(self):
+        '''  text change button update function '''
 
-        suggestions = [":)" for i in range(6)]
+        suggestions = Pages.QAPage.keyboard.DEFAULT_WORDLIST
 
         # first 3 suggestions are from autocomplete
         i = 0
@@ -41,7 +38,72 @@ class SearchWidget(QLineEdit):
             suggestions[i] = self.completer.currentCompletion()
             i += 1
 
-        # print(suggestions)
+        print(suggestions)
 
         Pages.QAPage.keyboard.KeyboardInput.changeWordSuggestion(
             self.parent_module, suggestions)
+
+    def _search(self, completion):
+        ''' completion is the expected word to be autocompleted for '''
+        tc = self.textCursor()  # get text cursor object (position/other info)
+
+        tc.movePosition(QTextCursor.Left)
+        tc.movePosition(QTextCursor.EndOfWord)
+
+        tc.insertText(completion)  # autocomplete
+
+        # perform cursor changes
+        self.setTextCursor(tc)
+
+    def focusInEvent(self, event):
+        if self.completer:
+            self.completer.setWidget(self)
+        QTextEdit.focusInEvent(self, event)
+
+    def completerReset(self):
+        self.completer.reset()
+
+    def useAutoText(self, text):
+        self._search(text)
+
+    def keyPressEvent(self, event):
+        ''' handle on type event '''
+
+        # prevent copy paste
+        if event in (QtGui.QKeySequence.Copy, QtGui.QKeySequence.Paste):
+            return
+
+        self._handleTextChange()
+
+        tc = self.textCursor()
+
+        if event.key() == Qt.Key_Backspace:
+            self.completer.reset()
+            # on backspace we remove the autofill characters
+            tc.removeSelectedText()
+            # perform backspace command
+            tc.deletePreviousChar()
+            return
+
+        QTextEdit.keyPressEvent(self, event)
+        tc.select(QTextCursor.WordUnderCursor)
+
+        # set completer's suggestion to empty string
+        self.completerReset()
+
+        # the key press must be alphanumeric, not a space, and non-empty
+        if (event.text().isalnum() or QKeySequence(event.key()).toString() in string.punctuation) and \
+                len(tc.selectedText()) > 0:
+
+            # obtain suggestions for current selected text (user's current typed word)
+            self.completer.setCompletionPrefix(tc.selectedText())
+            self.completer.completionModel().index(0, 0)
+            self.completer.complete()
+
+            if self.completer.getSuggestion().strip() == "":
+                self.completerReset()
+
+            tc.movePosition(QTextCursor.Left)
+            tc.movePosition(QTextCursor.EndOfWord)
+
+        self.setTextCursor(tc)
