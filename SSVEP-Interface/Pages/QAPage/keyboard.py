@@ -7,6 +7,7 @@ import sys
 from Pages.QAPage.search import SearchWidget
 from Pages.button_container import ButtonContainer
 
+
 DEFAULT_WORDLIST = ["ඞ" for i in range(6)]
 autocompleteButtonPress = False
 
@@ -172,7 +173,7 @@ class KeyboardInput(QMainWindow):
     def setDisplayText(self, inputText="", setWord=False): 
         self.sending_button = self.sender()
         text = self.sending_button.labelText()
-        
+       
         if inputText:
             text = inputText
 
@@ -184,6 +185,7 @@ class KeyboardInput(QMainWindow):
             keyboard.release(Key.backspace)
         else:
             print("text: ", text)
+
             for key in text:
                 keyboard.press(key)
                 keyboard.release(key)
@@ -202,7 +204,6 @@ class KeyboardInput(QMainWindow):
             self.setWordMode()
         else:
             self.update()
-
 
 if __name__ == '__main__':
 

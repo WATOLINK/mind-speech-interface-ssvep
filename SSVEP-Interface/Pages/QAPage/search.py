@@ -1,15 +1,16 @@
 import string
 import Pages.QAPage.keyboard
 
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QTextEdit
+from PyQt5.QtWidgets import QTextEdit, QLineEdit, QListView, QCompleter
 from PyQt5.QtGui import QTextCursor, QKeySequence, QFont
-
+from utils.autocomplete import process_corpus
 from Pages.QAPage.completer import AutoCompleter
 
 
-class SearchWidget(QTextEdit):
+
+class SearchWidget(QLineEdit):
     parent_module = None
 
     def __init__(self, parent):
@@ -22,14 +23,9 @@ class SearchWidget(QTextEdit):
         font.setPointSize(12)
         self.setFont(font)
         self.setFixedHeight(35)
-        self.setAlignment(Qt.AlignRight)
-        self.setAcceptRichText(False)
+        self.setAlignment(QtCore.Qt.AlignRight)
 
-        # create auto completer
-        self.completer = AutoCompleter()
-        self.completer.setWidget(self)
-
-        self.completer.insertText.connect(self._search)
+        self.textChanged.connect(self._search)
 
     def _handleTextChange(self):
         '''  text change button update function '''
