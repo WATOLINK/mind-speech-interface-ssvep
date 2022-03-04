@@ -29,7 +29,7 @@ def homeSidebar(parent):
         layout.addWidget(button)
 
     buttons[0].clicked.connect(lambda: navigateFromHome(parent))
-    buttons[1].clicked.connect(lambda: changeStacks(parent,10,2))
+    buttons[1].clicked.connect(lambda: changeStacks(parent,4,2))
 
 
     sidebar.setLayout(layout)
@@ -70,6 +70,8 @@ def characterSidebar(parent):
         layout.addWidget(button)
 
     buttons[0].clicked.connect(lambda: changeStacks(parent,0,0))
+    buttons[1].clicked.connect(lambda: backspace(parent))
+    buttons[2].clicked.connect(lambda: space(parent))
 
     sidebar.setLayout(layout)
     return sidebar
@@ -84,10 +86,24 @@ def enterOnlySidebar(parent):
     return sidebar
 
 
-
 def changeStacks(parent,mainIndex,sidebarIndex):
     mainStack = parent.findChild(QStackedWidget,"Main Stack")
     sidebarStack = parent.findChild(QStackedWidget,"Sidebar Stack")
 
     mainStack.setCurrentIndex(mainIndex)
     sidebarStack.setCurrentIndex(sidebarIndex)
+
+
+def backspace(parent):
+    inputField = parent.findChild(QLineEdit,"Input")
+
+    temp = inputField.text()
+
+    if len(temp) != 0 :
+        inputField.setText(temp[:-1])
+
+def space(parent):
+    inputField = parent.findChild(QLineEdit,"Input")
+
+    temp = inputField.text() + " "
+    inputField.setText(temp)
