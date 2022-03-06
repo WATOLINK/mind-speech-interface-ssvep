@@ -18,7 +18,7 @@ import pandas as pd
 # Variables to change parameters of the test
 START_DELAY_S = 20 # 20 Seconds
 NUM_TRIALS = 5 # 5 Trials
-INDICATOR_TIME_VALUE_S = 5 # 5 Seconds
+INDICATOR_TIME_VALUE_S = 1 # 5 Seconds
 TRIAL_BREAK_TIME = 120 # 120 seconds 
 STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
 
@@ -128,10 +128,17 @@ def labelTxt(text):
 def post_process( data, start_time, color_code, color_freq ):
     split_indices = np.where(data==0.666)[0]
     data = np.delete(data, 0,1)
-    data = np.delete(data, range(8,23), 1) 
-    # data = np.delete(data, range(8,31), 1) -- Virtual Board
+    # data = np.delete(data, range(8,23), 1) 
+    data = np.delete(data, range(8,31), 1) #-- Virtual Board
     data = np.split(data, split_indices)
-            
+    
+    # Dinky print statements
+    # print("color code, freq")
+    # for color,freq in zip(color_code, color_freq):
+        # print(color, ", ", freq)
+    # for i in data:
+        # print( np.shape(i) )
+    
     # Create header row
     header = []
     for i in range(1, 9):
@@ -184,6 +191,10 @@ def post_process( data, start_time, color_code, color_freq ):
         if main_ctr == (len(data)) and session_ctr == (len(color_code)):
             done_adding_cols = True
     
+    # More dinky print statements
+    # for i in data:
+        # print(i.head(2))
+    
     # Convert to 1 DataFrame
     df_data = pd.concat(data)
     timestamp = []
@@ -210,7 +221,7 @@ def post_process( data, start_time, color_code, color_freq ):
             else:
                 pass    
     df_time = pd.DataFrame(timestamp, columns=['Timestamp'])
-    df_all = pd.merge(df_time, df_data, left_index=True, right_index=True)   
+    df_all = pd.merge(df_time, df_data, left_index=True, right_index=True)
     return df_all
 
 def generate_test_report(board, duration, data, color_code_order, color_freq_order):
