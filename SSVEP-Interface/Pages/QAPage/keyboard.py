@@ -56,7 +56,6 @@ class KeyboardInput(QMainWindow):
     def word_keyboard_click(self):
         if self.label.text() == "word mode":
             self.sending_button = self.sender()
-            print(self.sending_button.labelText())
             self.setDisplayText(setWord=True)
             self.setAlphaMode()
 
@@ -99,7 +98,7 @@ class KeyboardInput(QMainWindow):
         self.spaceKey = ButtonContainer(
             "Space", border=False, horizontal=True)  # space buttoon
         self.spaceKey.setFixedWidth(400)
-        self.spaceKey.clicked.connect(lambda: self.setDisplayText(" "))
+        self.spaceKey.clicked.connect(lambda: self.setDisplayText("space"))
         self.bottomRowLayout.addWidget(self.spaceKey)
         # Create the toggle/mode switch
         self.toggle = ButtonContainer(border=False, checkable=False)
@@ -187,23 +186,30 @@ class KeyboardInput(QMainWindow):
 
         keyboard = Controller()
         if text == "backspaceCMD":
+            self.display.clearDisplay(False) 
             self.display.updateCompleter("", Qt.Key_Backspace)
+        elif text == "space":
+            self.display.useAutoText(" ")
+            self.display.completerReset()
         else:
             print("text: ", text)
             if self.label.text() == "word mode":
-                self.display.clearDisplay()                
+                self.display.clearDisplay(True)                
             for char in text:
+                print(char)
                 key = self.sendkeys(char=PyQt5.QtGui.QKeySequence.fromString(str(char))[0],
                           text=str(char))
                 self.display.insertPlainText(char)
                 self.display.updateCompleter(char, key)
-
+                
+            print(f"{self.display.toPlainText()}.")
         # return to keyboard view
         if not setWord:
             self.setAlphaMode()
             self.toggle.setLabelText("Toggle\nMode")
         else:
             self.display.useAutoText(" ")
+            self.display.completerReset()
 
     def changeWordSuggestion(self, list):
         self.wordList = list
