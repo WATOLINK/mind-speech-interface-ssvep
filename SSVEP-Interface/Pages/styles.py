@@ -1,6 +1,6 @@
 toggleButtonStyle = """
     QPushButton {
-        background-color: #2C2C2C;
+        background-color: #000000;
         border: 6px solid #FFFFFF;
         border-radius: 30px;
 
@@ -62,4 +62,54 @@ stimuliStyle = """
 promptStyle = """
     margin: 50px 0px;
     font-size: 36px;
-""" 
+"""
+
+instructionsStyle = """
+    margin: 50px 0px;
+    font-size: 30px;
+"""
+
+promptBoxStyle = """
+    background-color: #2C2C2C;
+    border-radius: 20px;
+    font-size: 40px;
+    margin: 10%;
+"""
+
+textBoxStyle = """
+    background-color: #2C2C2C;
+    border-radius: 20px;
+    font-size: 40px;
+    margin: 10%;
+    border: 5px solid white;
+"""
+
+sideBarStyle = """
+    QPushButton {
+        background-color: #2C2C2C;
+        border: 5px solid white;
+        border-radius: 20px;
+        font-size: 40px;
+        height: 100%;
+        margin: 10%;
+    }
+
+    QPushButton:checked {
+        background-color: #454545;
+    }
+"""
+
+mainButtonStyle = """
+    QPushButton {
+        background-color: #2C2C2C;
+        border: 5px solid white;
+        border-radius: 20px;
+        font-size: 40px;
+        height: 100%;
+        margin: 10%;
+    }
+
+    QPushButton:checked {
+        background-color: #454545;
+    }
+"""
