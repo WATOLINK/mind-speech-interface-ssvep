@@ -35,7 +35,6 @@ class SearchWidget(QTextEdit):
         '''  text change button update function '''
 
         suggestions = Pages.QAPage.keyboard.DEFAULT_WORDLIST
-
         # first 3 suggestions are from autocomplete
         i = 0
         while i < 3 and self.completer.setCurrentRow(i):
@@ -50,7 +49,6 @@ class SearchWidget(QTextEdit):
     def _search(self, completion):
         ''' completion is the expected word to be autocompleted for '''
         tc = self.textCursor()  # get text cursor object (position/other info)
-
         tc.movePosition(QTextCursor.Left)
         tc.movePosition(QTextCursor.EndOfWord)
 
@@ -69,19 +67,32 @@ class SearchWidget(QTextEdit):
 
     def useAutoText(self, text):
         self._search(text)
+        
+    def clearDisplay(self, clearAll = False):
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.Left)
+        cursor.movePosition(QTextCursor.EndOfWord)
+        cursor.select(QTextCursor.WordUnderCursor)
+        cursor.deletePreviousChar()
+        if clearAll:
+            while cursor.selectedText() != "":
+                cursor.deletePreviousChar()
 
     def keyPressEvent(self, event):
         ''' handle on type event '''
-
         # prevent copy paste
         if event in (QtGui.QKeySequence.Copy, QtGui.QKeySequence.Paste):
-            return
+            return        
 
-        self._handleTextChange()
-
+        QTextEdit.keyPressEvent(self, event)
+        print("event text:", event.text(), ".")
+        self.updateCompleter(event.text(), event.key())
+        
+    def updateCompleter(self, text, key):
         tc = self.textCursor()
 
-        if event.key() == Qt.Key_Backspace:
+        if key == Qt.Key_Backspace:
+            print("backspace pressed")
             self.completer.reset()
             # on backspace we remove the autofill characters
             tc.removeSelectedText()
@@ -89,20 +100,21 @@ class SearchWidget(QTextEdit):
             tc.deletePreviousChar()
             return
 
-        QTextEdit.keyPressEvent(self, event)
         tc.select(QTextCursor.WordUnderCursor)
-
+        
         # set completer's suggestion to empty string
         self.completerReset()
 
         # the key press must be alphanumeric, not a space, and non-empty
-        if (event.text().isalnum() or QKeySequence(event.key()).toString() in string.punctuation) and \
+        if (text.isalnum() or QKeySequence(key).toString() in string.punctuation) and \
                 len(tc.selectedText()) > 0:
 
             # obtain suggestions for current selected text (user's current typed word)
             self.completer.setCompletionPrefix(tc.selectedText())
             self.completer.completionModel().index(0, 0)
             self.completer.complete()
+            
+            self._handleTextChange()
 
             if self.completer.getSuggestion().strip() == "":
                 self.completerReset()

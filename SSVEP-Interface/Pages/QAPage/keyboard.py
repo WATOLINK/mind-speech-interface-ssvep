@@ -1,6 +1,7 @@
 import PyQt5
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QGridLayout, QWidget, QVBoxLayout, QHBoxLayout
+from PyQt5.QtWidgets import QApplication, QTextEdit, QMainWindow, QLabel, QPushButton, QGridLayout, QWidget, QVBoxLayout, QHBoxLayout
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QTextCursor, QKeySequence, QFont
 from pynput.keyboard import Key, Controller
 import sys
 
@@ -168,6 +169,12 @@ class KeyboardInput(QMainWindow):
             # upon any keyboard presses, return to alpha view and set display
             self.buttons[btnText].clicked.connect(self.setDisplayText)
 
+    # log keyboard event and return keycode
+    def sendkeys(self, char, modifier=PyQt5.QtCore.Qt.NoModifier, text=None):
+        event = PyQt5.QtGui.QKeyEvent(PyQt5.QtCore.QEvent.KeyPress, char, modifier, text)
+        PyQt5.QtCore.QCoreApplication.postEvent(self, event)
+        return event.key()
+
     """Set display's text."""
     def setDisplayText(self, inputText="", setWord=False): 
         self.sending_button = self.sender()
@@ -180,13 +187,16 @@ class KeyboardInput(QMainWindow):
 
         keyboard = Controller()
         if text == "backspaceCMD":
-            keyboard.press(Key.backspace)
-            keyboard.release(Key.backspace)
+            self.display.updateCompleter("", Qt.Key_Backspace)
         else:
             print("text: ", text)
-            for key in text:
-                keyboard.press(key)
-                keyboard.release(key)
+            if self.label.text() == "word mode":
+                self.display.clearDisplay()                
+            for char in text:
+                key = self.sendkeys(char=PyQt5.QtGui.QKeySequence.fromString(str(char))[0],
+                          text=str(char))
+                self.display.insertPlainText(char)
+                self.display.updateCompleter(char, key)
 
         # return to keyboard view
         if not setWord:
@@ -198,10 +208,10 @@ class KeyboardInput(QMainWindow):
     def changeWordSuggestion(self, list):
         self.wordList = list
 
-        if not self.alphaToggle:
+        if self.label.text() == "word mode":
             self.setWordMode()
-        else:
-            self.update()
+        
+
 
 
 if __name__ == '__main__':
