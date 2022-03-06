@@ -34,7 +34,8 @@ class SearchWidget(QTextEdit):
     def _handleTextChange(self):
         '''  text change button update function '''
 
-        suggestions = Pages.QAPage.keyboard.DEFAULT_WORDLIST
+        # do not modify original
+        suggestions = Pages.QAPage.keyboard.DEFAULT_WORDLIST[:]
         # first 3 suggestions are from autocomplete
         i = 0
         while i < 3 and self.completer.setCurrentRow(i):
@@ -64,6 +65,9 @@ class SearchWidget(QTextEdit):
 
     def completerReset(self):
         self.completer.reset()
+        # clear buttons
+        Pages.QAPage.keyboard.KeyboardInput.changeWordSuggestion(
+            self.parent_module, Pages.QAPage.keyboard.DEFAULT_WORDLIST)
 
     def useAutoText(self, text):
         self._search(text)
@@ -109,5 +113,4 @@ class SearchWidget(QTextEdit):
 
         tc.movePosition(QTextCursor.Left)
         tc.movePosition(QTextCursor.EndOfWord)
-
         self.setTextCursor(tc)
