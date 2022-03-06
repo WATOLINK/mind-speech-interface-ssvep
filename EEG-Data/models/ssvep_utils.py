@@ -55,14 +55,14 @@ def get_filtered_eeg(eeg, lowcut, highcut, order, sample_rate):
     total_trial_len = eeg.shape[2]
     num_trials = eeg.shape[3]
     
-    trial_len = int(38+0.135*sample_rate+4*sample_rate-1) - int(38+0.135*sample_rate)
+    trial_len = int(0.135*sample_rate+4*sample_rate-1) - int(0.135*sample_rate)
     filtered_data = np.zeros((eeg.shape[0], eeg.shape[1], trial_len, eeg.shape[3]))
 
     for target in range(0, num_classes):
         for channel in range(0, num_chan):
             for trial in range(0, num_trials):
-                signal_to_filter = np.squeeze(eeg[target, channel, int(38+0.135*sample_rate):
-                                               int(38+0.135*sample_rate+4*sample_rate-1), 
+                signal_to_filter = np.squeeze(eeg[target, channel, int(0.135*sample_rate):
+                                               int(0.135*sample_rate+4*sample_rate-1), 
                                                trial])
                 filtered_data[target, channel, :, trial] = butter_bandpass_filter(signal_to_filter, lowcut, 
                                                                                   highcut, sample_rate, order)

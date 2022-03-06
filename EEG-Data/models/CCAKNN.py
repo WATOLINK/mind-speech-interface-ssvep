@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 from typing import List
 
 # Helper functions
-from ssvep_utils import get_filtered_eeg, get_segmented_epochs
+from ssvep_utils import butter_bandpass_filter, get_filtered_eeg, get_segmented_epochs
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
 
 
@@ -84,10 +84,10 @@ class CCAKNNModel:
                 cca.fit(signals[segment], np.squeeze(reference[freq, :, :]).T)
                 x_corr, y_corr = cca.transform(signals[segment], np.squeeze(reference[freq, :, :]).T)
                 corr_matrix = np.corrcoef(x_corr[:, 0], y_corr[:, 0])
+                # print(corr_matrix[0, 1])
                 val = np.max(np.corrcoef(x_corr[:, 0], y_corr[:, 0])[0, 1])
                 if not np.isnan(val):
                     result[segment, freq] = val
-        self.CCA = cca
         return result
     
     def train(self, hparams, train_data, train_labels):
@@ -98,13 +98,19 @@ class CCAKNNModel:
         reference_templates = np.array(reference_templates, dtype='float64')
         train_data = np.array(train_data)
         correlations = self.calculate_correlation(train_data, reference_templates)
+        cca_predictions = np.argmax(correlations, axis=1) + 1
         correlations = np.array(correlations)
+        
+        print(f'CCA accuracy: {accuracy_score(train_labels, cca_predictions):.4f}')
+        print(confusion_matrix(train_labels, cca_predictions, labels=self.trained_freqs))
+        # print(f'kNN accuracy: {accuracy_score(train_labels, predictions):.4f}')
 
         clf = KNeighborsClassifier(hparams.neighbors)
         clf.fit(correlations, train_labels)
         self.KNN = clf
 
     def test(self, hparams, test_data, test_labels):
+        print(len(test_labels))
         reference_templates = []
         for freq in self.trained_freqs:
             reference_templates.append(self.get_reference_signals(duration, freq, hparams.sample_rate))
@@ -112,14 +118,30 @@ class CCAKNNModel:
         test_data = np.array(test_data)
 
         correlations = self.calculate_correlation(test_data, reference_templates)
+        cca_predictions = np.argmax(correlations, axis=1) + 1
         correlations = np.array(correlations)
 
         predictions = self.KNN.predict(correlations)
-        print(f'accuracy: {accuracy_score(test_labels, predictions):.4f}')
+        print(f'kNN accuracy: {accuracy_score(test_labels, predictions):.4f}')
+        print(f'CCA accuracy: {accuracy_score(test_labels, cca_predictions):.4f}')
         # print(f'precision: {precision_score(test_labels, predictions):.4f}')
         # print(f'recall: {recall_score(test_labels, predictions):.4f}')
         if hparams.verbose:
-            print(confusion_matrix(self.trained_freqs, predictions))
+            print("kNN")
+            print(self.trained_freqs)
+            print(confusion_matrix(test_labels, predictions, labels=self.trained_freqs))
+            print("CCA")
+            print(self.trained_freqs)
+            print(confusion_matrix(test_labels, cca_predictions, labels=self.trained_freqs))
+
+# def filter(data):
+#     num_eeg_channels = 8
+#     sampling_rate = 256
+#     mid_freq = 8
+#     band_width = 8
+#     for channel in range(num_eeg_channels):
+#             DataFilter.perform_bandpass(data[channel], sampling_rate, mid_freq, band_width, 2, FilterTypes.BUTTERWORTH, 0)
+#             DataFilter.remove_environmental_noise(data[channel], BoardShim.get_sampling_rate(board_id), NoiseTypes.FIFTY.value)
 
 def get_args(parser):
     parser.add_argument('--train', action="store_true", help="Whether to train a model")
@@ -193,8 +215,21 @@ def parse_eeg(data: pd.DataFrame) -> pd.DataFrame:
         data.at[1, 'Frequency'] = data.loc[0, 'Frequency']
         data.at[1, 'Color Code'] = data.loc[0, 'Color Code']
         data = data[1:]
-        data.index = range(data.shape[0])
-    return data
+    data_freqs = data.drop(columns=['Time', 'Frequency', 'Color Code'])
+    channel_data = data_freqs.to_numpy().T
+    filtered_data = butter_bandpass_filter(channel_data, 6, 80, 250, 4).T
+    df = pd.DataFrame(filtered_data)
+    df.columns = [f'CH{i}' for i in range(1, df.shape[1] + 1)]
+    df['Time'] = data['Time']
+    df['Frequency'] = data['Frequency']
+    df['Color Code'] = data['Color Code']
+    df.index = np.arange(df.shape[0])
+    # datafreqs = data.loc[data['Frequency'].ffill() != 0.0]
+    # nostim = data.loc[datafreqs.index]
+    # print(f"nostim_p: {nostim.shape[0] / data.shape[0]}")
+    # data = data.loc[datafreqs.index]
+    # data.index = range(data.shape[0])
+    return df
 
 def train(hparams, model, data, labels):
     # labels = data['Frequency'].to_numpy().astype('float64')
