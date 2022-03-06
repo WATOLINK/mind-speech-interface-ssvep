@@ -56,7 +56,6 @@ class KeyboardInput(QMainWindow):
     def word_keyboard_click(self):
         if self.label.text() == "word mode":
             self.sending_button = self.sender()
-            print(self.sending_button.labelText())
             self.setDisplayText(setWord=True)
             self.setAlphaMode()
 
@@ -187,11 +186,12 @@ class KeyboardInput(QMainWindow):
 
         keyboard = Controller()
         if text == "backspaceCMD":
+            self.display.clearDisplay(False) 
             self.display.updateCompleter("", Qt.Key_Backspace)
         else:
             print("text: ", text)
             if self.label.text() == "word mode":
-                self.display.clearDisplay()                
+                self.display.clearDisplay(True)                
             for char in text:
                 key = self.sendkeys(char=PyQt5.QtGui.QKeySequence.fromString(str(char))[0],
                           text=str(char))

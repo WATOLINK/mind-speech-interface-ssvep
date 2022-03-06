@@ -67,59 +67,47 @@ class SearchWidget(QTextEdit):
 
     def useAutoText(self, text):
         self._search(text)
-        
-    def clearDisplay(self, clearAll = False):
+
+    def clearDisplay(self, clearAll=False):
         cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.Left)
-        cursor.movePosition(QTextCursor.EndOfWord)
-        cursor.select(QTextCursor.WordUnderCursor)
-        cursor.deletePreviousChar()
         if clearAll:
-            while cursor.selectedText() != "":
-                cursor.deletePreviousChar()
+            cursor.movePosition(QTextCursor.Left)
+            cursor.movePosition(QTextCursor.EndOfWord)
+            cursor.select(QTextCursor.WordUnderCursor)
+        cursor.deletePreviousChar()
 
     def keyPressEvent(self, event):
         ''' handle on type event '''
         # prevent copy paste
         if event in (QtGui.QKeySequence.Copy, QtGui.QKeySequence.Paste):
-            return        
-
+            return
+        print("kb event triggered")
         QTextEdit.keyPressEvent(self, event)
-        print("event text:", event.text(), ".")
         self.updateCompleter(event.text(), event.key())
-        
+
     def updateCompleter(self, text, key):
         tc = self.textCursor()
-
-        if key == Qt.Key_Backspace:
-            print("backspace pressed")
-            self.completer.reset()
-            # on backspace we remove the autofill characters
-            tc.removeSelectedText()
-            # perform backspace command
-            tc.deletePreviousChar()
-            return
-
+        tc.movePosition(QTextCursor.Left)
+        tc.movePosition(QTextCursor.EndOfWord)
         tc.select(QTextCursor.WordUnderCursor)
-        
         # set completer's suggestion to empty string
         self.completerReset()
 
         # the key press must be alphanumeric, not a space, and non-empty
-        if (text.isalnum() or QKeySequence(key).toString() in string.punctuation) and \
+        if (key == Qt.Key_Backspace or text.isalnum() or QKeySequence(key).toString() in string.punctuation) and \
                 len(tc.selectedText()) > 0:
 
             # obtain suggestions for current selected text (user's current typed word)
             self.completer.setCompletionPrefix(tc.selectedText())
             self.completer.completionModel().index(0, 0)
             self.completer.complete()
-            
+
             self._handleTextChange()
 
             if self.completer.getSuggestion().strip() == "":
                 self.completerReset()
 
-            tc.movePosition(QTextCursor.Left)
-            tc.movePosition(QTextCursor.EndOfWord)
+        tc.movePosition(QTextCursor.Left)
+        tc.movePosition(QTextCursor.EndOfWord)
 
         self.setTextCursor(tc)
