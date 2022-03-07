@@ -4,6 +4,8 @@ from PyQt5.QtWidgets import QLabel,QWidget,QLineEdit,QStackedWidget,QVBoxLayout
 from Pages.sidebar.enterButton import EnterButton
 from Pages.styles import mainButtonStyle
 from Pages.button_container import ButtonContainer
+from Pages.QAPage.completer2 import suggestWords
+from Pages.QAPage.keyboard2 import groupedChars
 
 class Sidebar(QStackedWidget):
     def __init__(self, parent):
@@ -64,7 +66,10 @@ def characterSidebar(parent):
     buttons.append(EnterButton(parent))
     buttons.append(ButtonContainer("Backspace",checkable=False))
     buttons.append(ButtonContainer("Space",checkable=False,red=0,green=0))
-    buttons.append(ButtonContainer("Toggle",checkable=False))
+    
+    toggleBtn = ButtonContainer("Toggle Words",checkable=False)
+    toggleBtn.setObjectName("Toggle")
+    buttons.append(toggleBtn)
 
     for button in buttons:
         layout.addWidget(button)
@@ -72,6 +77,7 @@ def characterSidebar(parent):
     buttons[0].clicked.connect(lambda: changeStacks(parent,0,0))
     buttons[1].clicked.connect(lambda: backspace(parent))
     buttons[2].clicked.connect(lambda: space(parent))
+    buttons[3].clicked.connect(lambda: toggle(parent))
 
     sidebar.setLayout(layout)
     return sidebar
@@ -107,3 +113,19 @@ def space(parent):
 
     temp = inputField.text() + " "
     inputField.setText(temp)
+
+def toggle(parent):
+    toggleBtn = parent.findChild(ButtonContainer,"Toggle")
+    
+    if toggleBtn.label.text() == "Toggle Words":
+        toggleBtn.label.setText("Toggle Characters")
+        suggestWords(parent)
+    else:
+        toggleBtn.label.setText("Toggle Words")
+        keyboardWidget = parent.findChild(QWidget,"Keyboard Widget")
+        keyboardBtns = keyboardWidget.findChildren(ButtonContainer)
+        
+        for x in range(len(keyboardBtns)):
+            keyboardBtns[x].label.setText(groupedChars[x])
+        
+
