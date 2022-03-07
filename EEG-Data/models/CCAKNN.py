@@ -10,6 +10,7 @@ from joblib import dump, load
 import argparse
 from sklearn.model_selection import train_test_split
 from typing import List
+from collections import Counter
 
 # Helper functions
 from ssvep_utils import butter_bandpass_filter, get_filtered_eeg, get_segmented_epochs
@@ -84,33 +85,38 @@ class CCAKNNModel:
                 cca.fit(signals[segment], np.squeeze(reference[freq, :, :]).T)
                 x_corr, y_corr = cca.transform(signals[segment], np.squeeze(reference[freq, :, :]).T)
                 corr_matrix = np.corrcoef(x_corr[:, 0], y_corr[:, 0])
-                # print(corr_matrix[0, 1])
-                val = np.max(np.corrcoef(x_corr[:, 0], y_corr[:, 0])[0, 1])
-                if not np.isnan(val):
-                    result[segment, freq] = val
+                result[segment, freq] = corr_matrix[0, 1]
         return result
     
     def train(self, hparams, train_data, train_labels):
-        self.trained_freqs = np.unique(train_labels).tolist()
         reference_templates = []
         for freq in self.trained_freqs:
             reference_templates.append(self.get_reference_signals(duration, freq, hparams.sample_rate))
         reference_templates = np.array(reference_templates, dtype='float64')
         train_data = np.array(train_data)
         correlations = self.calculate_correlation(train_data, reference_templates)
-        cca_predictions = np.argmax(correlations, axis=1) + 1
+        cca_predictions = np.argmax(correlations, axis=1)
+        preds = []
+        for pred in cca_predictions:
+            preds.append(self.trained_freqs[pred])
+        for lab, corr in zip(train_labels, preds):
+            print(lab, corr)
         correlations = np.array(correlations)
         
-        print(f'CCA accuracy: {accuracy_score(train_labels, cca_predictions):.4f}')
-        print(confusion_matrix(train_labels, cca_predictions, labels=self.trained_freqs))
-        # print(f'kNN accuracy: {accuracy_score(train_labels, predictions):.4f}')
+        print(f'CCA accuracy: {accuracy_score(train_labels, preds):.4f}')
+        print(self.trained_freqs)
+        print(confusion_matrix(train_labels, preds, labels=self.trained_freqs))
 
         clf = KNeighborsClassifier(hparams.neighbors)
         clf.fit(correlations, train_labels)
         self.KNN = clf
+        predictions = self.KNN.predict(correlations)
+        print(f'kNN accuracy: {accuracy_score(train_labels, predictions):.4f}')
+        print(self.trained_freqs)
+        print(confusion_matrix(train_labels, predictions, labels=self.trained_freqs))
 
     def test(self, hparams, test_data, test_labels):
-        print(len(test_labels))
+        assert [tl in self.trained_freqs for tl in test_labels]
         reference_templates = []
         for freq in self.trained_freqs:
             reference_templates.append(self.get_reference_signals(duration, freq, hparams.sample_rate))
@@ -118,21 +124,29 @@ class CCAKNNModel:
         test_data = np.array(test_data)
 
         correlations = self.calculate_correlation(test_data, reference_templates)
-        cca_predictions = np.argmax(correlations, axis=1) + 1
+        cca_predictions = np.argmax(correlations, axis=1)
+        cca_preds = []
+        for pred in cca_predictions:
+            cca_preds.append(self.trained_freqs[pred])
+        
+        for lab, corr in zip(test_labels, cca_preds):
+            print(lab, corr)
         correlations = np.array(correlations)
 
-        predictions = self.KNN.predict(correlations)
-        print(f'kNN accuracy: {accuracy_score(test_labels, predictions):.4f}')
-        print(f'CCA accuracy: {accuracy_score(test_labels, cca_predictions):.4f}')
+        knn_predictions = self.KNN.predict(correlations)
+        for lab, corr in zip(test_labels, knn_predictions):
+            print(lab, corr)
+        print(f'kNN accuracy: {accuracy_score(test_labels, knn_predictions):.4f}')
+        print(f'CCA accuracy: {accuracy_score(test_labels, cca_preds):.4f}')
         # print(f'precision: {precision_score(test_labels, predictions):.4f}')
         # print(f'recall: {recall_score(test_labels, predictions):.4f}')
         if hparams.verbose:
             print("kNN")
             print(self.trained_freqs)
-            print(confusion_matrix(test_labels, predictions, labels=self.trained_freqs))
+            print(confusion_matrix(test_labels, knn_predictions, labels=self.trained_freqs))
             print("CCA")
             print(self.trained_freqs)
-            print(confusion_matrix(test_labels, cca_predictions, labels=self.trained_freqs))
+            print(confusion_matrix(test_labels, cca_preds, labels=self.trained_freqs))
 
 # def filter(data):
 #     num_eeg_channels = 8
@@ -157,7 +171,6 @@ def get_args(parser):
     parser.add_argument('--lower-freq', type=float, default=5, help="Lower frequency bound for a bandpass filter")
     parser.add_argument('--upper-freq', type=float, default=5, help="Upper frequency bound for a bandpass filter")
     parser.add_argument('--random-state', type=int, default=42, help="Random State")
-
     return parser.parse_args()
 
 def buffer(data, duration, data_overlap):
@@ -215,14 +228,19 @@ def parse_eeg(data: pd.DataFrame) -> pd.DataFrame:
         data.at[1, 'Frequency'] = data.loc[0, 'Frequency']
         data.at[1, 'Color Code'] = data.loc[0, 'Color Code']
         data = data[1:]
-    data_freqs = data.drop(columns=['Time', 'Frequency', 'Color Code'])
-    channel_data = data_freqs.to_numpy().T
+    datafreqs = data['Frequency'].ffill()
+    datafreqs = datafreqs.loc[datafreqs == 0.0]
+
+    data_freqs = data.drop(datafreqs.index)
+    
+    channel_data = data_freqs.drop(columns=['Time', 'Frequency', 'Color Code'])
+    channel_data = channel_data.to_numpy().T
     filtered_data = butter_bandpass_filter(channel_data, 6, 80, 250, 4).T
     df = pd.DataFrame(filtered_data)
     df.columns = [f'CH{i}' for i in range(1, df.shape[1] + 1)]
-    df['Time'] = data['Time']
-    df['Frequency'] = data['Frequency']
-    df['Color Code'] = data['Color Code']
+    df['Time'] = data_freqs['Time']
+    df['Frequency'] = data_freqs['Frequency']
+    df['Color Code'] = data_freqs['Color Code']
     df.index = np.arange(df.shape[0])
     # datafreqs = data.loc[data['Frequency'].ffill() != 0.0]
     # nostim = data.loc[datafreqs.index]
@@ -254,24 +272,33 @@ if __name__ == "__main__":
         data = pd.read_csv(args.data)
         data = parse_eeg(data)
         # print(f"data:\n{data}")
-        labels = data['Frequency'].dropna().tolist()
+        labels = sorted(data['Frequency'].dropna().tolist())
+        possible_frequencies = list(set(labels))
+        model.trained_freqs = possible_frequencies
         train_data = data.drop(columns=['Time', 'Color Code'])
         trials = split_trials(train_data)
         segments = []
         segment_labels = []
         assert all([np.isna(lab) == False for lab in segment_labels])
-        for idx, trial in enumerate(trials):
+        for label, trial in zip(labels, trials):
             duration = args.window_len * args.sample_rate
             data_overlap = (args.window_len - args.shift_len) * args.sample_rate
             segs = buffer(trial, duration, data_overlap)
             for seg in segs:
                 segments.append(seg)
-                segment_labels.append(labels[idx])
+                segment_labels.append(label)
+        seggies = np.arange(len(segment_labels))
+        train_segs, test_segs = train_test_split(seggies, test_size=0.2, random_state=42)
+        print(train_segs, test_segs)
+        print(Counter(segment_labels))
         assert len(segments) == len(segment_labels)
         # print(f"trials:\n{trials}")
-        split_loc = int(0.8 * len(segments))
-        train_data, train_labels = segments[:split_loc], segment_labels[:split_loc]
-        test_data, test_labels = segments[split_loc:], segment_labels[split_loc:]
+        train_data, train_labels = [segments[ts] for ts in train_segs], [segment_labels[ts] for ts in train_segs]
+        test_data, test_labels = [segments[ts] for ts in test_segs], [segment_labels[ts] for ts in test_segs]
+        print("train labels:")
+        print(Counter(train_labels))
+        print("test labels:")
+        print(Counter(test_labels))
         # train_data, test_data = train_test_split(data, test_size = 0.3, random_state=args.random_state)
         # train_data.to_csv('train_data.csv', index=False)
         # test_data.to_csv('test_data.csv', index=False)
