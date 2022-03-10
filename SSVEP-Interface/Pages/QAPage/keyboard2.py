@@ -44,11 +44,12 @@ def writeToInput(parent, buttons, text):
     inputField = parent.findChild(QLineEdit,"Input")
 
     temp = inputField.text() + text
-    inputField.setText(temp)
-
     if len(text) == 1:
         for x in range(len(buttons)):
             buttons[x].label.setText(groupedChars[x])
+    else:
+        temp = temp + " "
+    inputField.setText(temp)
 
 def clickedGroup(parent, buttons, text):
     charList = list(text.split(' | '))
