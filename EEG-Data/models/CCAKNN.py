@@ -99,21 +99,14 @@ class CCAKNNModel:
         preds = []
         for pred in cca_predictions:
             preds.append(self.trained_freqs[pred])
-        for lab, corr in zip(train_labels, preds):
-            print(lab, corr)
         correlations = np.array(correlations)
         
-        print(f'CCA accuracy: {accuracy_score(train_labels, preds):.4f}')
-        print(self.trained_freqs)
-        print(confusion_matrix(train_labels, preds, labels=self.trained_freqs))
+        print(f'CCA train accuracy: {accuracy_score(train_labels, preds):.4f}')
 
-        clf = KNeighborsClassifier(hparams.neighbors)
-        clf.fit(correlations, train_labels)
-        self.KNN = clf
+        self.KNN = KNeighborsClassifier(hparams.neighbors)
+        self.KNN.fit(correlations, train_labels)
         predictions = self.KNN.predict(correlations)
-        print(f'kNN accuracy: {accuracy_score(train_labels, predictions):.4f}')
-        print(self.trained_freqs)
-        print(confusion_matrix(train_labels, predictions, labels=self.trained_freqs))
+        print(f'kNN train accuracy: {accuracy_score(train_labels, predictions):.4f}')
 
     def test(self, hparams, test_data, test_labels):
         assert [tl in self.trained_freqs for tl in test_labels]
@@ -129,33 +122,18 @@ class CCAKNNModel:
         for pred in cca_predictions:
             cca_preds.append(self.trained_freqs[pred])
         
-        for lab, corr in zip(test_labels, cca_preds):
-            print(lab, corr)
         correlations = np.array(correlations)
 
         knn_predictions = self.KNN.predict(correlations)
-        for lab, corr in zip(test_labels, knn_predictions):
-            print(lab, corr)
         print(f'kNN accuracy: {accuracy_score(test_labels, knn_predictions):.4f}')
         print(f'CCA accuracy: {accuracy_score(test_labels, cca_preds):.4f}')
-        # print(f'precision: {precision_score(test_labels, predictions):.4f}')
-        # print(f'recall: {recall_score(test_labels, predictions):.4f}')
         if hparams.verbose:
-            print("kNN")
+            print("kNN Confusion Matrix")
             print(self.trained_freqs)
             print(confusion_matrix(test_labels, knn_predictions, labels=self.trained_freqs))
-            print("CCA")
+            print("CCA Confusion Matrix")
             print(self.trained_freqs)
             print(confusion_matrix(test_labels, cca_preds, labels=self.trained_freqs))
-
-# def filter(data):
-#     num_eeg_channels = 8
-#     sampling_rate = 256
-#     mid_freq = 8
-#     band_width = 8
-#     for channel in range(num_eeg_channels):
-#             DataFilter.perform_bandpass(data[channel], sampling_rate, mid_freq, band_width, 2, FilterTypes.BUTTERWORTH, 0)
-#             DataFilter.remove_environmental_noise(data[channel], BoardShim.get_sampling_rate(board_id), NoiseTypes.FIFTY.value)
 
 def get_args(parser):
     parser.add_argument('--train', action="store_true", help="Whether to train a model")
@@ -242,11 +220,6 @@ def parse_eeg(data: pd.DataFrame) -> pd.DataFrame:
     df['Frequency'] = data_freqs['Frequency']
     df['Color Code'] = data_freqs['Color Code']
     df.index = np.arange(df.shape[0])
-    # datafreqs = data.loc[data['Frequency'].ffill() != 0.0]
-    # nostim = data.loc[datafreqs.index]
-    # print(f"nostim_p: {nostim.shape[0] / data.shape[0]}")
-    # data = data.loc[datafreqs.index]
-    # data.index = range(data.shape[0])
     return df
 
 def train(hparams, model, data, labels):
@@ -289,19 +262,9 @@ if __name__ == "__main__":
                 segment_labels.append(label)
         seggies = np.arange(len(segment_labels))
         train_segs, test_segs = train_test_split(seggies, test_size=0.2, random_state=42)
-        print(train_segs, test_segs)
-        print(Counter(segment_labels))
         assert len(segments) == len(segment_labels)
-        # print(f"trials:\n{trials}")
         train_data, train_labels = [segments[ts] for ts in train_segs], [segment_labels[ts] for ts in train_segs]
         test_data, test_labels = [segments[ts] for ts in test_segs], [segment_labels[ts] for ts in test_segs]
-        print("train labels:")
-        print(Counter(train_labels))
-        print("test labels:")
-        print(Counter(test_labels))
-        # train_data, test_data = train_test_split(data, test_size = 0.3, random_state=args.random_state)
-        # train_data.to_csv('train_data.csv', index=False)
-        # test_data.to_csv('test_data.csv', index=False)
 
     if args.training_data:
         train_data = pd.read_csv(args.training_data)
@@ -311,8 +274,8 @@ if __name__ == "__main__":
     if args.testing_data:
         test_data = pd.read_csv(args.testing_data)
         test_data, splits = parse_eeg(test_data)
-    
-    if args.train:
+
+    if args.train:        
         train(args, model, train_data, train_labels)
         model_save_path = data_path.split("/")[-1][:-4] + '.model'
         print(f"saving at {model_save_path}")
