@@ -4,9 +4,10 @@ from PyQt5.QtWidgets import (
     QWidget,
     QGridLayout,
     QFrame,
-    QVBoxLayout,
+    QVBoxLayout
 )
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect,Qt
+from PyQt5.QtGui import QPainter, QBrush, QPen
 import sys, random, threading, datetime, time
 import circle_stimuli as Stim
 import numpy as np
@@ -20,23 +21,23 @@ HOST = '127.0.0.1'  # Server hostname or IP
 PORT = 65432        # Port used by server
 
 # Variables to change parameters of the test
-START_DELAY_S = 5 # Seconds
-NUM_TRIALS = 12
+START_DELAY_S = 20 # Seconds
+NUM_TRIALS = 5
 INDICATOR_TIME_VALUE_S = 5 # Seconds
-TRIAL_BREAK_TIME = 10
-STIM_PERIOD_TRIALS = 2
+TRIAL_BREAK_TIME = 120
+STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
 
 data = []
 color_code_order = []
 color_freq_order = []
 timestamp = []
 
-def thread_function(stop, board, args):
 
-    data_index = 0
-
+def display_procedure(stop, board, args):
     f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()}\n\n")
+
+    data_index = 0
 
     time.sleep(2)
     startDelay = START_DELAY_S
@@ -54,15 +55,12 @@ def thread_function(stop, board, args):
         print(order)
 
         for stimPeriod in range(STIM_PERIOD_TRIALS):
-
             # just for testing otherwise the thread keeps running if you close the window
             if stop():
                 break
 
             currentStim = stim[order[stimPeriod]]
-
-            # indicate stimuli to focus on / display indicator
-            currentStim.toggleIndicator(True)
+            stimLabel = preStimIndicators[order[stimPeriod]]
 
             # log color and hz to terminal
             color = str(currentStim.rValue)+"," + \
@@ -84,13 +82,16 @@ def thread_function(stop, board, args):
             color_code_order.append(colorCode)
             color_freq_order.append(currentStim.freqHertz)
 
-            for x in range(int(INDICATOR_TIME_VALUE_S)):
-                label.setText(
-                    labelTxt(f"Keep you eyes where the red circle is. ({INDICATOR_TIME_VALUE_S-x})"))
-                time.sleep(1)
-            label.setText(labelTxt("Keep you eyes where the red circle was."))
 
-            # start simulation period (all stimulis flashing)
+            # indicate stimuli to focus on / display indicator
+            currentStim.toggleIndicator(True)
+            label.setText(labelTxt(f"Keep you eyes where the red circle is."))
+            
+            for x in range(int(INDICATOR_TIME_VALUE_S)):
+                stimLabel.setText(labelTxt(str(INDICATOR_TIME_VALUE_S - x)))
+                time.sleep(1)
+            stimLabel.setText(labelTxt(""))
+            
             currentStim.toggleIndicator(False)
 
             
@@ -141,15 +142,19 @@ def thread_function(stop, board, args):
             timestamp.append(session_timestamp)
             data_index += 1            
 
+
         # just for testing otherwise the thread keeps running if you close the window
         if stop():
             break
+
 
         for x in range(int(TRIAL_BREAK_TIME)):
             label.setText(
                 labelTxt(f"Time before next trial: ({TRIAL_BREAK_TIME-x})"))
             time.sleep(1)
 
+    label.setText(
+                labelTxt(f"Trials finished"))
     print("all trials finished")
     f.write("Session finished.\n\n")
     f.close()
@@ -161,6 +166,7 @@ def thread_function(stop, board, args):
 
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
+
 
 def post_process( data, timestamp, color_code, color_freq ):
 
@@ -180,7 +186,7 @@ def post_process( data, timestamp, color_code, color_freq ):
     df_all = pd.concat(data)
     df_all.index.name = 'Count'
     return df_all
-    
+
 class Stimuli(QWidget):
     def __init__(self):
         super().__init__()
@@ -210,13 +216,31 @@ class Stimuli(QWidget):
 
         # append stimulis to grid in random order
         random.shuffle(stim)
+
+        # create array of indicators
+        global preStimIndicators
+        preStimIndicators = []
+        for x in range(12):
+            preStim = QLabel(labelTxt(""))
+            preStimIndicators.append(preStim)
+            
+            
         self.gridLayout = QGridLayout(self.frame)
+        # self.gridLayout.addWidget(QLabel(), 3, 0)
         for row in range(3):
             for col in range(4):
                 stimNum = row*4+col
+
+                self.gridLayout.addWidget(preStimIndicators[stimNum], row*2+3, col*2)
+                if (col != 3):
+                    self.gridLayout.addWidget(QLabel(), row*2+3, col*2+1)
+
                 stim[stimNum].toggleOff()
-                self.gridLayout.addWidget(stim[stimNum], row+3, col*2)
-        self.gridLayout.setSpacing(225)
+                self.gridLayout.addWidget(stim[stimNum], row*2+4, col*2)
+
+
+        self.gridLayout.setSpacing(10)
+
 
     # resizes grid during window resize
     def resizeEvent(self, event): 
@@ -225,14 +249,13 @@ class Stimuli(QWidget):
         l = min(self.width(), self.height())
         center = self.rect().center()
 
-        rect = QRect(0, 0, int(l*(5/3)), l) # 5 x 3 ratio
+        rect = QRect(0, 0, int(l*(7/6)), l) # 5 x 3 ratio
         rect.moveCenter(center)
         self.frame.setGeometry(rect)
 
-        self.gridLayout.setColumnMinimumWidth(1, int(l/12)) # 3 additional columns fill space to make it a 4x3 grid 
-        self.gridLayout.setColumnMinimumWidth(3, int(l/12))
-        self.gridLayout.setColumnMinimumWidth(5, int(l/12))
-
+        # self.gridLayout.setColumnMinimumWidth(1, int(l/12)) # 3 additional columns fill space to make it a 4x3 grid 
+        # self.gridLayout.setColumnMinimumWidth(3, int(l/12))
+        # self.gridLayout.setColumnMinimumWidth(5, int(l/12))
 
 if __name__ == '__main__':
     # File and GUI config
@@ -250,7 +273,7 @@ if __name__ == '__main__':
 
     layout = QVBoxLayout()
 
-    global label
+    # global label
     label = QLabel(labelTxt("ODC-DEMO"))
     label.setFixedHeight(100)
     layout.addWidget(label)
@@ -263,10 +286,10 @@ if __name__ == '__main__':
     # BCI Config
     board_details = Cyton_Board_Config(False)
     stopThread = False
-    x = threading.Thread(target=thread_function, args=(lambda: stopThread, board_details[0], board_details[1]))
+    x = threading.Thread(target=display_procedure, args=(lambda: stopThread, board_details[0], board_details[1]))
     x.start()
 
-    window.resize(1600, 1200) # initial window size
+    window.setFixedSize(1000, 900) # initial window size
     window.show()
     
     try:

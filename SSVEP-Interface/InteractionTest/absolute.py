@@ -1,11 +1,13 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QHBoxLayout, QPushButton, QWidget
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
+from InteractionTest.yesno import YesNoWindow
+
 from Pages.styles import navigationButtonStyle
-from Pages.QAPage.keyboard import KeyboardInput
-from PyQt5.QtWidgets import QHBoxLayout, QPushButton, QWidget
 
 
-class QuestionAndAnswerWidget(QWidget):
+class TrueAndFalseWidget(QWidget):
+
     def __init__(self, parent):
         super().__init__(parent)
         layout = self._createLayout(parent)
@@ -18,13 +20,24 @@ class QuestionAndAnswerWidget(QWidget):
         layout = QHBoxLayout()
         layout.setSpacing(0)
         layout.setContentsMargins(100, 100, 100, 100)
-        self.centerWidget = KeyboardInput(self)
+        centerText = self._createCenterText()
+        button1 = self._createBackButton(text="←")
         button2 = self._createBackButton(text="→")
-        button2.clicked.connect(parent.showTF)
-        layout.addWidget(self.centerWidget)
+        # button1.clicked.connect(parent.showQA)
+        # button2.clicked.connect(parent.showMC)
+        layout.addWidget(button1)
+        yesNoWidget = YesNoWindow(self)
+        layout.addWidget(yesNoWidget)
         layout.addWidget(button2)
         layout.setAlignment(Qt.AlignVCenter)
         return layout
+
+    def _createCenterText(self):
+        centertext = QLabel("True And False Page!")
+        centertext.setMaximumHeight(100)
+        centertext.setFont(QFont('Arial', 32))
+        centertext.setAlignment(Qt.AlignCenter)
+        return centertext
 
     def _createBackButton(self, text):
         button = QPushButton(text)
