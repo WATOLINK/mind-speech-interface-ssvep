@@ -21,7 +21,7 @@ import pandas as pd
 # Trial Settings
 START_DELAY_S = 20 # 20 Seconds
 NUM_TRIALS = 5 # 5 Trials
-INDICATOR_TIME_VALUE_S = 5 # 5 Seconds
+INDICATOR_TIME_VALUE_S = 1 # 5 Seconds
 TRIAL_BREAK_TIME = 120 # 120 seconds 
 STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
 
