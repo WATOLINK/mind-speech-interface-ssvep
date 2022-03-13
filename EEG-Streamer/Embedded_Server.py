@@ -54,18 +54,21 @@ SYNTHETIC_COL = 10
 def data_stream(board, queue, conn):
     # Data package counter
     data_package_counter = 0
-
-    global id
-    id = board.get_board_data() 
+    
+    global id 
+    id = board.get_board_id() 
     
     # Open BCI = keep all rows, keep columns 0-8
     # GTech = keep all rows, keep columns 0-9
-    if id == 0:
-        col_range = OPEN_BCI_COL
+    if id == 0 or id == 2:
+        col_start = 0
+        col_end = 8
     elif id == 8:
-        col_range = GTECH_COL
+        col_start = 1
+        col_end = 9
     elif id == -1:
-        col_range = SYNTHETIC_COL
+        col_start = 0
+        col_end = 10
 
     # Clear buffer
     board.get_board_data()
@@ -83,7 +86,7 @@ def data_stream(board, queue, conn):
             #       must be minimized to avoid system latency
             #
 
-            data = board.get_board_data(250).transpose()[:,:col_range]
+            data = board.get_board_data(250).transpose()[:,col_start:col_end]
             sample_out = pickle.dumps(data)
             conn.sendall( sample_out )
 
@@ -163,6 +166,8 @@ def Streamer(s, q, id):
 
     with conn:
         print('-- Connected by', addr)
+        board_id_out = b.get_board_id()
+        conn.send(pickle.dumps(board_id_out))
         data_stream(b, q, conn)
 
     print(q.get())
@@ -175,8 +180,6 @@ def main():
     # TODO: Use "os" and "sys" libraries to determine which USB dongle (OpenBCI, GTech, or virtual board) 
     #       is connected to the PC's serial port
     #
-    global id
-
 
     s = Socket_Config()
 
@@ -186,7 +189,7 @@ def main():
     # Start concurrent processes
     sys_processes = [ 
                         Process(target=Streamer, args=(s,q,id,)), 
-                        Process(target=Client, args=(q,HOST,PORT,id,))    
+                        Process(target=Client, args=(q,HOST,PORT,))    
                     ]
 
     for process in sys_processes:
