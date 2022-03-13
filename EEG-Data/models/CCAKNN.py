@@ -244,7 +244,6 @@ if __name__ == "__main__":
         data_path = args.data
         data = pd.read_csv(args.data)
         data = parse_eeg(data)
-        # print(f"data:\n{data}")
         labels = sorted(data['Frequency'].dropna().tolist())
         possible_frequencies = list(set(labels))
         model.trained_freqs = possible_frequencies
