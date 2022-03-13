@@ -61,11 +61,11 @@ def data_stream(board, queue, conn):
     # Open BCI = keep all rows, keep columns 0-8
     # GTech = keep all rows, keep columns 0-9
     if id == 0 or id == 2:
-        col_start = 0
-        col_end = 8
-    elif id == 8:
         col_start = 1
         col_end = 9
+    elif id == 8:
+        col_start = 0
+        col_end = 8
     elif id == -1:
         col_start = 0
         col_end = 10

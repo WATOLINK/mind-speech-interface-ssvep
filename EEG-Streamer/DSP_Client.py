@@ -3,13 +3,17 @@ import pandas as pd
 import pickle
 import socket
 
-def Client(queue, HOST, PORT, ID):
+def Client(queue, HOST, PORT):
     # Socket initialization 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((HOST, PORT))
-
+    
     # Send signal to server that socket has been connected
     queue.put(True)
+    
+    ID_pickle = s.recv(1024)
+    ID = pickle.loads(ID_pickle)
+    print("id received from client: ", ID)
     
     # 
     # TODO: Receive list for column header ("column titles") from Queue, store it in a
@@ -43,12 +47,16 @@ def CSV(data, ID):
     # TODO: Use the column header parameter to add the header to EACH DATAFRAME in the for loop
     #       that converts each element in the "data" list into a dataframe (see the commented out code below)
     #
-    
-    if ID == 0:
+    print("**********")
+    print(type(ID)) 
+    if ID == 0 or ID == 2:
+        print("Enter")
         header_size = ['CH1', 'CH2', 'CH3', 'CH4', 'CH5', 'CH6', 'CH7', 'CH8']
     elif ID == 8:
-        header_size = ['CH1', 'CH2', 'CH3', 'CH4', 'CH5', 'CH6', 'CH7', 'CH8', 'CH9']
+        print("Enter")
+        header_size = ['CH1', 'CH2', 'CH3', 'CH4', 'CH5', 'CH6', 'CH7', 'CH8']
     elif ID == -1:
+        print("Enter")
         header_size = ['CH1', 'CH2', 'CH3', 'CH4', 'CH5', 'CH6', 'CH7', 'CH8', 'CH9', 'CH10']
     
     for i in range(len(data)):
