@@ -65,11 +65,10 @@ class YesNoWindow(QtWidgets.QWidget):
             # Do what we want when no is checked and confirm is clicked
 
     def automatedSelection(self, value):
-        match value:
-            case 111111:
-                self.yesButton.setChecked(True)
-            case 222222:
-                self.noButton.setChecked(True)
+        if value == 111111:
+            self.yesButton.setChecked(True)
+        elif value == 222222:
+            self.noButton.setChecked(True)
 
 #run this code when the signal is received with the 6 digit value
 def signalReceived():
