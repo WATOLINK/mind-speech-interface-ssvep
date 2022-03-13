@@ -43,12 +43,16 @@ class KeyboardWidget(QWidget):
 def writeToInput(parent, buttons, text):
     inputField = parent.findChild(QLineEdit,"Input")
 
-    temp = inputField.text() + text
+    prevText = inputField.text()
     if len(text) == 1:
         for x in range(len(buttons)):
             buttons[x].label.setText(groupedChars[x])
     else:
-        temp = temp + " "
+        prevText =  " ".join(inputField.text().split()[0:-1]) + " "
+        text = text + " "
+    temp = text
+    if prevText:
+        temp = prevText + text
     inputField.setText(temp)
 
 def clickedGroup(parent, buttons, text):

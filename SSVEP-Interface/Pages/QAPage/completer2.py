@@ -62,8 +62,10 @@ def suggestWords(parent):
     # means the keyboard is currently on word mode
     if toggleBtn.label.text() == "Toggle Characters":
         
-        currentText =   parent.findChild(QLineEdit,"Input").text() 
-        lastWord = currentText.split()[-1]
+        currentText =   parent.findChild(QLineEdit,"Input").text()
+        lastWord = ""
+        if currentText: 
+            lastWord = currentText.split()[-1]
         suggestions = getSuggestions(lastWord)
 
         keyboardWidget = parent.findChild(QWidget,"Keyboard Widget")
