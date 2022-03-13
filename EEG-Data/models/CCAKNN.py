@@ -48,10 +48,13 @@ class CCAKNNModel:
             reference_templates.append(self.get_reference_signals(self.duration, freq, self.sample_rate))
         reference_templates = np.array(reference_templates, dtype='float32')
         
-        filtered_data = get_filtered_eeg(data, 6, 80, 4, self.sample_rate)
-        segment = get_segmented_epochs(filtered_data, self.window_len, self.shift_len, self.sample_rate)
-        labels, predicted_class, all_coeffs = self.calculate_correlation(segment, reference_templates)
-        predictions = self.KNN.predict(all_coeffs)
+        correlations = self.calculate_correlation(train_data, reference_templates)
+        cca_predictions = np.argmax(correlations, axis=1)
+        preds = []
+        for pred in cca_predictions:
+            preds.append(self.trained_freqs[pred])
+        correlations = np.array(correlations)
+        predictions = self.KNN.predict(correlations)        
         return predictions
         
     def get_reference_signals(self, data_len, target_freq, sampling_rate):
