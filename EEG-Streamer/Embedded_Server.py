@@ -23,6 +23,7 @@
 
 '''
 import argparse
+from calendar import EPOCH
 import brainflow
 import pickle
 import socket
@@ -50,9 +51,12 @@ OPEN_BCI_COL = 8
 GTECH_COL = 9
 SYNTHETIC_COL = 10
 
-def data_stream(board, queue, conn, id):
+def data_stream(board, queue, conn):
     # Data package counter
     data_package_counter = 0
+
+    global id
+    id = board.get_board_data() 
     
     # Open BCI = keep all rows, keep columns 0-8
     # GTech = keep all rows, keep columns 0-9
@@ -159,7 +163,7 @@ def Streamer(s, q, id):
 
     with conn:
         print('-- Connected by', addr)
-        data_stream(b, q, conn, id)
+        data_stream(b, q, conn)
 
     print(q.get())
     Cyton_Board_End(b)
@@ -171,8 +175,9 @@ def main():
     # TODO: Use "os" and "sys" libraries to determine which USB dongle (OpenBCI, GTech, or virtual board) 
     #       is connected to the PC's serial port
     #
+    global id
 
-    id = -1
+
     s = Socket_Config()
 
     # Message queue between server-client processes
