@@ -4,6 +4,8 @@ import pandas as pd
 import socket
 import pickle
 import argparse
+from time import time, sleep
+from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions
 from models.Model import Model
 import os
 
@@ -40,6 +42,9 @@ class EEGSocketListener:
     def open_socket_conn(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect( (self.host, self.port) )
+    
+    def close_socket_conn(self):
+        self.socket.close()
 
     def recieve_packet(self):
         # the size of the input data = num elements * 8 bytes + 500 for leeway
@@ -48,14 +53,22 @@ class EEGSocketListener:
             print("Recieved nothing")
         else: # If not null sample is recevied
             sample = pickle.loads(sample)
+            if sample is None:
+                print("End of stream")
+                return None
             assert type(sample) == np.ndarray,  f"Not a Numpy ND Array {type(sample), sample}"
             assert sample.shape == (self.input_len, self.num_channels), \
                 f"Incorrect Shape, Expected: {(self.input_len, self.num_channels)}, Recieved: {sample.shape}"
         return sample
 
-    def listen(self):
-        while True:
+    def listen(self, run_time=None):
+        init_time = time()
+        time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
+        while time_func():
             packet = self.recieve_packet()
+            if packet is None:
+                print("Streaming stopped suddenly")
+                return
             if packet.any():
                 start = self.input_len * self.samples 
                 end = self.input_len * (self.samples + 1)
@@ -64,11 +77,20 @@ class EEGSocketListener:
                 del packet
                 self.samples = (self.samples + 1) % self.output_size
                 if self.samples == 0:
+                    self.filter()
                     # TO IMPLEMENT
                     prediction = self.model.predict(self.data[start:end])
                     print(prediction)
                     print("OUTPUT BUFFER FILLED, SEND DATA TO AI")
-            
+        
+    def filter(self):
+        num_eeg_channels = 8
+        sampling_rate = 256
+        mid_freq = 8
+        band_width = 8
+        for channel in range(num_eeg_channels):
+                DataFilter.perform_bandpass(self.data[channel], sampling_rate, mid_freq, band_width, 2, FilterTypes.BUTTERWORTH, 0)
+
     def generate_csv(self, data, name="fullOBCI"):
         df = pd.DataFrame(data=data, columns=list(range(1,17)))
         print(f'{name}.csv Generated')
