@@ -13,7 +13,7 @@ from typing import List
 from collections import Counter
 
 # Helper functions
-from ssvep_utils import butter_bandpass_filter, get_filtered_eeg, get_segmented_epochs
+from ssvep_utils import butter_bandpass_filter, buffer, split_trials, parse_eeg
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
 
 
@@ -30,11 +30,18 @@ class CCAKNNModel:
         - test and develop metrics
     """
 
-    def __init__(self):
-        # possible flicker frequencies shown to the user
-        self.trained_freqs = []
-        self.flicker_freq = np.array([9.25, 11.25, 13.25, 9.75, 11.75, 13.75, 
-                            10.25, 12.25, 14.25, 10.75, 12.75, 14.75])
+    def __init__(self, args):
+        self.window_len = args.window_len
+        self.sample_rate = args.sample_rate
+        self.duration = self.window_len * self.sample_rate
+        self.trained_freqs = np.array([5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 14.0, 16.0, 18.0, 20.0])
+        self.reference_templates = self.create_reference_templates()
+    
+    def create_reference_templates(self):
+        reference_templates = []
+        for freq in self.trained_freqs:
+            reference_templates.append(self.get_reference_signals(self.duration, freq, self.sample_rate))
+        return np.array(reference_templates, dtype='float32')
     
     def load_model(self, model_path: os.PathLike):
         self.KNN = load(model_path)
@@ -42,13 +49,8 @@ class CCAKNNModel:
     def save_model(self, filepath):
         dump(self.KNN, filepath)
 
-    def predict(self, data: np.ndarray):
-        reference_templates = []
-        for freq in self.flicker_freq:
-            reference_templates.append(self.get_reference_signals(self.duration, freq, self.sample_rate))
-        reference_templates = np.array(reference_templates, dtype='float32')
-        
-        correlations = self.calculate_correlation(train_data, reference_templates)
+    def predict(self, data: np.ndarray, verbose: bool = False):        
+        correlations = self.calculate_correlation(train_data, self.reference_templates)
         cca_predictions = np.argmax(correlations, axis=1)
         preds = []
         for pred in cca_predictions:
@@ -92,10 +94,6 @@ class CCAKNNModel:
         return result
     
     def train(self, hparams, train_data, train_labels):
-        reference_templates = []
-        for freq in self.trained_freqs:
-            reference_templates.append(self.get_reference_signals(duration, freq, hparams.sample_rate))
-        reference_templates = np.array(reference_templates, dtype='float64')
         train_data = np.array(train_data)
         correlations = self.calculate_correlation(train_data, reference_templates)
         cca_predictions = np.argmax(correlations, axis=1)
@@ -105,14 +103,13 @@ class CCAKNNModel:
         correlations = np.array(correlations)
         
         print(f'CCA train accuracy: {accuracy_score(train_labels, preds):.4f}')
-
         self.KNN = KNeighborsClassifier(hparams.neighbors)
         self.KNN.fit(correlations, train_labels)
         predictions = self.KNN.predict(correlations)
         print(f'kNN train accuracy: {accuracy_score(train_labels, predictions):.4f}')
 
     def test(self, hparams, test_data, test_labels):
-        assert [tl in self.trained_freqs for tl in test_labels]
+        assert all([tl in self.trained_freqs for tl in test_labels])
         reference_templates = []
         for freq in self.trained_freqs:
             reference_templates.append(self.get_reference_signals(duration, freq, hparams.sample_rate))
@@ -154,77 +151,6 @@ def get_args(parser):
     parser.add_argument('--random-state', type=int, default=42, help="Random State")
     return parser.parse_args()
 
-def buffer(data, duration, data_overlap):
-    '''
-    Returns segmented data based on the provided input window duration and overlap.
-
-    Args:
-        data (pd.DataFrame): dataset. 
-        duration (int): window length (number of samples).
-        data_overlap (int): number of samples of overlap.
-
-    Returns:
-        (numpy.ndarray): segmented data of shape (number_of_segments, duration).
-    '''
-    # TODO: AVOID tossing out the data
-    data = data[:-(data.shape[0] % duration)]
-    number_segments = int(math.ceil((len(data) - data_overlap)/(duration - data_overlap)))
-    temp_buf = [data[i:i + duration] for i in range(0, len(data), (duration - int(data_overlap)))]
-    temp_buf[number_segments-1] = np.pad(temp_buf[number_segments-1],
-                            (0, duration - temp_buf[number_segments-1].shape[0]),
-                            'constant')
-    temp_buf = np.array(temp_buf[:number_segments])
-    return temp_buf
-
-def split_trials(data) -> List[pd.DataFrame]:
-    """
-    Segment the data by trial.
-
-    Args:
-        data: The EEG data
-    
-    Returns:
-        A list of DataFrames that each contain a trial
-    """
-    trial_indices = data['Frequency'].dropna().index.sort_values().tolist()
-    segmented_data = []
-    for idx in range(1, len(trial_indices)):
-        data_slice = data[trial_indices[idx - 1]: trial_indices[idx]]
-        data_slice['Frequency'] = data_slice['Frequency'].ffill()
-        segmented_data.append(data_slice)
-    return segmented_data
-
-def parse_eeg(data: pd.DataFrame) -> pd.DataFrame:
-    """
-    Perform basic parsing on EEG data.
-
-    Args:
-        data: The EEG data
-
-    Returns:
-        Parsed EEG data
-    """
-    # offset 1 for Timestep
-    if all(data.iloc[0, 1:].values == 0):
-        data.at[1, 'Frequency'] = data.loc[0, 'Frequency']
-        data.at[1, 'Color Code'] = data.loc[0, 'Color Code']
-        data = data[1:]
-    datafreqs = data['Frequency'].ffill()
-    datafreqs = datafreqs.loc[datafreqs == 0.0]
-
-    data_freqs = data.drop(datafreqs.index)
-    
-    channel_data = data_freqs.drop(columns=['Time', 'Frequency', 'Color Code'])
-    channel_data = channel_data.to_numpy().T
-    filtered_data = butter_bandpass_filter(channel_data, 6, 80, 250, 4).T
-    df = pd.DataFrame(filtered_data)
-    df.columns = [f'CH{i}' for i in range(1, df.shape[1] + 1)]
-    df['Time'] = data_freqs['Time']
-    df['Frequency'] = data_freqs['Frequency']
-    df['Color Code'] = data_freqs['Color Code']
-    df.index = np.arange(df.shape[0])
-    return df
-
 def train(hparams, model, data, labels):
     # labels = data['Frequency'].to_numpy().astype('float64')
     # data = data.drop(columns=['Time', 'Frequency', 'Color Code'])
@@ -238,7 +164,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     args = get_args(parser)
 
-    model = CCAKNNModel()
+    model = CCAKNNModel(args)
     if args.model_path:
         model.load_model(args.model_path)
     train_data, test_data = None, None

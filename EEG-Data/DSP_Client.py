@@ -78,10 +78,8 @@ class EEGSocketListener:
                 self.samples = (self.samples + 1) % self.output_size
                 if self.samples == 0:
                     self.filter()
-                    # TO IMPLEMENT
                     prediction = self.model.predict(self.data[start:end])
                     print(prediction)
-                    print("OUTPUT BUFFER FILLED, SEND DATA TO AI")
         
     def filter(self):
         num_eeg_channels = 8
@@ -108,7 +106,10 @@ def get_args(parser):
         required=False, default=5)
     parser.add_argument('--model-type', type=str, help='The type of model to use. i.e. CCA with KNN', default='cca_knn')
     parser.add_argument('--model-path', type=str, help='The filepath to the model to use')
-    # args = parser.parse_args()
+    parser.add_argument('--sample-rate', type=int, default=250, help="Sampling rate (hz)")
+    parser.add_argument('--window-len', type=int, default=1, help="Window length for data processing")
+    parser.add_argument('--shift-len', type=int, default=1, help="Shift length for data processing")
+    parser.add_argument('--random-state', type=int, default=42, help="Random State")
     return parser.parse_known_args()
 
 if __name__ == '__main__':
