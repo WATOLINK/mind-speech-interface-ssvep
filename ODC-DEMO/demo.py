@@ -19,6 +19,7 @@ import pandas as pd
 # Variables to change parameters of the test
 
 # Trial Settings
+
 START_DELAY_S = 20 # 20 Seconds
 NUM_TRIALS = 5 # 5 Trials
 INDICATOR_TIME_VALUE_S = 5 # 5 Seconds
@@ -143,7 +144,7 @@ def post_process( data, start_time, color_code, color_freq ):
     # OpenBCI Setting
     data = np.delete(data, range(8,23), 1)
     # VirtualBoard Setting  
-    # data = np.delete(data, range(8,31), 1)
+    #data = np.delete(data, range(8,31), 1)
 
     data = np.split(data, split_indices)
 
@@ -152,8 +153,8 @@ def post_process( data, start_time, color_code, color_freq ):
     for i in range(1, 9):
         header.append('CH{}'.format(i))
     
-    for i in data:
-        print(np.shape(i))
+    #for i in data:
+        #print(np.shape(i))
 
     # Convert data blocks from NumPy arrays to pandas DataFrames
     for i in range(len(data)):
@@ -166,6 +167,7 @@ def post_process( data, start_time, color_code, color_freq ):
     
     # Combine to 1 DataFrame
     df_data = pd.concat(data)
+    df_data = df_data.to_numpy()
 
     timestamp = []
     ms = repr(start_time).split('.')[1][:3]
@@ -191,9 +193,21 @@ def post_process( data, start_time, color_code, color_freq ):
             else:
                 pass    
 
+    mergeable_timestamp = []
     # Add timestamp column
-    df_time = pd.DataFrame(timestamp, columns=['Timestamp'])
-    df_all = pd.merge(df_time, df_data.reset_index(drop=True), how="inner", left_index=True, right_index=True)
+    for i in timestamp:
+        mergeable_timestamp.append([i])
+    df_all = np.concatenate((mergeable_timestamp, df_data), axis=1)
+    header.insert(0, 'Timestamp')
+    header.append('Color Code')
+    header.append('Frequency')
+    df_all = pd.DataFrame(df_all, columns=header)
+    
+    #print(mergeable_timestamp)
+    #print(df_all.head())
+    #df_time = pd.DataFrame(timestamp, columns=['Timestamp'])
+    #df_all = pd.merge(df_time, df_data.reset_index(drop=True), how="inner", left_index=True, right_index=True)\\
+
     return df_all
 
 def generate_test_report(board, duration, data, color_code_order, color_freq_order):
