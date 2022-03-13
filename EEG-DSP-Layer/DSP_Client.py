@@ -26,17 +26,18 @@ class EEGSocketListener:
     data = None         # data buffer array to be sent to AI
     samples = None      # number of samples currently in buffer
 
-    def __init__(self, args):
-        self.host = args.host
-        self.port = args.port
+    def __init__(self, host='127.0.0.1', port=65432, num_channels=16, input_len=125, output_size = 5,
+                model_type: str = 'cca_knn', model_path: os.PathLike = None):
+        self.host = host
+        self.port = port
 
-        self.input_len = args.input_len
-        self.output_size = args.output_size
-        self.num_channels = args.num_channels
+        self.input_len = input_len
+        self.output_size = output_size
+        self.num_channels = num_channels
 
-        self.data = np.empty((args.output_size * args.input_len, args.num_channels))
+        self.data = np.empty((output_size*input_len, num_channels))
         self.samples = 0
-        self.model = Model(args)
+        self.model = Model(model_path, model_type)
 
     def open_socket_conn(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -72,15 +73,13 @@ class EEGSocketListener:
                 start = self.input_len * self.samples 
                 end = self.input_len * (self.samples + 1)
                 self.data[start:end, :] = packet
-                # print(f"SUCCESS {self.samples+1}/{self.output_size}")
+                print(f"SUCCESS {self.samples+1}/{self.output_size}")
                 del packet
                 self.samples = (self.samples + 1) % self.output_size
                 if self.samples == 0:
                     self.filter()
-                    # print(self.data[start:end].shape)
                     prediction = self.model.predict(self.data[start:end])
                     print(prediction)
-                    # yield prediction
         
     def filter(self):
         num_eeg_channels = 8
@@ -100,9 +99,9 @@ def get_args(parser):
     parser.add_argument('--host', type=str, help='ip address', required=False, default='127.0.0.1')
     parser.add_argument('--port', type=int, help='ip port', required=False, default=65432)
     parser.add_argument('--input-len', type=int, help='number of rows in input array', 
-        required=False, default=250)
+        required=False, default=125)
     parser.add_argument('--num-channels', type=int, help='number of columns in input array', 
-        required=False, default=8)
+        required=False, default=16)
     parser.add_argument('--output-size', type=int, help='number of samples needed to fill output array', 
         required=False, default=5)
     parser.add_argument('--model-type', type=str, help='The type of model to use. i.e. CCA with KNN', default='cca_knn')
@@ -117,6 +116,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     args, _ = get_args(parser)
 
-    listener = EEGSocketListener(args)
+    listener = EEGSocketListener(args.host, args.port, args.num_channels, args.input_len, args.output_size, args.model_type, args.model_path)
     listener.open_socket_conn()
     listener.listen()
