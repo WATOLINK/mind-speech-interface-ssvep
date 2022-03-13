@@ -6,6 +6,8 @@ import pickle
 import argparse
 from time import time, sleep
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions
+from models.Model import Model
+import os
 
 class EEGSocketListener:
     # Socket Object and Params
@@ -24,7 +26,8 @@ class EEGSocketListener:
     data = None         # data buffer array to be sent to AI
     samples = None      # number of samples currently in buffer
 
-    def __init__(self, host='127.0.0.1', port=65432, num_channels=16, input_len=125, output_size=5):
+    def __init__(self, host='127.0.0.1', port=65432, num_channels=16, input_len=125, output_size = 5,
+                model_type: str = 'cca_knn', model_path: os.PathLike = None):
         self.host = host
         self.port = port
 
@@ -34,6 +37,7 @@ class EEGSocketListener:
 
         self.data = np.empty((output_size*input_len, num_channels))
         self.samples = 0
+        self.model = Model(model_path, model_type)
 
     def open_socket_conn(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -74,8 +78,8 @@ class EEGSocketListener:
                 self.samples = (self.samples + 1) % self.output_size
                 if self.samples == 0:
                     self.filter()
-                    # TO IMPLEMENT
-                    print("OUTPUT BUFFER FILLED, SEND DATA TO AI")
+                    prediction = self.model.predict(self.data[start:end])
+                    print(prediction)
         
     def filter(self):
         num_eeg_channels = 8
@@ -83,7 +87,7 @@ class EEGSocketListener:
         mid_freq = 8
         band_width = 8
         for channel in range(num_eeg_channels):
-                DataFilter.perform_bandpass(self.data[channel], sampling_rate, mid_freq, band_width, 2, FilterTypes.BUTTERWORTH, 0)
+            DataFilter.perform_bandpass(self.data[channel], sampling_rate, mid_freq, band_width, 2, FilterTypes.BUTTERWORTH, 0)
 
     def generate_csv(self, data, name="fullOBCI"):
         df = pd.DataFrame(data=data, columns=list(range(1,17)))
@@ -91,9 +95,7 @@ class EEGSocketListener:
         df.to_csv(f'{name}.csv')
         return
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-
+def get_args(parser):
     parser.add_argument('--host', type=str, help='ip address', required=False, default='127.0.0.1')
     parser.add_argument('--port', type=int, help='ip port', required=False, default=65432)
     parser.add_argument('--input-len', type=int, help='number of rows in input array', 
@@ -102,8 +104,18 @@ if __name__ == '__main__':
         required=False, default=16)
     parser.add_argument('--output-size', type=int, help='number of samples needed to fill output array', 
         required=False, default=5)
-    args = parser.parse_args()
+    parser.add_argument('--model-type', type=str, help='The type of model to use. i.e. CCA with KNN', default='cca_knn')
+    parser.add_argument('--model-path', type=str, help='The filepath to the model to use')
+    parser.add_argument('--sample-rate', type=int, default=250, help="Sampling rate (hz)")
+    parser.add_argument('--window-len', type=int, default=1, help="Window length for data processing")
+    parser.add_argument('--shift-len', type=int, default=1, help="Shift length for data processing")
+    parser.add_argument('--random-state', type=int, default=42, help="Random State")
+    return parser.parse_known_args()
 
-    listener = EEGSocketListener(args.host, args.port, args.num_channels, args.input_len, args.output_size)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    args, _ = get_args(parser)
+
+    listener = EEGSocketListener(args.host, args.port, args.num_channels, args.input_len, args.output_size, args.model_type, args.model_path)
     listener.open_socket_conn()
     listener.listen()
