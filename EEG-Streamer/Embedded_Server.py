@@ -11,21 +11,21 @@ HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
 
 
-def data_stream(board, conn, num_samples=250):
+def data_stream(board, conn, num_samples=125):
 
     data=''
     all_data = []
-    columns = board.get_eeg_names(board_id=2)[1:9]
+    columns = board.get_eeg_names(board_id=2)[1:17]
 
     count = 0
     ti = time()
-    while time() - ti < 9999:
+    while time() - ti < 10:
         
         if board.get_board_data_count() >=  num_samples:
 
-            data = board.get_board_data(num_samples).transpose()[:,1:9] 
+            data = board.get_board_data(num_samples).transpose()[:,1:17] 
             sample_out = pickle.dumps(data)
-            conn.sendall(sample_out)
+            conn.sendall( sample_out )
             print(data.shape)
             count += 1
             print('Data sent', count)
@@ -55,8 +55,6 @@ def Cyton_Board_Config():
     parser.add_argument('--serial-number', type=str, help='serial number', required=False, default='')
     parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards', required=True)
     parser.add_argument('--file', type=str, help='file', required=False, default='')
-    parser.add_argument('--sample-rate', type=int, help='sample rate', required=False, default=250)
-    parser.add_argument('--num-channels', type=int, help='Number of channels', required=False, default=8)
     args = parser.parse_args()
 
     params = BrainFlowInputParams()
