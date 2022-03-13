@@ -21,7 +21,7 @@ import pandas as pd
 # Trial Settings
 START_DELAY_S = 20 # 20 Seconds
 NUM_TRIALS = 5 # 5 Trials
-INDICATOR_TIME_VALUE_S = 1 # 5 Seconds
+INDICATOR_TIME_VALUE_S = 5 # 5 Seconds
 TRIAL_BREAK_TIME = 120 # 120 seconds 
 STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
 
@@ -127,8 +127,8 @@ def display_procedure(stop, board, args):
     generate_test_report(board, duration, data, color_code_order, color_freq_order)
     df = post_process(data, start_time, color_code_order, color_freq_order)
     try:
-        #df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
-        df.to_csv("ODC-DEMO/test_data.csv", index=False)
+        df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
+        #df.to_csv("ODC-DEMO/test_data.csv", index=False)
     except:
         print('Post data processing and CSV Export failed')
     finally:
