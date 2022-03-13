@@ -1,3 +1,4 @@
+from turtle import color
 from PyQt5.QtWidgets import (
     QApplication,
     QLabel,
@@ -9,13 +10,15 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QRect,Qt
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from time import time, sleep, strftime, localtime
-from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
+from Embedded_Server import Cyton_Board_Config, Cyton_Board_End, data_stream
 import sys, random, threading, datetime
 import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
 
 # Variables to change parameters of the test
+
+# Trial Settings
 START_DELAY_S = 20 # 20 Seconds
 NUM_TRIALS = 5 # 5 Trials
 INDICATOR_TIME_VALUE_S = 5 # 5 Seconds
@@ -44,9 +47,15 @@ def display_procedure(stop, board, args):
         # each trial will have a different order of stimulus
         random.shuffle(order)
         print(order)
+        
+        color_code_order.append(0)
+        color_freq_order.append(0)
         board.insert_marker(0.666) # insert marker for start AS WELL AS BETWEEN TRIALS
 
         for stimPeriod in range(STIM_PERIOD_TRIALS):
+            color_code_order.append(0)
+            color_freq_order.append(0)
+
             # just for testing otherwise the thread keeps running if you close the window
             if stop():
                 break
@@ -103,7 +112,10 @@ def display_procedure(stop, board, args):
                 labelTxt(f"Time before next trial: ({TRIAL_BREAK_TIME-x})"))
             sleep(1)
 
+    color_code_order.append(colorCode)
+    color_freq_order.append(currentStim.freqHertz)
     data = board.get_board_data().transpose()
+
     label.setText(
                 labelTxt(f"Trials finished"))
     print("all trials finished")
@@ -111,12 +123,12 @@ def display_procedure(stop, board, args):
     f.close()
 
     board.stop_stream()
-    #duration = time()-start_time
-    #generate_test_report(board, duration, data, color_code_order, color_freq_order)
+    duration = time()-start_time
+    generate_test_report(board, duration, data, color_code_order, color_freq_order)
     df = post_process(data, start_time, color_code_order, color_freq_order)
     try:
-        df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
-        #df.to_csv("ODC-DEMO/test_data.csv", index=False)
+        #df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
+        df.to_csv("ODC-DEMO/test_data.csv", index=False)
     except:
         print('Post data processing and CSV Export failed')
     finally:
@@ -128,64 +140,33 @@ def labelTxt(text):
 def post_process( data, start_time, color_code, color_freq ):
     split_indices = np.where(data==0.666)[0]
     data = np.delete(data, 0,1)
-    data = np.delete(data, range(8,23), 1) 
-    # data = np.delete(data, range(8,31), 1) -- Virtual Board
+    # OpenBCI Setting
+    data = np.delete(data, range(8,23), 1)
+    # VirtualBoard Setting  
+    # data = np.delete(data, range(8,31), 1)
+
     data = np.split(data, split_indices)
-            
+
     # Create header row
     header = []
     for i in range(1, 9):
         header.append('CH{}'.format(i))
+    
+    for i in data:
+        print(np.shape(i))
 
-    # Put timestamp, color code, and frequency columns together with data blocks
+    # Convert data blocks from NumPy arrays to pandas DataFrames
     for i in range(len(data)):
         data[i] = pd.DataFrame(data[i], columns=header)
 
-    main_ctr = 0
-    session_ctr = 0
-    trial_ctr = 0
-    number_of_sessions = STIM_PERIOD_TRIALS
-    done_adding_cols = False
-    is_two_block = True
-    is_stimulus_session = False
-    while not done_adding_cols:
-        if is_two_block and not is_stimulus_session:
-            data[main_ctr].loc[0, 'Color Code'] = 0
-            data[main_ctr].loc[0, 'Frequency'] = 0
-
-            data[main_ctr + 1].loc[0, 'Color Code'] = 0
-            data[main_ctr + 1].loc[0, 'Frequency'] = 0       
-            
-            main_ctr += 2
-            is_two_block = False
-            is_stimulus_session = True
-
-        if not is_two_block and is_stimulus_session:
-            data[main_ctr].loc[0, 'Color Code'] = color_code[session_ctr]
-            data[main_ctr].loc[0, 'Frequency'] = color_freq[session_ctr]
-
-            main_ctr += 1
-            session_ctr += 1
-            if session_ctr == number_of_sessions:
-                is_two_block = True
-                number_of_sessions += STIM_PERIOD_TRIALS
-                trial_ctr += 1
-
-            if trial_ctr == NUM_TRIALS:
-                is_two_block = False
-            is_stimulus_session = False
-
-        if not is_two_block and not is_stimulus_session:
-            data[main_ctr].loc[0, 'Color Code'] = 0
-            data[main_ctr].loc[0, 'Frequency'] = 0
-            main_ctr += 1
-            is_stimulus_session = True
-
-        if main_ctr == (len(data)) and session_ctr == (len(color_code)):
-            done_adding_cols = True
+    # Put color code and frequency columns together with data blocks
+    for data_block, code, freq in zip(data, color_code, color_freq):
+        data_block.loc[0, 'Color Code'] = code
+        data_block.loc[0, 'Frequency'] = freq
     
-    # Convert to 1 DataFrame
+    # Combine to 1 DataFrame
     df_data = pd.concat(data)
+
     timestamp = []
     ms = repr(start_time).split('.')[1][:3]
     for i in range(df_data.shape[0]):
@@ -209,8 +190,10 @@ def post_process( data, start_time, color_code, color_freq ):
                 ms = '0' + ms
             else:
                 pass    
+
+    # Add timestamp column
     df_time = pd.DataFrame(timestamp, columns=['Timestamp'])
-    df_all = pd.merge(df_time, df_data, left_index=True, right_index=True)   
+    df_all = pd.merge(df_time, df_data.reset_index(drop=True), how="inner", left_index=True, right_index=True)
     return df_all
 
 def generate_test_report(board, duration, data, color_code_order, color_freq_order):
