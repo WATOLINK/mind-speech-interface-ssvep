@@ -95,7 +95,7 @@ class CCAKNNModel:
     
     def train(self, hparams, train_data, train_labels):
         train_data = np.array(train_data)
-        correlations = self.calculate_correlation(train_data, reference_templates)
+        correlations = self.calculate_correlation(train_data, self.reference_templates)
         cca_predictions = np.argmax(correlations, axis=1)
         preds = []
         for pred in cca_predictions:
