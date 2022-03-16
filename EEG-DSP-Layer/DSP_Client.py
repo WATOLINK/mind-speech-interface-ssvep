@@ -75,21 +75,3 @@ class EEGSocketListener:
         print(f'{name}.csv Generated')
         df.to_csv(f'{name}.csv')
         return
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('--host', type=str, help='ip address', required=False, default='127.0.0.1')
-    parser.add_argument('--port', type=int, help='ip port', required=False, default=65432)
-    parser.add_argument('--input-len', type=int, help='number of rows in input array', 
-        required=False, default=125)
-    parser.add_argument('--num-channels', type=int, help='number of columns in input array', 
-        required=False, default=16)
-    parser.add_argument('--output-size', type=int, help='number of samples needed to fill output array', 
-        required=False, default=5)
-    args = parser.parse_args()
-
-    listener = EEGSocketListener(args.host, args.port, args.num_channels, args.input_len, args.output_size)
-    listener.open_socket_conn()
-    listener.listen()
-    
