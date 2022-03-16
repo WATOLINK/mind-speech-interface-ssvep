@@ -1,7 +1,24 @@
+'''
+    * Streamer script that interfaces with both OpenBCI and GTech Unicorn hardware
+    * Uses multiprocessing for simultaneous server-client model with the DSP post-processing script 
+    * Refer to https://brainflow.readthedocs.io/en/stable/UserAPI.html#python-api-reference for useful functions
+    
+    * Terminal call:
+        /EEG-Streamer/
+            python Embedded_Server.py --board-id=<BOARD_ID> --serial-port=<SERIAL_PORT>
+    * Helpful information:
+        OpenBCI Sample Rate:       125Hz (i.e. 125 rows of data per second)
+        GTech Unicorn Sample Rate: 250Hz (i.e. 250 rows of data per second)
+        OpenBCI ID:         0
+        GTech Unicorn ID:   8
+        Virutal Board ID:  -1
+        Process 1 = Streamer() function in Embedded_Server.py
+        Process 2 = Client() function in DSP_Client.py
+        TEST_DATA.csv in /EEG-Streamer/ directory is the output CSV from DSP_Client.py
+'''
 import argparse, socket, pickle, sys
 import numpy as np
 import pandas as pd
-from collections import defaultdict
 import brainflow
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
@@ -63,17 +80,17 @@ class EEGSocketPublisher:
     
     def send_packet(self, sample):
         self.connection.sendall(pickle.dumps(sample))
-        print(sample.shape)
         self.count += 1
         print('Data sent,', self.count)
+        print(sample.shape)
 
     def publish(self, run_time=None):
         self.connection, self.address = self.socket.accept()
         with self.connection:
             print('Connected by', self.address)
-
+            exp_count = run_time * 2 
             init_time = time()
-            time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
+            time_func = (lambda: (self.count < exp_count) and (time() - init_time < run_time + 1) ) if run_time else (lambda: True)
             while time_func():
                 if self.board.get_board_data_count() >=  self.input_len:
                     packet = self.retrieve_sample()

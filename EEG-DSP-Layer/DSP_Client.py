@@ -44,10 +44,10 @@ class EEGSocketListener:
     def recieve_packet(self):
         # the size of the input data = num elements * 8 bytes + 500 for leeway
         sample = self.socket.recv(self.input_len * self.num_channels * 8 + 500)
-        if sample == None:
-            print("Recieved nothing")
+        sample = pickle.loads(sample)
+        if sample is None:
+            print("COLLECTION COMPLETE")
         else: # If not null sample is recevied
-            sample = pickle.loads(sample)
             assert type(sample) == np.ndarray,  f"Not a Numpy ND Array {type(sample), sample}"
             assert sample.shape == (self.input_len, self.num_channels), \
                 f"Incorrect Shape, Expected: {(self.input_len, self.num_channels)}, Recieved: {sample.shape}"
@@ -58,17 +58,18 @@ class EEGSocketListener:
         time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
         while time_func():
             packet = self.recieve_packet()
-            if packet.any():
-                start = self.input_len * self.samples 
-                end = self.input_len * (self.samples + 1)
-                self.data[start:end, :] = packet
-                print(f"SUCCESS {self.samples+1}/{self.output_size}")
-                del packet
-                self.samples = (self.samples + 1) % self.output_size
-                if self.samples == 0:
-                    # TO IMPLEMENT
-                    print("OUTPUT BUFFER FILLED, SEND DATA TO AI")
-            
+            if packet is None:
+                break
+            start = self.input_len * self.samples 
+            end = self.input_len * (self.samples + 1)
+            self.data[start:end, :] = packet
+            print(f"SUCCESS {self.samples+1}/{self.output_size} - {np.shape(self.data)}")
+            del packet
+            self.samples = (self.samples + 1) % self.output_size
+            if self.samples == 0:
+                # TO IMPLEMENT
+                print("OUTPUT BUFFER FILLED, SEND DATA TO AI")
+
     def generate_csv(self, name="fullOBCI"):
         df = pd.DataFrame(data=self.data, columns=list(range(1,17)))
         print(f'{name}.csv Generated')
@@ -91,3 +92,4 @@ if __name__ == '__main__':
     listener = EEGSocketListener(args.host, args.port, args.num_channels, args.input_len, args.output_size)
     listener.open_socket_conn()
     listener.listen()
+    
