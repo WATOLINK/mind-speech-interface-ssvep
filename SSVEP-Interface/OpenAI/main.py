@@ -2,8 +2,8 @@ from prediction import OpenAI
 
 o = OpenAI()
 
-prompt = "Question: " + "Who is your favourite Superhero" + "?\nAnswer:"
+prompt = "Question: " + "How did you like the movie last night" + "?\nAnswer: I thought it was Great. I really liked how the main character"
 
-res = o.predictedSentences(prompt, num_results=5)
+res = o.predictWords(prompt, num_results=100)
 
 print(res)
