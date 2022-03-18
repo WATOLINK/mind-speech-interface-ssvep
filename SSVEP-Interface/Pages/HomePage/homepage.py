@@ -10,6 +10,7 @@ from Pages.YNPage.yesno2 import YesNoWidget
 from Pages.QAPage.keyboard2 import KeyboardWidget
 from Pages.HelpPage.help import HelpWidget
 from Pages.sidebar.sidebar import Sidebar
+from Pages.QAPage.completer2 import suggestWords
 
 
 class HomePageWidget(QWidget):
@@ -25,7 +26,7 @@ class HomePageWidget(QWidget):
         
         layout.addWidget(title(), 0, 0, 1, 1)
         layout.addWidget(promptBox(), 1, 0, 1, 3)
-        layout.addWidget(inputBox(), 2, 0, 1, 3)
+        layout.addWidget(inputBox(self), 2, 0, 1, 3)
         layout.addWidget(mainWidget, 3, 0, 4, 3)
         layout.addWidget(Sidebar(self), 1, 4, height, 1)
 
@@ -55,10 +56,11 @@ def promptBox():
     return prompt
 
 
-def inputBox():
+def inputBox(parent):
     textbox = QLineEdit()
     textbox.setStyleSheet(textBoxStyle)
     textbox.setObjectName("Input")
+    textbox.textChanged.connect(lambda: suggestWords(parent))
     return textbox
 
 
