@@ -1,3 +1,4 @@
+from pyexpat import model
 import sounddevice as sd
 from scipy.io.wavfile import write
 from google.cloud import speech
@@ -25,28 +26,28 @@ sd.wait()
 print("Stop")
 
 write("prompt.wav", freq, recording)
-src = "prompt.wav"
+# src = "prompt.wav"
 
 
 
-sound = AudioSegment.from_mp3(src)
+# sound = AudioSegment.from_mp3(src)
 
 # sound.export("/AudioFiles/prompt.mp3")
 
-# with open("/AudioFiles/prompt.mp3", "rb") as audio_file:
-#     content = audio_file.read()
+with open("prompt.mp3", "rb") as audio_file:
+    content = audio_file.read()
 
 
 
-# audio = speech.RecognitionAudio(content=content)
+audio = speech.RecognitionAudio(content=content)
 
-# config = speech.RecognitionConfig(
-#     encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-#     sample_rate_hertz=44100,
-#     language_code="en-US",
-# )
+config = speech.RecognitionConfig(
+    encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+    language_code="en-US",
+    sample_rate_hertz = 44100,
+)
 
-# operation = client.long_running_recognize(config=config, audio=audio)
+operation = client.long_running_recognize(config=config, audio=audio)
 
-# print("Waiting for operation to complete...")
-# response = operation.result(timeout=90)
+print("Waiting for operation to complete...")
+response = operation.result(timeout=90)
