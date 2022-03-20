@@ -23,7 +23,7 @@ class EEGSocketListener:
     data = None         # data buffer array to be sent to AI
     samples = None      # number of samples currently in buffer
 
-    def __init__(self, host='127.0.0.1', port=65432, num_channels=16, input_len=125, output_size=5):
+    def __init__(self, host='127.0.0.1', port=65432, num_channels=8, input_len=125, output_size=5):
         self.host = host
         self.port = port
 

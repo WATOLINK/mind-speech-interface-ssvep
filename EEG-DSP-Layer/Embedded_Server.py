@@ -34,11 +34,14 @@ class EEGSocketPublisher:
     board = None
     count = 0
 
+    col_low_lim = 0
+    col_hi_lim = 8
+
     # Data Format Definitions
     num_channels = None # number of columns in input array 
     input_len = None    # number of rows in input array
 
-    def __init__(self, host='127.0.0.1', port=65432, num_channels=16, input_len=125):
+    def __init__(self, host='127.0.0.1', port=65432, num_channels=8, input_len=125):
         self.host = host
         self.port = port
 
@@ -73,7 +76,7 @@ class EEGSocketPublisher:
         self.close_board_conn()
 
     def retrieve_sample(self):
-        sample = self.board.get_board_data(self.input_len).T[:,1:17]
+        sample = self.board.get_board_data(self.input_len).T[:,self.col_low_lim:self.col_hi_lim]
         assert type(sample) == np.ndarray,  f"Not a Numpy ND Array {type(sample), sample}"
         assert sample.shape == (self.input_len, self.num_channels), \
             f"Incorrect Shape, Expected: {(self.input_len, self.num_channels)}, Recieved: {sample.shape}"
@@ -146,6 +149,9 @@ def CSV(data, col):
     
 def Streamer(publisher, synch, q, info):
     publisher.open_connections(info[0], info[1], info[2])
+    if publisher.board.get_board_id() == 0 or publisher.board.get_board_id() == 2:
+        publisher.col_low_lim = 1
+        publisher.col_hi_lim = 9
     synch.wait()
     publisher.publish(10)
     if q.get() is None:
@@ -159,6 +165,7 @@ def DSP(listener, synch, q):
     q.put(None)
     if q.get() is None:
         listener.close_socket_conn()
+    
 
 if __name__ == "__main__":
     info = Cyton_Board_Config()

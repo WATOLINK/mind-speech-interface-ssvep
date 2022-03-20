@@ -11,6 +11,10 @@ PORT = 65432        # Port used by server
 # Socket initialization 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect( (HOST, PORT) )
+    # df = pd.concat(data)
+    # df.index.name = 'Count'
+    # df.to_csv("TEST_new_csv.csv")
+    # return '-- CSV Exported ' + str(df.shape)
 
 data = []
 while True:
