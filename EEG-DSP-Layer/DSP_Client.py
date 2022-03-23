@@ -1,13 +1,18 @@
 from sre_constants import SUCCESS
+import socket
+import os
+import pickle
+import sys
 import numpy as np
 import pandas as pd
-import socket
-import pickle
-import argparse
-from time import time, sleep
+from time import time
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions
-from models.Model import Model
-import os
+
+path = os.getcwd()
+if path.split('\\')[-1] != 'mind-speech-interface-ssvep':
+    path = os.path.join(*path.split('\\')[:-1])
+sys.path.append( path + '\EEG-AI-Layer' )
+#from models.Model import Model
 
 class EEGSocketListener:
     # Socket Object and Params
@@ -37,7 +42,7 @@ class EEGSocketListener:
 
         self.data = np.empty((output_size*input_len, num_channels))
         self.samples = 0
-        self.model = Model(model_path, model_type)
+        #self.model = Model(model_path, model_type)
         
         self.samplling_rate_hz = 250
         self.window_len = 1
@@ -77,10 +82,10 @@ class EEGSocketListener:
             del packet
             self.samples = (self.samples + 1) % self.output_size
             if self.samples == 0:
-                self.filter()
-                prediction = self.model.predict(self.data[start:end])
-                print(prediction)
-        
+                #self.filter()
+                #prediction = self.model.predict(self.data[start:end])
+                #print(prediction)
+                print('TODO: MODEL PREDICTION')
     def filter(self):
         num_eeg_channels = 8
         sampling_rate = 256

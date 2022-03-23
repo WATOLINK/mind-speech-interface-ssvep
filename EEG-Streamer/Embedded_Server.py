@@ -16,13 +16,20 @@
         Process 2 = Client() function in DSP_Client.py
         TEST_DATA.csv in /EEG-Streamer/ directory is the output CSV from DSP_Client.py
 '''
-import argparse, socket, pickle, sys
+import argparse
+import brainflow
+import os
+import pickle
+import socket
+import sys
 import numpy as np
 import pandas as pd
-import brainflow
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
-from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
+from multiprocessing import Process, Queue, Barrier
 from time import time
+
+sys.path.append( '../EEG-DSP-Layer' )
+from DSP_Client import EEGSocketListener
 
 class EEGSocketPublisher:
     # Socket Object and Params
@@ -33,11 +40,14 @@ class EEGSocketPublisher:
     board = None
     count = 0
 
+    col_low_lim = 0
+    col_hi_lim = 8
+
     # Data Format Definitions
     num_channels = None # number of columns in input array 
     input_len = None    # number of rows in input array
 
-    def __init__(self, host='127.0.0.1', port=65432, num_channels=16, input_len=125):
+    def __init__(self, host='127.0.0.1', port=65432, num_channels=8, input_len=125):
         self.host = host
         self.port = port
 
@@ -72,7 +82,7 @@ class EEGSocketPublisher:
         self.close_board_conn()
 
     def retrieve_sample(self):
-        sample = self.board.get_board_data(self.input_len).T[:,1:17]
+        sample = self.board.get_board_data(self.input_len).T[:,self.col_low_lim:self.col_hi_lim]
         assert type(sample) == np.ndarray,  f"Not a Numpy ND Array {type(sample), sample}"
         assert sample.shape == (self.input_len, self.num_channels), \
             f"Incorrect Shape, Expected: {(self.input_len, self.num_channels)}, Recieved: {sample.shape}"
@@ -125,7 +135,7 @@ def Cyton_Board_Config():
     params.timeout = args.timeout
     params.file = args.file
 
-    return args.board_id, params, args.streamer_params
+    return (args.board_id, params, args.streamer_params)
 
 def CSV(data, col):
     start = 0
@@ -143,11 +153,40 @@ def CSV(data, col):
     df.to_csv('data.csv')
     return
     
-if __name__ == "__main__":
-
-    board_id, params, streamer_params = Cyton_Board_Config()
-    publisher = EEGSocketPublisher()
-
-    publisher.open_connections(board_id, params, streamer_params)
+def Streamer(publisher, synch, q, info):
+    publisher.open_connections(info[0], info[1], info[2])
+    if publisher.board.get_board_id() == 0 or publisher.board.get_board_id() == 2:
+        publisher.col_low_lim = 1
+        publisher.col_hi_lim = 9
+    synch.wait()
     publisher.publish(10)
-    publisher.close_connections()
+    if q.get() is None:
+        publisher.close_connections()
+        q.put(None)
+
+def DSP(listener, synch, q):
+    listener.open_socket_conn()
+    synch.wait()
+    listener.listen()
+    q.put(None)
+    if q.get() is None:
+        listener.close_socket_conn()
+    
+
+if __name__ == "__main__":
+    info = Cyton_Board_Config()
+    publisher = EEGSocketPublisher()
+    listener = EEGSocketListener()
+
+    q = Queue()
+    synch = Barrier(2)
+    sys_processes = [ Process(target=Streamer, args=(publisher, synch, q, info,)), 
+                      Process(target=DSP, args=(listener, synch, q,)) ]
+
+    for process in sys_processes:
+        process.start()
+
+    for process in sys_processes:
+        process.join()
+    
+    

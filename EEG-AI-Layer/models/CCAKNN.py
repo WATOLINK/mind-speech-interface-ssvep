@@ -13,7 +13,7 @@ from typing import List
 from collections import Counter
 
 # Helper functions
-from ssvep_utils import butter_bandpass_filter, buffer, split_trials, parse_eeg
+from .ssvep_utils import butter_bandpass_filter, buffer, split_trials, parse_eeg
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
 
 
