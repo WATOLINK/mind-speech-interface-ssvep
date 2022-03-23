@@ -1,3 +1,4 @@
+from socket import socket
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QButtonGroup, QGridLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QVBoxLayout, QWidget
@@ -7,10 +8,11 @@ from Pages.button_container import ButtonContainer
 
 class MultipleChoiceWidget(QWidget):
 
-    def __init__(self, parent):
+    def __init__(self, parent, socketio_client):
         super().__init__(parent)
         layout = self._createLayout(parent)
         self.setLayout(layout)
+        self.socketio_client = socketio_client
 
     # Method creates the layout of the page, called in the init function to maintain clean and readable code
     # If you are changing the functionalities of the page, you will most likely want to alter this method

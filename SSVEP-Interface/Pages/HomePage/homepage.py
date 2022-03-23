@@ -19,6 +19,7 @@ class HomePageWidget(QWidget):
 
         layout = QGridLayout()
         self.setLayout(layout)
+        self.parent = parent
 
         width = 4
         height = 6
