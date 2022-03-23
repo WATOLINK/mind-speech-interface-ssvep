@@ -5,6 +5,9 @@ import socket
 import pickle
 import argparse
 from time import time, sleep
+from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions
+from models.Model import Model
+import os
 
 class EEGSocketListener:
     # Socket Object and Params
@@ -23,7 +26,8 @@ class EEGSocketListener:
     data = None         # data buffer array to be sent to AI
     samples = None      # number of samples currently in buffer
 
-    def __init__(self, host='127.0.0.1', port=65432, num_channels=8, input_len=125, output_size=5):
+    def __init__(self, host='127.0.0.1', port=65432, num_channels=8, input_len=125, output_size=5,
+                model_type: str = 'cca_knn', model_path: os.PathLike = None):
         self.host = host
         self.port = port
 
@@ -33,6 +37,12 @@ class EEGSocketListener:
 
         self.data = np.empty((output_size*input_len, num_channels))
         self.samples = 0
+        self.model = Model(model_path, model_type)
+        
+        self.samplling_rate_hz = 250
+        self.window_len = 1
+        self.shift_len = 1
+        self.random_state = 42
 
     def open_socket_conn(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -67,11 +77,20 @@ class EEGSocketListener:
             del packet
             self.samples = (self.samples + 1) % self.output_size
             if self.samples == 0:
-                # TO IMPLEMENT
-                print("OUTPUT BUFFER FILLED, SEND DATA TO AI")
+                self.filter()
+                prediction = self.model.predict(self.data[start:end])
+                print(prediction)
+        
+    def filter(self):
+        num_eeg_channels = 8
+        sampling_rate = 256
+        mid_freq = 8
+        band_width = 8
+        for channel in range(num_eeg_channels):
+            DataFilter.perform_bandpass(self.data[channel], sampling_rate, mid_freq, band_width, 2, FilterTypes.BUTTERWORTH, 0)
 
-    def generate_csv(self, name="fullOBCI"):
-        df = pd.DataFrame(data=self.data, columns=list(range(1,17)))
+    def generate_csv(self, data, name="fullOBCI"):
+        df = pd.DataFrame(data=data, columns=list(range(1,17)))
         print(f'{name}.csv Generated')
         df.to_csv(f'{name}.csv')
         return
