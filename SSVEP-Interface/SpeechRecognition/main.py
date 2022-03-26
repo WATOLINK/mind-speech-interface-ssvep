@@ -19,20 +19,18 @@ duration = 2
 
 print("Talk")
 
-recording = sd.rec(int(duration * freq), samplerate=freq, channels=2)
+recording = sd.rec(int(duration * freq), samplerate=freq, channels=1)
 
 sd.wait()
 
 print("Stop")
 
 write("prompt.wav", freq, recording)
-# src = "prompt.wav"
+
+sound = AudioSegment.from_wav("prompt.wav")
+sound.export("prompt.mp3", format="mp3")
 
 
-
-# sound = AudioSegment.from_mp3(src)
-
-# sound.export("/AudioFiles/prompt.mp3")
 
 with open("prompt.mp3", "rb") as audio_file:
     content = audio_file.read()
