@@ -19,7 +19,7 @@ duration = 2
 
 print("Talk")
 
-recording = sd.rec(int(duration * freq), samplerate=freq, channels=1)
+recording = sd.rec(int(duration * freq), samplerate=freq, channels=1, dtype='int16')
 
 sd.wait()
 
@@ -27,20 +27,14 @@ print("Stop")
 
 write("prompt.wav", freq, recording)
 
-sound = AudioSegment.from_wav("prompt.wav")
-sound.export("prompt.mp3", format="mp3")
-
-
-
-with open("prompt.mp3", "rb") as audio_file:
+with open("prompt.wav", "rb") as audio_file:
     content = audio_file.read()
-
-
 
 audio = speech.RecognitionAudio(content=content)
 
 config = speech.RecognitionConfig(
     encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+    audio_channel_count=1,
     language_code="en-US",
     sample_rate_hertz = 44100,
 )
