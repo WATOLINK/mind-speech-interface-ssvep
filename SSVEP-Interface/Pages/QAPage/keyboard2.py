@@ -31,9 +31,9 @@ class KeyboardWidget(QWidget):
         buttons[0].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[0]))
         buttons[1].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[1]))
         buttons[2].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[2]))
-        buttons[3].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[3]))
-        buttons[4].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[4]))
-        buttons[5].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[5]))
+        buttons[3].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[3], prediction=True))
+        buttons[4].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[4], prediction=True))
+        buttons[5].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[5], prediction=True))
 
 
         return layout
@@ -55,17 +55,36 @@ def writeToInput(parent, buttons, text):
         temp = prevText + text
     inputField.setText(temp)
 
+def writePredictionToInput(parent, buttons, text):
+    inputField = parent.findChild(QLineEdit,"Input")
+    prevText = inputField.text()
+
+    if len(text) == 1:
+        for x in range(len(buttons)):
+            buttons[x].label.setText(groupedChars[x])
+    elif not prevText.endswith(' '):
+        prevText += ' '
+    
+    temp = prevText + text
+
+    if len(text) != 1:
+        temp += ' '
+
+    inputField.setText(temp)
+
 def clickedGroup(parent, buttons, text):
     charList = list(text.split(' | '))
     print(charList)
     for x in range(len(buttons)):
         buttons[x].label.setText(charList[x])
 
-def keyboardClick(parent,buttons,selected):
+def keyboardClick(parent,buttons,selected,prediction=False):
     btnText = selected.label.text()
     
     if btnText in groupedChars:
         clickedGroup(parent, buttons, btnText)
+    elif prediction == True:
+        writePredictionToInput(parent, buttons, btnText)
     else:
         writeToInput(parent, buttons, btnText)
         

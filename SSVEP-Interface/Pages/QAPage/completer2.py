@@ -1,7 +1,10 @@
+from numpy import promote_types
 from Pages.button_container import ButtonContainer
 from PyQt5.QtWidgets import QWidget, QLineEdit, QCompleter
 # from PyQt5.QtGui import QTextCursor, QKeySequence, QFont
 from PyQt5 import QtCore
+from OpenAI.prediction import OpenAI
+import re
 
 from utils.autocomplete import process_corpus
 
@@ -29,6 +32,7 @@ class AutoCompleter(QCompleter, metaclass=Singleton):
         self.setMaxVisibleItems(1)
         self.highlighted.connect(self.setHighlighted)
         self.suggestion = ""
+        self.openAi = OpenAI()
 
     def setHighlighted(self, text):
         self.suggestion = text
@@ -45,7 +49,7 @@ def getSuggestions(text):
     completer.completionModel().index(0, 0)
     completer.complete()
 
-    suggestions = ["*"] * 6
+    suggestions = ["*"] * 3
     i = 0
     while i < 3 and completer.setCurrentRow(i):
         suggestions[i] = completer.currentCompletion()
@@ -53,7 +57,19 @@ def getSuggestions(text):
     print(suggestions)
     return suggestions
 
-
+def getPredictions(prompt):
+    completer = AutoCompleter()
+    prompt = re.sub(' +', ' ', prompt)
+    prompt = prompt.rstrip()
+    print("P = " + prompt)
+    res = completer.openAi.predictWords(prompt=prompt, num_results=20)
+    predictions = ["*"] * 3
+    i = 0
+    while i < 3 and i < len(res):
+        predictions[i] = res[i].strip()
+        i += 1
+    print(predictions)
+    return predictions
 
 def suggestWords(parent):
 
@@ -62,16 +78,29 @@ def suggestWords(parent):
     # means the keyboard is currently on word mode
     if toggleBtn.label.text() == "Toggle Characters":
         
-        currentText =   parent.findChild(QLineEdit,"Input").text()
+        currentText = parent.findChild(QLineEdit,"Input").text()
+
+        # hard coded prompt for now
+        question = "Question: What did you have for dinner last night? Answer: "
+        prompt = question + currentText
+
         lastWord = ""
+        print("last:"+currentText+"end")
         if currentText: 
             lastWord = currentText.split()[-1]
         suggestions = getSuggestions(lastWord)
 
+        predictions = ["*"] * 3
+        if not currentText or currentText.endswith(' '):
+            print("predicted")
+            predictions = getPredictions(prompt)
+
+        suggestions = suggestions + predictions
+
         keyboardWidget = parent.findChild(QWidget,"Keyboard Widget")
         keyboardBtns = keyboardWidget.findChildren(ButtonContainer)
 
-        print("Current Text: "+currentText)
+        print("Current Text: "+currentText+"end")
         print("in word mode, making some suggestions")
 
         # if keyboardBtns[0].label.text() in dummyText:
