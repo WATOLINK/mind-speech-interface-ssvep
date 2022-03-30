@@ -55,19 +55,22 @@ def writeToInput(parent, buttons, text):
         temp = prevText + text
     inputField.setText(temp)
 
-def writePredictionToInput(parent, buttons, text):
+def writePredictionToInput(parent, buttons, text, charMode):
     inputField = parent.findChild(QLineEdit,"Input")
     prevText = inputField.text()
 
-    if len(text) == 1:
-        for x in range(len(buttons)):
-            buttons[x].label.setText(groupedChars[x])
-    elif not prevText.endswith(' '):
-        prevText += ' '
     
+    # elif not prevText.endswith(' '):
+    #     prevText += ' '
+    # if text.startsWith('.') == True:
+    #     prevText.rstrip()
     temp = prevText + text
 
-    if len(text) != 1:
+    # If user is typing individual characters
+    if charMode == True and len(text) == 1:
+        for x in range(len(buttons)):
+            buttons[x].label.setText(groupedChars[x])
+    else:
         temp += ' '
 
     inputField.setText(temp)
@@ -79,12 +82,15 @@ def clickedGroup(parent, buttons, text):
         buttons[x].label.setText(charList[x])
 
 def keyboardClick(parent,buttons,selected,prediction=False):
+
+    toggleBtn = parent.findChild(ButtonContainer,"Toggle")
+
     btnText = selected.label.text()
     
     if btnText in groupedChars:
         clickedGroup(parent, buttons, btnText)
     elif prediction == True:
-        writePredictionToInput(parent, buttons, btnText)
+        writePredictionToInput(parent, buttons, btnText, charMode=toggleBtn.label.text() == "Toggle Words")
     else:
         writeToInput(parent, buttons, btnText)
         

@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 from numpy import promote_types
 from Pages.button_container import ButtonContainer
 from PyQt5.QtWidgets import QWidget, QLineEdit, QCompleter
@@ -60,13 +61,15 @@ def getSuggestions(text):
 def getPredictions(prompt):
     completer = AutoCompleter()
     prompt = re.sub(' +', ' ', prompt)
+    endWithSpace = prompt[len(prompt) - 1] == ' '
     prompt = prompt.rstrip()
-    print("P = " + prompt)
     res = completer.openAi.predictWords(prompt=prompt, num_results=20)
     predictions = ["*"] * 3
     i = 0
     while i < 3 and i < len(res):
-        predictions[i] = res[i].strip()
+        if endWithSpace == True:
+            res[i] = res[i].lstrip()
+        predictions[i] = res[i]
         i += 1
     print(predictions)
     return predictions
