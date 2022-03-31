@@ -59,13 +59,13 @@ def writePredictionToInput(parent, buttons, text, charMode):
     inputField = parent.findChild(QLineEdit,"Input")
     prevText = inputField.text()
 
-    
-    # elif not prevText.endswith(' '):
-    #     prevText += ' '
-    # if text.startsWith('.') == True:
-    #     prevText.rstrip()
-    temp = prevText + text
+    # Deletes space between any words and puncuations
+    if not text[0].isalpha():
+        print("NOT:" + text + "END")
+        prevText = prevText.rstrip()
 
+    temp = prevText + text
+    
     # If user is typing individual characters
     if charMode == True and len(text) == 1:
         for x in range(len(buttons)):
@@ -89,7 +89,7 @@ def keyboardClick(parent,buttons,selected,prediction=False):
     
     if btnText in groupedChars:
         clickedGroup(parent, buttons, btnText)
-    elif prediction == True:
+    elif prediction == True: # Different button functionality when using GTP3 for prediction
         writePredictionToInput(parent, buttons, btnText, charMode=toggleBtn.label.text() == "Toggle Words")
     else:
         writeToInput(parent, buttons, btnText)

@@ -60,9 +60,12 @@ def getSuggestions(text):
 
 def getPredictions(prompt):
     completer = AutoCompleter()
+
+    # Clean up prompt for API
     prompt = re.sub(' +', ' ', prompt)
     endWithSpace = prompt[len(prompt) - 1] == ' '
     prompt = prompt.rstrip()
+
     res = completer.openAi.predictWords(prompt=prompt, num_results=20)
     predictions = ["*"] * 3
     i = 0
@@ -71,7 +74,7 @@ def getPredictions(prompt):
             res[i] = res[i].lstrip()
         predictions[i] = res[i]
         i += 1
-    print(predictions)
+        
     return predictions
 
 def suggestWords(parent):
