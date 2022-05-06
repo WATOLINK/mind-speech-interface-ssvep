@@ -49,7 +49,7 @@ def title():
 
 
 def promptBox():
-    prompt = QLabel("AMONG US")
+    prompt = QLabel("What did you have for dinner last night?")
     prompt.setStyleSheet(promptBoxStyle)
     prompt.setAlignment(QtCore.Qt.AlignCenter)
     prompt.setObjectName("Prompt")

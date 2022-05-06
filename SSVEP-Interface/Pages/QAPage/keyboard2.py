@@ -31,9 +31,9 @@ class KeyboardWidget(QWidget):
         buttons[0].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[0]))
         buttons[1].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[1]))
         buttons[2].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[2]))
-        buttons[3].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[3]))
-        buttons[4].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[4]))
-        buttons[5].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[5]))
+        buttons[3].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[3], prediction=True))
+        buttons[4].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[4], prediction=True))
+        buttons[5].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[5], prediction=True))
 
 
         return layout
@@ -55,17 +55,42 @@ def writeToInput(parent, buttons, text):
         temp = prevText + text
     inputField.setText(temp)
 
+def writePredictionToInput(parent, buttons, text, charMode):
+    inputField = parent.findChild(QLineEdit,"Input")
+    prevText = inputField.text()
+
+    # Deletes space between any words and puncuations
+    if not text[0].isalpha():
+        print("NOT:" + text + "END")
+        prevText = prevText.rstrip()
+
+    temp = prevText + text
+    
+    # If user is typing individual characters
+    if charMode == True and len(text) == 1:
+        for x in range(len(buttons)):
+            buttons[x].label.setText(groupedChars[x])
+    else:
+        temp += ' '
+
+    inputField.setText(temp)
+
 def clickedGroup(parent, buttons, text):
     charList = list(text.split(' | '))
     print(charList)
     for x in range(len(buttons)):
         buttons[x].label.setText(charList[x])
 
-def keyboardClick(parent,buttons,selected):
+def keyboardClick(parent,buttons,selected,prediction=False):
+
+    toggleBtn = parent.findChild(ButtonContainer,"Toggle")
+
     btnText = selected.label.text()
     
     if btnText in groupedChars:
         clickedGroup(parent, buttons, btnText)
+    elif prediction == True: # Different button functionality when using GTP3 for prediction
+        writePredictionToInput(parent, buttons, btnText, charMode=toggleBtn.label.text() == "Toggle Words")
     else:
         writeToInput(parent, buttons, btnText)
         
