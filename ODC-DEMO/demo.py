@@ -130,8 +130,8 @@ def display_procedure(stop, board, args):
                 labelTxt(f"Time before next trial: ({TRIAL_BREAK_TIME-x})"))
             sleep(1)
 
-    color_code_order.append(colorCode)
-    color_freq_order.append(currentStim.freqHertz)
+    color_code_order.append(0)
+    color_freq_order.append(0)
     data = board.get_board_data().transpose()
 
     label.setText(
@@ -139,9 +139,10 @@ def display_procedure(stop, board, args):
     print("all trials finished")
     f.write("Session finished.\n\n")
     f.close()
+    print(color_code_order)
 
     board.stop_stream()
-    if testing:
+    if not testing:
         duration = time()-start_time
         generate_test_report(board, duration, data, color_code_order, color_freq_order)
     df = post_process(data, start_time, color_code_order, color_freq_order)
@@ -174,12 +175,16 @@ def post_process( data, start_time, color_code, color_freq ):
     for i in range(1, 9):
         header.append('CH{}'.format(i))
     
-    #for i in data:
-        #print(np.shape(i))
+    for i in data:
+        print(np.shape(i))
 
     # Convert data blocks from NumPy arrays to pandas DataFrames
     for i in range(len(data)):
         data[i] = pd.DataFrame(data[i], columns=header)
+
+    print(len(color_code))
+    print(len(color_freq))
+    
 
     # Put color code and frequency columns together with data blocks
     for data_block, code, freq in zip(data, color_code, color_freq):
@@ -187,8 +192,11 @@ def post_process( data, start_time, color_code, color_freq ):
         data_block.loc[0, 'Frequency'] = freq
     
     # Combine to 1 DataFrame
+    print(len(data))
     for j in range(len(data)):
+        print(data[j].shape, "  ", j)
         data[j] = data[j].to_numpy()
+        print(np.shape(data[j]), "  ", j)
     for i in range(0, len(data)-1):
         data[i+1] = np.concatenate((data[i], data[i+1]), axis=0)
 
