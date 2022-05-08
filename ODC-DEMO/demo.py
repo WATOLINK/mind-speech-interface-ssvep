@@ -9,10 +9,12 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QRect,Qt
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from time import time, sleep, strftime, localtime
+from brainflow.board_shim import BoardShim, BrainFlowInputParams
 import sys, random, threading, datetime
 import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
+import argparse, socket, pickle
 
 # Variables to change parameters of the test
 
@@ -21,7 +23,7 @@ import pandas as pd
 START_DELAY_S = 20 # 20 Seconds
 NUM_TRIALS = 5 # 5 Trials
 INDICATOR_TIME_VALUE_S = 5 # 5 Seconds
-TRIAL_BREAK_TIME = 120 # 120 seconds 
+TRIAL_BREAK_TIME = 120 # 120 second
 STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
 STIM_TIME = 5
 
@@ -29,6 +31,7 @@ color_code_order = []
 color_freq_order = []
 
 def display_procedure(stop, board, args):
+
     if testing:
         START_DELAY_S = 1 
         NUM_TRIALS = 2
@@ -153,9 +156,9 @@ def post_process( data, start_time, color_code, color_freq ):
     split_indices = np.where(data==0.666)[0]
     data = np.delete(data, 0,1)
     # OpenBCI Setting
-    data = np.delete(data, range(8,23), 1)
+    # data = np.delete(data, range(8,23), 1)
     # VirtualBoard Setting  
-    #data = np.delete(data, range(8,31), 1)
+    data = np.delete(data, range(8,31), 1)
 
     data = np.split(data, split_indices)
 
@@ -341,7 +344,6 @@ def Cyton_Board_Config(purpose):
     parser.add_argument('--serial-number', type=str, help='serial number', required=False, default='')
     parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards', required=True)
     parser.add_argument('--file', type=str, help='file', required=False, default='')
-    parser.add_argument('--testing', type=bool, help='testing', required=False, default=False)
     args = parser.parse_args()
 
     params = BrainFlowInputParams()
@@ -354,7 +356,6 @@ def Cyton_Board_Config(purpose):
     params.ip_protocol = args.ip_protocol
     params.timeout = args.timeout
     params.file = args.file
-    params.testing = args.testing
     
     # Cyton Board Object
     board = BoardShim(args.board_id, params)
@@ -404,8 +405,7 @@ if __name__ == '__main__':
     board_details = Cyton_Board_Config(False)
 
     global testing
-    testing = board_details[-1]
-
+    testing = False
     stopThread = False
     x = threading.Thread(target=display_procedure, args=(lambda: stopThread, board_details[0], board_details[1]))
     x.start()
