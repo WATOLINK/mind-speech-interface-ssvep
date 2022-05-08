@@ -1,4 +1,3 @@
-from turtle import color
 from PyQt5.QtWidgets import (
     QApplication,
     QLabel,
@@ -10,7 +9,6 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QRect,Qt
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from time import time, sleep, strftime, localtime
-from Embedded_Server import Cyton_Board_Config, Cyton_Board_End, data_stream
 import sys, random, threading, datetime
 import circle_stimuli as Stim
 import numpy as np
@@ -25,13 +23,22 @@ NUM_TRIALS = 5 # 5 Trials
 INDICATOR_TIME_VALUE_S = 5 # 5 Seconds
 TRIAL_BREAK_TIME = 120 # 120 seconds 
 STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
+STIM_TIME = 5
 
 color_code_order = []
 color_freq_order = []
 
 def display_procedure(stop, board, args):
+    if testing:
+        START_DELAY_S = 1 
+        NUM_TRIALS = 2
+        INDICATOR_TIME_VALUE_S = 1
+        TRIAL_BREAK_TIME = 1
+        STIM_PERIOD_TRIALS = 3
+        STIM_TIME = 1
+        
     f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
-    f.write(f"Session at {datetime.datetime.now()}\n\n")
+    f.write(f"Session at {datetime.datetime.now()} \n\n")
     start_time = time()
     board.start_stream(450000, args)
     sleep(1)
@@ -98,7 +105,7 @@ def display_procedure(stop, board, args):
             for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOn()
         
-            sleep(5)  # set length of simulation period (5s)
+            sleep(STIM_TIME)  # set length of simulation period (5s)
             board.insert_marker(0.666)   # insert marker for stimuli flash (individual)   
 
             # turn off all stimuli and prepare for next trial
@@ -124,12 +131,16 @@ def display_procedure(stop, board, args):
     f.close()
 
     board.stop_stream()
-    duration = time()-start_time
-    generate_test_report(board, duration, data, color_code_order, color_freq_order)
+    if testing:
+        duration = time()-start_time
+        generate_test_report(board, duration, data, color_code_order, color_freq_order)
     df = post_process(data, start_time, color_code_order, color_freq_order)
     try:
-        df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
-        #df.to_csv("ODC-DEMO/test_data.csv", index=False)
+        if testing:
+            df.to_csv("test.csv", index=False)
+        else:
+            df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
+
     except:
         print('Post data processing and CSV Export failed')
     finally:
@@ -168,7 +179,6 @@ def post_process( data, start_time, color_code, color_freq ):
     # Combine to 1 DataFrame
     df_data = pd.concat(data)
     df_data = df_data.to_numpy()
-
     timestamp = []
     ms = repr(start_time).split('.')[1][:3]
     for i in range(df_data.shape[0]):
@@ -314,6 +324,56 @@ class Stimuli(QWidget):
         # self.gridLayout.setColumnMinimumWidth(3, int(l/12))
         # self.gridLayout.setColumnMinimumWidth(5, int(l/12))
 
+def Cyton_Board_Config(purpose):
+    
+    BoardShim.enable_dev_board_logger()
+
+    parser = argparse.ArgumentParser()
+    # use docs to check which parameters are required for specific board, e.g. for Cyton - set serial port
+    parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False, default=0)
+    parser.add_argument('--ip-port', type=int, help='ip port', required=False, default=0)
+    parser.add_argument('--ip-protocol', type=int, help='ip protocol, check IpProtocolType enum', required=False, default=0)
+    parser.add_argument('--ip-address', type=str, help='ip address', required=False, default='')
+    parser.add_argument('--serial-port', type=str, help='serial port', required=False, default='')
+    parser.add_argument('--mac-address', type=str, help='mac address', required=False, default='')
+    parser.add_argument('--other-info', type=str, help='other info', required=False, default='')
+    parser.add_argument('--streamer-params', type=str, help='streamer params', required=False, default='')
+    parser.add_argument('--serial-number', type=str, help='serial number', required=False, default='')
+    parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards', required=True)
+    parser.add_argument('--file', type=str, help='file', required=False, default='')
+    parser.add_argument('--testing', type=bool, help='testing', required=False, default=False)
+    args = parser.parse_args()
+
+    params = BrainFlowInputParams()
+    params.ip_port = args.ip_port
+    params.serial_port = args.serial_port
+    params.mac_address = args.mac_address
+    params.other_info = args.other_info
+    params.serial_number = args.serial_number
+    params.ip_address = args.ip_address
+    params.ip_protocol = args.ip_protocol
+    params.timeout = args.timeout
+    params.file = args.file
+    params.testing = args.testing
+    
+    # Cyton Board Object
+    board = BoardShim(args.board_id, params)
+
+    # Start Acquisition
+    board.prepare_session()
+
+    # if purpose=true we're running the whole thing
+    # else we're just running the demo
+    if purpose:
+        board.start_stream(45000, args.streamer_params)
+        return board
+    else:
+        return [board, args.streamer_params]
+
+def Cyton_Board_End(board):
+    board.release_session()
+    return
+
 if __name__ == '__main__':
     # File and GUI config
     x = datetime.datetime.now()
@@ -342,6 +402,10 @@ if __name__ == '__main__':
     
     # BCI Config
     board_details = Cyton_Board_Config(False)
+
+    global testing
+    testing = board_details[-1]
+
     stopThread = False
     x = threading.Thread(target=display_procedure, args=(lambda: stopThread, board_details[0], board_details[1]))
     x.start()
