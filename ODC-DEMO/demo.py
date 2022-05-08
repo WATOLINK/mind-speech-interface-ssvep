@@ -39,6 +39,13 @@ def display_procedure(stop, board, args):
         TRIAL_BREAK_TIME = 1
         STIM_PERIOD_TRIALS = 3
         STIM_TIME = 1
+    else:
+        START_DELAY_S = 20 # 20 Seconds
+        NUM_TRIALS = 5 # 5 Trials
+        INDICATOR_TIME_VALUE_S = 5 # 5 Seconds
+        TRIAL_BREAK_TIME = 120 # 120 second
+        STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
+        STIM_TIME = 5    
         
     f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()} \n\n")
@@ -156,9 +163,9 @@ def post_process( data, start_time, color_code, color_freq ):
     split_indices = np.where(data==0.666)[0]
     data = np.delete(data, 0,1)
     # OpenBCI Setting
-    # data = np.delete(data, range(8,23), 1)
+    data = np.delete(data, range(8,23), 1)
     # VirtualBoard Setting  
-    data = np.delete(data, range(8,31), 1)
+    # data = np.delete(data, range(8,31), 1)
 
     data = np.split(data, split_indices)
 
@@ -180,8 +187,13 @@ def post_process( data, start_time, color_code, color_freq ):
         data_block.loc[0, 'Frequency'] = freq
     
     # Combine to 1 DataFrame
-    df_data = pd.concat(data)
-    df_data = df_data.to_numpy()
+    for j in range(len(data)):
+        data[j] = data[j].to_numpy()
+    for i in range(0, len(data)-1):
+        data[i+1] = np.concatenate((data[i], data[i+1]), axis=0)
+
+    df_data = data[-1]
+
     timestamp = []
     ms = repr(start_time).split('.')[1][:3]
     for i in range(df_data.shape[0]):
