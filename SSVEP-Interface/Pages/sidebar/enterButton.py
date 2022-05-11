@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QLabel,QStackedWidget,QLineEdit
 from Pages.button_container import ButtonContainer
-
+from server.twitterAPI import tweet, isTweeting
 
 class EnterButton(ButtonContainer):
     def __init__(self,parent):
@@ -16,6 +16,9 @@ def submitAndReturn(parent):
     if inputField.text():
         temp = messageBox.text() + f"[{inputField.text()}]"
         messageBox.setText(temp)
+        if isTweeting():
+            tweet(inputField.text())
+
         inputField.clear()
 
     if currWidget.objectName() == "MC Widget" or currWidget.objectName() == "YN Widget":

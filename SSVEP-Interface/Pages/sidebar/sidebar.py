@@ -1,3 +1,4 @@
+from cgitb import enable
 from locale import currency
 from tkinter import Button
 from PyQt5.QtWidgets import QLabel,QWidget,QLineEdit,QStackedWidget,QVBoxLayout
@@ -6,6 +7,7 @@ from Pages.styles import mainButtonStyle
 from Pages.button_container import ButtonContainer
 from Pages.QAPage.completer2 import suggestWords
 from Pages.QAPage.keyboard2 import groupedChars
+import server.twitterAPI
 
 class Sidebar(QStackedWidget):
     def __init__(self, parent):
@@ -65,18 +67,22 @@ def navigateFromOutputMode(parent):
         if button.label.text() == labels[0] and button.isChecked():
             print("going to Twitter")
             button.setChecked(False)
+            server.twitterAPI.tweeting = True
             # changeStacks(parent,1,2)
         elif button.label.text() == labels[1] and button.isChecked():
             print("going to Voice")
             button.setChecked(False)
+            server.twitterAPI.tweeting = False
             # changeStacks(parent,2,2)
         elif button.label.text() == labels[2] and button.isChecked():
             print("going to Server Communication")
             button.setChecked(False)
+            server.twitterAPI.tweeting = False
             # changeStacks(parent,3,1)
         elif button.label.text() == labels[3] and button.isChecked():
             print("going to Visual Communication")
             button.setChecked(False)
+            server.twitterAPI.tweeting = False
             # changeStacks(parent,3,1)
 
 def navigateFromHome(parent):
@@ -169,5 +175,3 @@ def toggle(parent):
         
         for x in range(len(keyboardBtns)):
             keyboardBtns[x].label.setText(groupedChars[x])
-        
-
