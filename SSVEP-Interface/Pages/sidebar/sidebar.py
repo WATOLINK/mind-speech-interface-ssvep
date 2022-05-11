@@ -13,10 +13,29 @@ class Sidebar(QStackedWidget):
         
         self.setObjectName("Sidebar Stack")
 
-        self.addWidget(homeSidebar(parent))  # 0
+        self.addWidget(OutputModeSidebar(parent))  # 0
+        # self.addWidget(homeSidebar(parent))  # 0
         self.addWidget(characterSidebar(parent))  # 1
         self.addWidget(enterOnlySidebar(parent))  # 2
 
+def OutputModeSidebar(parent):
+    sidebar = QWidget()
+    layout = QVBoxLayout()
+
+    buttons = []
+
+    buttons.append(EnterButton(parent))
+    buttons.append(ButtonContainer("Help",checkable=False))
+    
+    for button in buttons:
+        layout.addWidget(button)
+
+    buttons[0].clicked.connect(lambda: navigateFromOutputMode(parent))
+    buttons[1].clicked.connect(lambda: changeStacks(parent,4,2))
+
+
+    sidebar.setLayout(layout)
+    return sidebar
     
 def homeSidebar(parent):
     sidebar = QWidget()
@@ -36,6 +55,29 @@ def homeSidebar(parent):
 
     sidebar.setLayout(layout)
     return sidebar
+
+def navigateFromOutputMode(parent):
+    
+    labels = ['Twitter','Voice','Server Communication','Visual Communication']
+    mainButtons = [parent.findChild(ButtonContainer,label) for label in labels]
+
+    for button in mainButtons:
+        if button.label.text() == labels[0] and button.isChecked():
+            print("going to Twitter")
+            button.setChecked(False)
+            # changeStacks(parent,1,2)
+        elif button.label.text() == labels[1] and button.isChecked():
+            print("going to Voice")
+            button.setChecked(False)
+            # changeStacks(parent,2,2)
+        elif button.label.text() == labels[2] and button.isChecked():
+            print("going to Server Communication")
+            button.setChecked(False)
+            # changeStacks(parent,3,1)
+        elif button.label.text() == labels[3] and button.isChecked():
+            print("going to Server Communication")
+            button.setChecked(False)
+            # changeStacks(parent,3,1)
 
 def navigateFromHome(parent):
     
