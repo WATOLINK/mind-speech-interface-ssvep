@@ -25,7 +25,7 @@ def submitAndReturn(parent):
                 button.setChecked(False)
 
     # Go back to main page
-    changeStacks(parent,0,0)
+    changeStacks(parent,1,1)
 
 def changeStacks(parent,mainIndex,sidebarIndex):
     mainStack = parent.findChild(QStackedWidget,"Main Stack")

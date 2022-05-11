@@ -70,11 +70,11 @@ def mainStack(parent):
     stack.setStyleSheet(mainButtonStyle)
 
     stack.addWidget(OutputModeWidget(parent))  # 0
-    # stack.addWidget(homeWidget(parent))  # 0
-    stack.addWidget(MultipleChoiceWidget(parent))  # 1
-    stack.addWidget(YesNoWidget(parent))  # 2
-    stack.addWidget(KeyboardWidget(parent))  # 3
-    stack.addWidget(HelpWidget(parent))  # 4
+    stack.addWidget(homeWidget(parent))  # 1
+    stack.addWidget(MultipleChoiceWidget(parent))  # 2
+    stack.addWidget(YesNoWidget(parent))  # 3
+    stack.addWidget(KeyboardWidget(parent))  # 4
+    stack.addWidget(HelpWidget(parent))  # 5
 
     return stack
 

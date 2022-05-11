@@ -14,9 +14,9 @@ class Sidebar(QStackedWidget):
         self.setObjectName("Sidebar Stack")
 
         self.addWidget(OutputModeSidebar(parent))  # 0
-        # self.addWidget(homeSidebar(parent))  # 0
-        self.addWidget(characterSidebar(parent))  # 1
-        self.addWidget(enterOnlySidebar(parent))  # 2
+        self.addWidget(homeSidebar(parent))  # 1
+        self.addWidget(characterSidebar(parent))  # 2
+        self.addWidget(enterOnlySidebar(parent))  # 3
 
 def OutputModeSidebar(parent):
     sidebar = QWidget()
@@ -75,7 +75,7 @@ def navigateFromOutputMode(parent):
             button.setChecked(False)
             # changeStacks(parent,3,1)
         elif button.label.text() == labels[3] and button.isChecked():
-            print("going to Server Communication")
+            print("going to Visual Communication")
             button.setChecked(False)
             # changeStacks(parent,3,1)
 
@@ -88,15 +88,15 @@ def navigateFromHome(parent):
         if button.label.text() == labels[0] and button.isChecked():
             print("going to MC")
             button.setChecked(False)
-            changeStacks(parent,1,2)
+            changeStacks(parent,2,3)
         elif button.label.text() == labels[1] and button.isChecked():
             print("going to YN")
             button.setChecked(False)
-            changeStacks(parent,2,2)
+            changeStacks(parent,3,3)
         elif button.label.text() == labels[2] and button.isChecked():
             print("going to Typing")
             button.setChecked(False)
-            changeStacks(parent,3,1)
+            changeStacks(parent,4,2)
 
 
 def characterSidebar(parent):
@@ -116,7 +116,7 @@ def characterSidebar(parent):
     for button in buttons:
         layout.addWidget(button)
 
-    buttons[0].clicked.connect(lambda: changeStacks(parent,0,0))
+    buttons[0].clicked.connect(lambda: changeStacks(parent,1,1))
     buttons[1].clicked.connect(lambda: backspace(parent))
     buttons[2].clicked.connect(lambda: space(parent))
     buttons[3].clicked.connect(lambda: toggle(parent))
