@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QLabel,QStackedWidget,QLineEdit
 from Pages.button_container import ButtonContainer
-from server.twitterAPI import tweet, isTweeting
+from server.twitterAPI import tweet
+
+outputMode = ""
 
 class EnterButton(ButtonContainer):
     def __init__(self,parent):
@@ -16,8 +18,16 @@ def submitAndReturn(parent):
     if inputField.text():
         temp = messageBox.text() + f"[{inputField.text()}]"
         messageBox.setText(temp)
-        if isTweeting():
-            tweet(inputField.text())
+        match getOutputMode():
+            case ("twitter"): 
+                print("tweeting")
+                tweet(inputField.text())
+            case ("voice"):
+                print("voice not yet implemented")
+            case ("server"):
+                print("server not yet implemented")
+            case ("visual"):
+                print("visual not yet implemented")
 
         inputField.clear()
 
@@ -36,3 +46,6 @@ def changeStacks(parent,mainIndex,sidebarIndex):
 
     mainStack.setCurrentIndex(mainIndex)
     sidebarStack.setCurrentIndex(sidebarIndex)
+
+def getOutputMode():
+    return outputMode

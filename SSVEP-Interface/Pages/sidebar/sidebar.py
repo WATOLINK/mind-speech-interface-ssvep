@@ -7,7 +7,7 @@ from Pages.styles import mainButtonStyle
 from Pages.button_container import ButtonContainer
 from Pages.QAPage.completer2 import suggestWords
 from Pages.QAPage.keyboard2 import groupedChars
-import server.twitterAPI
+import Pages.sidebar.enterButton
 
 class Sidebar(QStackedWidget):
     def __init__(self, parent):
@@ -67,22 +67,22 @@ def navigateFromOutputMode(parent):
         if button.label.text() == labels[0] and button.isChecked():
             print("going to Twitter")
             button.setChecked(False)
-            server.twitterAPI.tweeting = True
+            Pages.sidebar.enterButton.outputMode = "twitter"
             # changeStacks(parent,1,2)
         elif button.label.text() == labels[1] and button.isChecked():
             print("going to Voice")
             button.setChecked(False)
-            server.twitterAPI.tweeting = False
+            Pages.sidebar.enterButton.outputMode = "voice"
             # changeStacks(parent,2,2)
         elif button.label.text() == labels[2] and button.isChecked():
             print("going to Server Communication")
             button.setChecked(False)
-            server.twitterAPI.tweeting = False
+            Pages.sidebar.enterButton.outputMode = "server"
             # changeStacks(parent,3,1)
         elif button.label.text() == labels[3] and button.isChecked():
             print("going to Visual Communication")
             button.setChecked(False)
-            server.twitterAPI.tweeting = False
+            Pages.sidebar.enterButton.outputMode = "visual"
             # changeStacks(parent,3,1)
 
 def navigateFromHome(parent):
