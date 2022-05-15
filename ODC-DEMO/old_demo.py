@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 import os
 from time import time, sleep, strftime, localtime
+import traceback
 
 from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
 
@@ -25,12 +26,15 @@ START_DELAY_S = 1 # 20 Seconds
 NUM_TRIALS = 2 # 5 Trials
 INDICATOR_TIME_VALUE_S = 1 # 5 Seconds
 TRIAL_BREAK_TIME = 1 # 120 seconds 
-STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
+STIM_PERIOD_TRIALS = 2 # 12 for the 12 stimuli per trial
 
 data = []
 color_code_order = []
 color_freq_order = []
 timestamp = []
+first = 0 
+last = 8
+temp = []
 
 def display_procedure(stop, board, args):
     f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
@@ -55,8 +59,12 @@ def display_procedure(stop, board, args):
         random.shuffle(order)
         print(order)
 
-        data.append(board.get_board_data().transpose()[:,1:9]) # get data at start AS WELL AS BETWEEN TRIALS
-        timestamp.append(time())
+        #data.append(board.get_board_data().transpose()[:,first:last]) # get data at start AS WELL AS BETWEEN TRIALS openBci
+        temp = board.get_board_data()
+        data.append(temp.transpose()[:,first:last]) # get data at start AS WELL AS BETWEEN TRIALS
+        timestamp.append(temp.transpose()[:,17:18])#UNICORN TEST
+        #print(timestamp)
+        # timestamp.append(time())#openbci
 
         for stimPeriod in range(STIM_PERIOD_TRIALS):
             # just for testing otherwise the thread keeps running if you close the window
@@ -96,15 +104,23 @@ def display_procedure(stop, board, args):
             
             currentStim.toggleIndicator(False)
 
-            data.append(board.get_board_data().transpose()[:,1:9])   # get all data for in between flashes (null)
-            timestamp.append(time())
+            # data.append(board.get_board_data().transpose()[:,first:last])   # get all data for in between flashes (null)
+            # timestamp.append(time())
+            temp = board.get_board_data()
+            data.append(temp.transpose()[:,first:last]) # get data at start AS WELL AS BETWEEN TRIALS
+            timestamp.append(temp.transpose()[:,17:18])#UNICORN TEST
+            
             
             for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOn()
         
             sleep(5)  # set length of simulation period (5s)
-            data.append(board.get_board_data().transpose()[:,1:9])   # get all data for stimuli flash (individual)   
-            timestamp.append(time())
+            # data.append(board.get_board_data().transpose()[:,first:last])   # get all data for stimuli flash (individual)   
+            # timestamp.append(time())
+            
+            temp = board.get_board_data()
+            data.append(temp.transpose()[:,first:last]) # get data at start AS WELL AS BETWEEN TRIALS
+            timestamp.append(temp.transpose()[:,17:18])#UNICORN TEST
 
             # turn off all stimuli and prepare for next trial
             for x in range(STIM_PERIOD_TRIALS):
@@ -133,6 +149,7 @@ def display_procedure(stop, board, args):
         df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
     except:
         print('Post data processing and CSV Export failed')
+        traceback.print_exc()
     finally:
         Cyton_Board_End(board)
 
@@ -140,17 +157,22 @@ def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
 
 def post_process( data, timestamp, color_code, color_freq ):
+
     for data_block_index in range(len(data)):
         data_rows, data_cols = np.shape(data[data_block_index])
-        start_time = timestamp[data_block_index]
+        
+        '''
+        start_time = timestamp[data_block_index] #openBCI
 
         # Extract down to milliseconds
+        
         ms = repr(start_time).split('.')[1][:3]
         # Corresponding timestamp creation
         block_timestamp = []
     
         for time_increment_index in range(data_rows):
             # Convert Unix time to desired timestamp format
+            print('entered')
             formatted_start_time = strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), localtime(start_time))[:23]
             block_timestamp.append( formatted_start_time )
 
@@ -173,17 +195,44 @@ def post_process( data, timestamp, color_code, color_freq ):
 
         # Update timestamp list to contain incremented timestamp block instead of start time
         timestamp[ data_block_index ] = block_timestamp
-        
+        '''
+            
     # Create header row
     header = ['Time']
     for i in range(1, 9):
         header.append('CH{}'.format(i))
-
-    # Put timestamp, color code, and frequency columns together with data blocks
+        
+    stamp = []
     for i in range(len(data)):
-        data[i] = np.c_[ timestamp[i], data[i] ]
+        df = pd.DataFrame(timestamp[i])
+        for z in range (len(df)):
+            stamp.append(df.iat[z, 0])
+            print(z)
+            print(df.iat[z, 0])
+        print("------------------------------------------------------------------------------------------------")
+        print(i)
+    print(len(stamp))
+    print(type(stamp))
+    
+    # Put timestamp, color code, and frequency columns together with data blocks
+    
+    # print(timestamp.shape)
+    # print(data.shape)
+    
+    # data = np.concatenate((timestamp, data), axis=1)    
+    print(len(data))
+    for i in range(len(data)):
+        
+        # print(len(stamp))
+        # print(len(data[i]))
+        # print(stamp[i])
+        data[i] = np.c_[ timestamp[i], data[i]]
         data[i] = pd.DataFrame(data[i], columns=header)
+        print(data[i].shape)
+        print(len(data[i]))
+        
  
+    
     main_ctr = 0
     session_ctr = 0
     done_adding_cols = False
@@ -334,7 +383,7 @@ if __name__ == '__main__':
     filename =  f"{x.strftime('%j')}_{x.strftime('%Y')}_{x.strftime('%f')}" #day of year, year, millisecond
 
     file = open("ODC-DEMO/demo_data/" + filename + ".txt", "x") # create log 
-
+    #file = open("demo_data/test.txt", "x") # create log 
     app = QApplication(sys.argv)
     window = QWidget()
     window.setWindowTitle('Flashing Stim 1')

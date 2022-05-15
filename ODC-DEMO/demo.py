@@ -393,4 +393,3 @@ if __name__ == '__main__':
         stopThread = True
         file.close()
         print('Closing Window...')
-

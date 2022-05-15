@@ -6,78 +6,109 @@
     * Terminal call:
         /EEG-Streamer/
             python Embedded_Server.py --board-id=<BOARD_ID> --serial-port=<SERIAL_PORT>
-
     * Helpful information:
-
         OpenBCI Sample Rate:       125Hz (i.e. 125 rows of data per second)
         GTech Unicorn Sample Rate: 250Hz (i.e. 250 rows of data per second)
-
         OpenBCI ID:         0
         GTech Unicorn ID:   8
         Virutal Board ID:  -1
-
         Process 1 = Streamer() function in Embedded_Server.py
         Process 2 = Client() function in DSP_Client.py
-
         TEST_DATA.csv in /EEG-Streamer/ directory is the output CSV from DSP_Client.py
-
 '''
 import argparse
 import brainflow
+import os
 import pickle
 import socket
 import sys
 import numpy as np
 import pandas as pd
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
-from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
-from DSP_Client import Client
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Barrier
 from time import time
 
-# Standard loopback interface address (localhost)
-HOST = '127.0.0.1' 
-# Port to listen on (non-privileged ports are > 1023)
-PORT = 65432        
+sys.path.append( '../EEG-DSP-Layer' )
+from DSP_Client import EEGSocketListener
 
-# GTech Unicorn ID is 8
-BOARD_ID = 8
-DATA_COLLECTION_DURATION = 10       
+class EEGSocketPublisher:
+    # Socket Object and Params
+    socket = None
+    host = ''           # Standard loopback interface address (localhost)
+    port = None         # Port to listen on (non-privileged ports are > 1023)
 
-def data_stream(board, queue, conn):
-    # Data package counter
-    data_package_counter = 0
+    board = None
+    count = 0
 
-    # Clear buffer
-    board.get_board_data()
+    col_low_lim = 0
+    col_hi_lim = 8
+
+    # Data Format Definitions
+    num_channels = None # number of columns in input array 
+    input_len = None    # number of rows in input array
+
+    def __init__(self, host='127.0.0.1', port=65432, num_channels=8, input_len=125):
+        self.host = host
+        self.port = port
+
+        self.input_len = input_len
+        self.num_channels = num_channels
+
+    def open_socket_conn(self):
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.bind( (self.host, self.port) )
+        self.socket.listen()
     
-    # Start data collection
-    start_time = time()
-    while data_package_counter < 10 and time() - start_time < DATA_COLLECTION_DURATION + 1:
-        if board.get_board_data_count() >=  250:
+    def close_socket_conn(self):
+        self.socket.close()
+    
+    def open_board_conn(self, board_id, params, streamer_params):
+        BoardShim.enable_dev_board_logger()
+        self.board = BoardShim(board_id, params)
+        # Start Acquisition
+        self.board.prepare_session()
+        self.board.start_stream(45000, streamer_params)
 
-            # 
-            # TODO: Drop appropriate columns depending on OpenBCI (id = 0), GTech Unicorn (id = 8), 
-            #       and virtual board (id = -1). See commented out code directly below
-            #
-            #       DO NOT use if-else statements inside this while loop. Code inside this while loop 
-            #       must be minimized to avoid system latency
-            #
+    def close_board_conn(self):
+        self.board.stop_stream()
+        self.board.release_session()
 
-            data = board.get_board_data(250).transpose()#[:,:8]
-            sample_out = pickle.dumps(data)
-            conn.sendall( sample_out )
-            data_package_counter += 1
-            print('--', data_package_counter, ' Data Packages Sent ', np.shape(data))
+    def open_connections(self, board_id, board_params, streamer_params):
+        self.open_socket_conn()
+        self.open_board_conn(board_id, board_params, streamer_params)
+    
+    def close_connections(self):
+        self.close_socket_conn()
+        self.close_board_conn()
 
-    print('-- Data Collection Complete', time()-start_time)
-    conn.sendall(pickle.dumps(None))
-    return
+    def retrieve_sample(self):
+        sample = self.board.get_board_data(self.input_len).T[:,self.col_low_lim:self.col_hi_lim]
+        assert type(sample) == np.ndarray,  f"Not a Numpy ND Array {type(sample), sample}"
+        assert sample.shape == (self.input_len, self.num_channels), \
+            f"Incorrect Shape, Expected: {(self.input_len, self.num_channels)}, Recieved: {sample.shape}"
+        return sample
+    
+    def send_packet(self, sample):
+        self.connection.sendall(pickle.dumps(sample))
+        self.count += 1
+        print('Data sent,', self.count)
+        print(sample.shape)
+
+    def publish(self, run_time=None):
+        self.connection, self.address = self.socket.accept()
+        with self.connection:
+            print('Connected by', self.address)
+            exp_count = run_time * 2 
+            init_time = time()
+            time_func = (lambda: (self.count < exp_count) and (time() - init_time < run_time + 1) ) if run_time else (lambda: True)
+            while time_func():
+                if self.board.get_board_data_count() >=  self.input_len:
+                    packet = self.retrieve_sample()
+                    self.send_packet(packet)
+
+            self.connection.sendall(pickle.dumps(None))
 
 def Cyton_Board_Config():
-    BoardShim.enable_dev_board_logger()
-
-    # Terminal parameters
     parser = argparse.ArgumentParser()
     parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False, default=0)
     parser.add_argument('--ip-port', type=int, help='ip port', required=False, default=0)
@@ -102,80 +133,59 @@ def Cyton_Board_Config():
     params.ip_protocol = args.ip_protocol
     params.timeout = args.timeout
     params.file = args.file
+
+    return (args.board_id, params, args.streamer_params)
+
+def CSV(data, col):
+    start = 0
+    end   = 50
+    for i in range(len(data)):
+        #timestamp = np.arange(0, 0.4, 0.008)
+        sample_count = [j for j in range(start,end)]
+        data[i] = pd.DataFrame(data=data[i], index=sample_count, columns=col)
+        start +=50
+        end   +=50
+
+    df = pd.concat(data, ignore_index=True)
+    df.index.name = 'Sample Count'
+    print(df.shape)
+    df.to_csv('data.csv')
+    return
     
-    # Cyton Board Object
-    board = BoardShim(args.board_id, params)
+def Streamer(publisher, synch, q, info):
+    publisher.open_connections(info[0], info[1], info[2])
+    if publisher.board.get_board_id() == 0 or publisher.board.get_board_id() == 2:
+        publisher.col_low_lim = 1
+        publisher.col_hi_lim = 9
+    synch.wait()
+    publisher.publish(10)
+    if q.get() is None:
+        publisher.close_connections()
+        q.put(None)
 
-    # Start Acquisition
-    board.prepare_session()
-    board.start_stream(45000, args.streamer_params)
-    return board
+def DSP(listener, synch, q):
+    listener.open_socket_conn()
+    synch.wait()
+    listener.listen()
+    q.put(None)
+    if q.get() is None:
+        listener.close_socket_conn()
+    
 
-def Socket_Config():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind((HOST, PORT))
-    sock.listen()
-    return sock
+if __name__ == "__main__":
+    info = Cyton_Board_Config()
+    publisher = EEGSocketPublisher()
+    listener = EEGSocketListener()
 
-def Cyton_Board_End(board):
-    board.stop_stream()
-    board.release_session()
-    return
-
-def Socket_End(sock):
-    sock.close()
-    return
-
-def Streamer(s, q):
-    b = Cyton_Board_Config()
-
-    # Wait for signal from DSP that the socket has been connected from the client side
-    q.get()
-
-    # 
-    # TODO: Send appropriate list for columns header ("column title") depending on OpenBCI (id = 0) 
-    #       and GTech Unicorn (id = 8) over the Queue
-    #
-
-    # Accept socket connection
-    conn, addr = s.accept()
-
-    with conn:
-        print('-- Connected by', addr)
-        data_stream(b, q, conn)
-
-    print(q.get())
-    Cyton_Board_End(b)
-    return
-
-def main():
-
-    # 
-    # TODO: Use "os" and "sys" libraries to determine which USB dongle (OpenBCI, GTech, or virtual board) 
-    #       is connected to the PC's serial port
-    #
-
-    s = Socket_Config()
-
-    # Message queue between server-client processes
     q = Queue()
-
-    # Start concurrent processes
-    sys_processes = [ 
-                        Process(target=Streamer, args=(s,q,)), 
-                        Process(target=Client, args=(q,HOST,PORT,BOARD_ID,)) 
-                        
-                        ]
+    synch = Barrier(2)
+    sys_processes = [ Process(target=Streamer, args=(publisher, synch, q, info,)), 
+                      Process(target=DSP, args=(listener, synch, q,)) ]
 
     for process in sys_processes:
         process.start()
 
-    # Wait for both processes to complete executing
     for process in sys_processes:
         process.join()
-
-    Socket_End(s)
-    return     
-
-if __name__ == "__main__":
-    main()
+    
+    
