@@ -379,7 +379,7 @@ if __name__ == '__main__':
     board_details = Cyton_Board_Config(False)
 
     global testing
-    testing = True
+    testing = False
     stopThread = False
     x = threading.Thread(target=display_procedure, args=(lambda: stopThread, board_details[0], board_details[1]))
     x.start()
