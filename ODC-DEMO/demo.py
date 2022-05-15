@@ -11,11 +11,12 @@ from PyQt5.QtGui import QPainter, QBrush, QPen
 from time import time, sleep, strftime, localtime
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
 import sys, random, threading, datetime
+
+from requests import head
 import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
 import argparse, socket, pickle
-
 # Variables to change parameters of the test
 
 # Trial Settings
@@ -140,12 +141,13 @@ def display_procedure(stop, board, args):
     f.write("Session finished.\n\n")
     f.close()
     print(color_code_order)
+    print(board.board_id)
 
     board.stop_stream()
     if not testing:
         duration = time()-start_time
         generate_test_report(board, duration, data, color_code_order, color_freq_order)
-    df = post_process(data, start_time, color_code_order, color_freq_order)
+    df = post_process(data, start_time, color_code_order, color_freq_order, board.board_id)
     try:
         if testing:
             df.to_csv("test.csv", index=False)
@@ -160,18 +162,53 @@ def display_procedure(stop, board, args):
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
 
-def post_process( data, start_time, color_code, color_freq ):
+def post_process(data, start_time, color_code, color_freq, boardId):
+    print(boardId)
+    
     split_indices = np.where(data==0.666)[0]
-    data = np.delete(data, 0,1)
+
+    if boardId == 0:
+        timetime = data[:,22:23]
+        data = np.delete(data, 0,1)
+        data = np.delete(data, range(8,23), 1)
+    elif boardId == -1:
+        timetime = data[:,30:31]
+        data = np.delete(data, 0,1)
+        data = np.delete(data, range(8,31), 1)
+    # GTech Unicorn
+    else:
+        print("good")
+        timetime = data[:,17:18]
+        # data = np.delete(data, 0,1)
+        zzz = data[:,7:18]
+        yyy = data[:,0:7]
+        print(zzz.shape)
+        print(yyy.shape)
+        
+        data = np.delete(data, range(8,19), 1)
+        print(data.shape)
+
+    timexxx = []
+    for i in range(len(timetime)):
+        timexxx.append(datetime.datetime.fromtimestamp(timetime[i][0]))
     # OpenBCI Setting
-    data = np.delete(data, range(8,23), 1)
+    
+    print(data.shape)
+
+    xx = np.array(timexxx)
+    print(xx.shape)
+
+    wowow = np.array(timexxx).reshape(-1,1)
+
     # VirtualBoard Setting  
     # data = np.delete(data, range(8,31), 1)
-
+    data = np.concatenate((wowow, data), axis=1)
     data = np.split(data, split_indices)
 
     # Create header row
+   
     header = []
+    header.append("time")
     for i in range(1, 9):
         header.append('CH{}'.format(i))
     
@@ -202,39 +239,39 @@ def post_process( data, start_time, color_code, color_freq ):
 
     df_data = data[-1]
 
-    timestamp = []
-    ms = repr(start_time).split('.')[1][:3]
-    for i in range(df_data.shape[0]):
-        # Convert Unix time to desired timestamp format
-        formatted_start_time = strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), localtime(start_time))[:23]
-        timestamp.append( formatted_start_time )
+    # timestamp = []
+    # ms = repr(start_time).split('.')[1][:3]
+    # for i in range(df_data.shape[0]):
+    #     # Convert Unix time to desired timestamp format
+    #     formatted_start_time = strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), localtime(start_time))[:23]
+    #     timestamp.append( formatted_start_time )
 
-        # Increment by 4ms for 250Hz
-        # Increment by 8ms for 125Hz
-        ms = int(ms) + 4
-        # Work-around for floating point error from adding millisecond
-        if ms > 999:
-            rem_ms = str(ms - 1000)
-            start_time += 1  
-            ms = '00' + rem_ms
-        else:
-            ms = str(ms)
-            if len(str(ms)) == 1: 
-                ms = '00' + ms
-            elif len(str(ms)) == 2:
-                ms = '0' + ms
-            else:
-                pass    
+    #     # Increment by 4ms for 250Hz
+    #     # Increment by 8ms for 125Hz
+    #     ms = int(ms) + 4
+    #     # Work-around for floating point error from adding millisecond
+    #     if ms > 999:
+    #         rem_ms = str(ms - 1000)
+    #         start_time += 1  
+    #         ms = '00' + rem_ms
+    #     else:
+    #         ms = str(ms)
+    #         if len(str(ms)) == 1: 
+    #             ms = '00' + ms
+    #         elif len(str(ms)) == 2:
+    #             ms = '0' + ms
+    #         else:
+    #             pass    
 
-    mergeable_timestamp = []
-    # Add timestamp column
-    for i in timestamp:
-        mergeable_timestamp.append([i])
-    df_all = np.concatenate((mergeable_timestamp, df_data), axis=1)
-    header.insert(0, 'Timestamp')
+    # mergeable_timestamp = []
+    # # Add timestamp column
+    # for i in timestamp:
+    #     mergeable_timestamp.append([i])
+    # df_all = np.concatenate((mergeable_timestamp, df_data), axis=1)
+    # header.insert(0, 'Timestamp')
     header.append('Color Code')
     header.append('Frequency')
-    df_all = pd.DataFrame(df_all, columns=header)
+    df_all = pd.DataFrame(df_data, columns=header)
     
     #print(mergeable_timestamp)
     #print(df_all.head())
