@@ -127,8 +127,6 @@ def display_procedure(stop, board, args):
     print("all trials finished")
     f.write("Session finished.\n\n")
     f.close()
-    print(color_code_order)
-    print(board.board_id)
 
     board.stop_stream()
     if not testing:
@@ -381,7 +379,7 @@ if __name__ == '__main__':
     board_details = Cyton_Board_Config(False)
 
     global testing
-    testing = False
+    testing = True
     stopThread = False
     x = threading.Thread(target=display_procedure, args=(lambda: stopThread, board_details[0], board_details[1]))
     x.start()
