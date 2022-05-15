@@ -160,7 +160,7 @@ def train(hparams, model, data, labels):
 def test(hparams, model, data, labels):
     model.test(hparams, data, labels)
 
-if __name__ == "__main__":
+def setup():
     parser = argparse.ArgumentParser()
     args = get_args(parser)
 
