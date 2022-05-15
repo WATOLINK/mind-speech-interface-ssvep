@@ -37,7 +37,6 @@ from time import time
 
 # Standard loopback interface address (localhost)
 HOST = '127.0.0.1' 
-
 # Port to listen on (non-privileged ports are > 1023)
 PORT = 65432        
 
@@ -68,7 +67,6 @@ def data_stream(board, queue, conn):
             data = board.get_board_data(250).transpose()#[:,:8]
             sample_out = pickle.dumps(data)
             conn.sendall( sample_out )
-
             data_package_counter += 1
             print('--', data_package_counter, ' Data Packages Sent ', np.shape(data))
 

@@ -11,16 +11,12 @@ from PyQt5.QtGui import QPainter, QBrush, QPen
 from time import time, sleep, strftime, localtime
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
 import sys, random, threading, datetime
-
-from requests import head
 import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
 import argparse, socket, pickle
-# Variables to change parameters of the test
 
 # Trial Settings
-
 START_DELAY_S = 20 # 20 Seconds
 NUM_TRIALS = 5 # 5 Trials
 INDICATOR_TIME_VALUE_S = 5 # 5 Seconds
@@ -74,7 +70,6 @@ def display_procedure(stop, board, args):
         for stimPeriod in range(STIM_PERIOD_TRIALS):
             color_code_order.append(0)
             color_freq_order.append(0)
-
             # just for testing otherwise the thread keeps running if you close the window
             if stop():
                 break
@@ -115,17 +110,50 @@ def display_procedure(stop, board, args):
             
             for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOn()
-        
             sleep(STIM_TIME)  # set length of simulation period (5s)
             board.insert_marker(0.666)   # insert marker for stimuli flash (individual)   
-
+      
             # turn off all stimuli and prepare for next trial
             for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOff()
+        
+            # Corresponding timestamp creation
+            session_timestamp = []
+            timestamp_rows = np.shape(data[data_index])[0] 
+
+            # One-time millisecond extraction
+            ms = repr(start_time).split('.')[1][:3]
+
+            for each_timestamp_index in range(timestamp_rows):
+
+                # Convert Unix time to desired timestamp format
+                formatted_start_time = time.strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), time.localtime(start_time))[:23]
+                session_timestamp.append( formatted_start_time )
+                
+                # Add 8ms to formatted_start_time 
+                ms = int(ms) + 4
+
+                # Work-around for floating point error from adding 8 ms
+                if ms > 999:
+                    rem_ms = str(ms - 1000)
+                    start_time += 1  
+                    ms = '00' + rem_ms
+                else:
+                    ms = str(ms)
+                    if len(str(ms)) == 1:
+                        ms = '00' + ms
+                    elif len(str(ms)) == 2:
+                        ms = '0' + ms
+                    else:
+                        pass
+
+            timestamp.append(session_timestamp)
+            data_index += 1            
 
         # just for testing otherwise the thread keeps running if you close the window
         if stop():
             break
+        
         for x in range(int(TRIAL_BREAK_TIME)):
             label.setText(
                 labelTxt(f"Time before next trial: ({TRIAL_BREAK_TIME-x})"))
@@ -153,7 +181,6 @@ def display_procedure(stop, board, args):
             df.to_csv("test.csv", index=False)
         else:
             df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
-
     except:
         print('Post data processing and CSV Export failed')
     finally:
@@ -318,6 +345,25 @@ def generate_test_report(board, duration, data, color_code_order, color_freq_ord
     tf.write("\n")
     tf.close()
 
+def post_process( data, timestamp, color_code, color_freq ):
+
+    header = ['Time']
+    for i in range(1, 17):
+        header.append('CH{}'.format(i))
+
+    for i in range(np.shape( timestamp )[0]):
+        data[i] = np.c_[ timestamp[i] , data[i]  ]
+    
+    for i in range(len(data)):
+        # Color code order going out of range
+        data[i] = pd.DataFrame(data[i], columns=header)
+        data[i].loc[0, 'Color Code'] = color_code[i]
+        data[i].loc[0, 'Frequency'] = color_freq[i]
+    
+    df_all = pd.concat(data)
+    df_all.index.name = 'Count'
+    return df_all
+
 class Stimuli(QWidget):
     def __init__(self):
         super().__init__()
@@ -353,14 +399,12 @@ class Stimuli(QWidget):
         preStimIndicators = []
         for x in range(12):
             preStim = QLabel(labelTxt(""))
-            preStimIndicators.append(preStim)
-            
+            preStimIndicators.append(preStim)   
         self.gridLayout = QGridLayout(self.frame)
         # self.gridLayout.addWidget(QLabel(), 3, 0)
         for row in range(3):
             for col in range(4):
                 stimNum = row*4+col
-
                 self.gridLayout.addWidget(preStimIndicators[stimNum], row*2+3, col*2)
                 if (col != 3):
                     self.gridLayout.addWidget(QLabel(), row*2+3, col*2+1)
