@@ -14,15 +14,7 @@ import sys, random, threading, datetime
 import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
-import argparse, socket, pickle
-
-# Trial Settings
-START_DELAY_S = 20 # 20 Seconds
-NUM_TRIALS = 5 # 5 Trials
-INDICATOR_TIME_VALUE_S = 5 # 5 Seconds
-TRIAL_BREAK_TIME = 120 # 120 second
-STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
-STIM_TIME = 5
+import argparse
 
 color_code_order = []
 color_freq_order = []
@@ -116,39 +108,6 @@ def display_procedure(stop, board, args):
             # turn off all stimuli and prepare for next trial
             for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOff()
-        
-            # Corresponding timestamp creation
-            session_timestamp = []
-            timestamp_rows = np.shape(data[data_index])[0] 
-
-            # One-time millisecond extraction
-            ms = repr(start_time).split('.')[1][:3]
-
-            for each_timestamp_index in range(timestamp_rows):
-
-                # Convert Unix time to desired timestamp format
-                formatted_start_time = time.strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), time.localtime(start_time))[:23]
-                session_timestamp.append( formatted_start_time )
-                
-                # Add 8ms to formatted_start_time 
-                ms = int(ms) + 4
-
-                # Work-around for floating point error from adding 8 ms
-                if ms > 999:
-                    rem_ms = str(ms - 1000)
-                    start_time += 1  
-                    ms = '00' + rem_ms
-                else:
-                    ms = str(ms)
-                    if len(str(ms)) == 1:
-                        ms = '00' + ms
-                    elif len(str(ms)) == 2:
-                        ms = '0' + ms
-                    else:
-                        pass
-
-            timestamp.append(session_timestamp)
-            data_index += 1            
 
         # just for testing otherwise the thread keeps running if you close the window
         if stop():
@@ -178,7 +137,7 @@ def display_procedure(stop, board, args):
     df = post_process(data, start_time, color_code_order, color_freq_order, board.board_id)
     try:
         if testing:
-            df.to_csv("test.csv", index=False)
+            df.to_csv("ODC-DEMO/test.csv", index=False)
         else:
             df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
     except:
@@ -190,65 +149,39 @@ def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
 
 def post_process(data, start_time, color_code, color_freq, boardId):
-    print(boardId)
-    
     split_indices = np.where(data==0.666)[0]
-
+    
+    # OpenBCI
     if boardId == 0:
-        timetime = data[:,22:23]
+        unix_timestamp = data[:,22:23]
         data = np.delete(data, 0,1)
         data = np.delete(data, range(8,23), 1)
+    # Virtual Board
     elif boardId == -1:
-        timetime = data[:,30:31]
+        unix_timestamp = data[:,30:31]
         data = np.delete(data, 0,1)
         data = np.delete(data, range(8,31), 1)
     # GTech Unicorn
     else:
-        print("good")
-        timetime = data[:,17:18]
-        # data = np.delete(data, 0,1)
-        zzz = data[:,7:18]
-        yyy = data[:,0:7]
-        print(zzz.shape)
-        print(yyy.shape)
-        
+        unix_timestamp = data[:,17:18]        
         data = np.delete(data, range(8,19), 1)
-        print(data.shape)
+    main_timestamp = []
+    for i in range(len(unix_timestamp)):
+        main_timestamp.append(datetime.datetime.fromtimestamp(unix_timestamp[i][0]))
 
-    timexxx = []
-    for i in range(len(timetime)):
-        timexxx.append(datetime.datetime.fromtimestamp(timetime[i][0]))
-    # OpenBCI Setting
-    
-    print(data.shape)
-
-    xx = np.array(timexxx)
-    print(xx.shape)
-
-    wowow = np.array(timexxx).reshape(-1,1)
-
-    # VirtualBoard Setting  
-    # data = np.delete(data, range(8,31), 1)
-    data = np.concatenate((wowow, data), axis=1)
+    main_timestamp = np.array(main_timestamp).reshape(-1,1)
+    data = np.concatenate((main_timestamp, data), axis=1)
     data = np.split(data, split_indices)
 
     # Create header row
-   
     header = []
     header.append("time")
     for i in range(1, 9):
         header.append('CH{}'.format(i))
     
-    for i in data:
-        print(np.shape(i))
-
     # Convert data blocks from NumPy arrays to pandas DataFrames
     for i in range(len(data)):
-        data[i] = pd.DataFrame(data[i], columns=header)
-
-    print(len(color_code))
-    print(len(color_freq))
-    
+        data[i] = pd.DataFrame(data[i], columns=header)    
 
     # Put color code and frequency columns together with data blocks
     for data_block, code, freq in zip(data, color_code, color_freq):
@@ -256,55 +189,16 @@ def post_process(data, start_time, color_code, color_freq, boardId):
         data_block.loc[0, 'Frequency'] = freq
     
     # Combine to 1 DataFrame
-    print(len(data))
-    for j in range(len(data)):
-        print(data[j].shape, "  ", j)
-        data[j] = data[j].to_numpy()
-        print(np.shape(data[j]), "  ", j)
+    for i in range(len(data)):
+        data[i] = data[i].to_numpy()
+
     for i in range(0, len(data)-1):
         data[i+1] = np.concatenate((data[i], data[i+1]), axis=0)
 
     df_data = data[-1]
-
-    # timestamp = []
-    # ms = repr(start_time).split('.')[1][:3]
-    # for i in range(df_data.shape[0]):
-    #     # Convert Unix time to desired timestamp format
-    #     formatted_start_time = strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), localtime(start_time))[:23]
-    #     timestamp.append( formatted_start_time )
-
-    #     # Increment by 4ms for 250Hz
-    #     # Increment by 8ms for 125Hz
-    #     ms = int(ms) + 4
-    #     # Work-around for floating point error from adding millisecond
-    #     if ms > 999:
-    #         rem_ms = str(ms - 1000)
-    #         start_time += 1  
-    #         ms = '00' + rem_ms
-    #     else:
-    #         ms = str(ms)
-    #         if len(str(ms)) == 1: 
-    #             ms = '00' + ms
-    #         elif len(str(ms)) == 2:
-    #             ms = '0' + ms
-    #         else:
-    #             pass    
-
-    # mergeable_timestamp = []
-    # # Add timestamp column
-    # for i in timestamp:
-    #     mergeable_timestamp.append([i])
-    # df_all = np.concatenate((mergeable_timestamp, df_data), axis=1)
-    # header.insert(0, 'Timestamp')
     header.append('Color Code')
     header.append('Frequency')
     df_all = pd.DataFrame(df_data, columns=header)
-    
-    #print(mergeable_timestamp)
-    #print(df_all.head())
-    #df_time = pd.DataFrame(timestamp, columns=['Timestamp'])
-    #df_all = pd.merge(df_time, df_data.reset_index(drop=True), how="inner", left_index=True, right_index=True)\\
-
     return df_all
 
 def generate_test_report(board, duration, data, color_code_order, color_freq_order):
@@ -344,25 +238,6 @@ def generate_test_report(board, duration, data, color_code_order, color_freq_ord
     tf.write(str(np.shape(data)[0]))
     tf.write("\n")
     tf.close()
-
-def post_process( data, timestamp, color_code, color_freq ):
-
-    header = ['Time']
-    for i in range(1, 17):
-        header.append('CH{}'.format(i))
-
-    for i in range(np.shape( timestamp )[0]):
-        data[i] = np.c_[ timestamp[i] , data[i]  ]
-    
-    for i in range(len(data)):
-        # Color code order going out of range
-        data[i] = pd.DataFrame(data[i], columns=header)
-        data[i].loc[0, 'Color Code'] = color_code[i]
-        data[i].loc[0, 'Frequency'] = color_freq[i]
-    
-    df_all = pd.concat(data)
-    df_all.index.name = 'Count'
-    return df_all
 
 class Stimuli(QWidget):
     def __init__(self):
@@ -464,11 +339,11 @@ def Cyton_Board_Config(purpose):
     # Start Acquisition
     board.prepare_session()
 
-    # if purpose=true we're running the whole thing
-    # else we're just running the demo
+    # For entire program
     if purpose:
         board.start_stream(45000, args.streamer_params)
         return board
+    # For Demo
     else:
         return [board, args.streamer_params]
 
