@@ -1,49 +1,84 @@
-import argparse, socket, pickle, sys
+'''
+    * Streamer script that interfaces with both OpenBCI and GTech Unicorn hardware
+    * Uses multiprocessing for simultaneous server-client model with the DSP post-processing script 
+    * Refer to https://brainflow.readthedocs.io/en/stable/UserAPI.html#python-api-reference for useful functions
+    
+    * Terminal call:
+        /EEG-Streamer/
+            python Embedded_Server.py --board-id=<BOARD_ID> --serial-port=<SERIAL_PORT>
+
+    * Helpful information:
+
+        OpenBCI Sample Rate:       125Hz (i.e. 125 rows of data per second)
+        GTech Unicorn Sample Rate: 250Hz (i.e. 250 rows of data per second)
+
+        OpenBCI ID:         0
+        GTech Unicorn ID:   8
+        Virutal Board ID:  -1
+
+        Process 1 = Streamer() function in Embedded_Server.py
+        Process 2 = Client() function in DSP_Client.py
+
+        TEST_DATA.csv in /EEG-Streamer/ directory is the output CSV from DSP_Client.py
+
+'''
+import argparse
+import brainflow
+import pickle
+import socket
+import sys
 import numpy as np
 import pandas as pd
-from collections import defaultdict
-import brainflow
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
+from DSP_Client import Client
+from multiprocessing import Process, Queue
 from time import time
 
-HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
-PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
+# Standard loopback interface address (localhost)
+HOST = '127.0.0.1' 
+# Port to listen on (non-privileged ports are > 1023)
+PORT = 65432        
 
+# GTech Unicorn ID is 8
+BOARD_ID = 8
+DATA_COLLECTION_DURATION = 10       
 
-def data_stream(board, conn, num_samples=125):
+def data_stream(board, queue, conn):
+    # Data package counter
+    data_package_counter = 0
 
-    data=''
-    all_data = []
-    columns = board.get_eeg_names(board_id=2)[1:17]
+    # Clear buffer
+    board.get_board_data()
+    
+    # Start data collection
+    start_time = time()
+    while data_package_counter < 10 and time() - start_time < DATA_COLLECTION_DURATION + 1:
+        if board.get_board_data_count() >=  250:
 
-    count = 0
-    ti = time()
-    while time() - ti < 10:
-        
-        if board.get_board_data_count() >=  num_samples:
+            # 
+            # TODO: Drop appropriate columns depending on OpenBCI (id = 0), GTech Unicorn (id = 8), 
+            #       and virtual board (id = -1). See commented out code directly below
+            #
+            #       DO NOT use if-else statements inside this while loop. Code inside this while loop 
+            #       must be minimized to avoid system latency
+            #
 
-            data = board.get_board_data(num_samples).transpose()[:,1:17] 
+            data = board.get_board_data(250).transpose()#[:,:8]
             sample_out = pickle.dumps(data)
             conn.sendall( sample_out )
-            print(data.shape)
-            count += 1
-            print('Data sent', count)
-            # time.sleep(num_samples/sampling rate) this could be done to be more efficient
-    
+            data_package_counter += 1
+            print('--', data_package_counter, ' Data Packages Sent ', np.shape(data))
+
+    print('-- Data Collection Complete', time()-start_time)
     conn.sendall(pickle.dumps(None))
-
-    # Call CSV
-    # Thread(CSV(all_data, columns))
-
     return
 
 def Cyton_Board_Config():
-    
     BoardShim.enable_dev_board_logger()
 
+    # Terminal parameters
     parser = argparse.ArgumentParser()
-    # use docs to check which parameters are required for specific board, e.g. for Cyton - set serial port
     parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False, default=0)
     parser.add_argument('--ip-port', type=int, help='ip port', required=False, default=0)
     parser.add_argument('--ip-protocol', type=int, help='ip protocol, check IpProtocolType enum', required=False, default=0)
@@ -55,8 +90,8 @@ def Cyton_Board_Config():
     parser.add_argument('--serial-number', type=str, help='serial number', required=False, default='')
     parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards', required=True)
     parser.add_argument('--file', type=str, help='file', required=False, default='')
+    
     args = parser.parse_args()
-
     params = BrainFlowInputParams()
     params.ip_port = args.ip_port
     params.serial_port = args.serial_port
@@ -74,53 +109,73 @@ def Cyton_Board_Config():
     # Start Acquisition
     board.prepare_session()
     board.start_stream(45000, args.streamer_params)
-
     return board
 
 def Socket_Config():
-
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind((HOST, PORT))
     sock.listen()
     return sock
 
 def Cyton_Board_End(board):
-    b.stop_stream()
-    b.release_session()
+    board.stop_stream()
+    board.release_session()
     return
 
 def Socket_End(sock):
     sock.close()
     return
 
-def CSV(data, col):
-    start = 0
-    end   = 50
-    for i in range(len(data)):
-        #timestamp = np.arange(0, 0.4, 0.008)
-        sample_count = [j for j in range(start,end)]
-        data[i] = pd.DataFrame(data=data[i], index=sample_count, columns=col)
-        start +=50
-        end   +=50
-
-    df = pd.concat(data, ignore_index=True)
-    df.index.name = 'Sample Count'
-    print(df.shape)
-    df.to_csv('data.csv')
-    return
-    
-if __name__ == "__main__":
-
+def Streamer(s, q):
     b = Cyton_Board_Config()
+
+    # Wait for signal from DSP that the socket has been connected from the client side
+    q.get()
+
+    # 
+    # TODO: Send appropriate list for columns header ("column title") depending on OpenBCI (id = 0) 
+    #       and GTech Unicorn (id = 8) over the Queue
+    #
+
+    # Accept socket connection
+    conn, addr = s.accept()
+
+    with conn:
+        print('-- Connected by', addr)
+        data_stream(b, q, conn)
+
+    print(q.get())
+    Cyton_Board_End(b)
+    return
+
+def main():
+
+    # 
+    # TODO: Use "os" and "sys" libraries to determine which USB dongle (OpenBCI, GTech, or virtual board) 
+    #       is connected to the PC's serial port
+    #
+
     s = Socket_Config()
 
-    conn, addr = s.accept()
-    
-    with conn:
-        print('Connected by', addr)
-        data_stream(b, conn)
-        
-    print('DONE DONE DONE')
+    # Message queue between server-client processes
+    q = Queue()
+
+    # Start concurrent processes
+    sys_processes = [ 
+                        Process(target=Streamer, args=(s,q,)), 
+                        Process(target=Client, args=(q,HOST,PORT,BOARD_ID,)) 
+                        
+                        ]
+
+    for process in sys_processes:
+        process.start()
+
+    # Wait for both processes to complete executing
+    for process in sys_processes:
+        process.join()
 
     Socket_End(s)
-    Cyton_Board_End(b)     
+    return     
+
+if __name__ == "__main__":
+    main()

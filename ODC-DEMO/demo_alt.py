@@ -9,43 +9,25 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QRect,Qt
 from PyQt5.QtGui import QPainter, QBrush, QPen
 from time import time, sleep, strftime, localtime
-from brainflow.board_shim import BoardShim, BrainFlowInputParams
+from Embedded_Server import Cyton_Board_Config, Cyton_Board_End
 import sys, random, threading, datetime
 import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
-import argparse, socket, pickle
 
-# Trial Settings
+# Variables to change parameters of the test
 START_DELAY_S = 20 # 20 Seconds
 NUM_TRIALS = 5 # 5 Trials
 INDICATOR_TIME_VALUE_S = 5 # 5 Seconds
-TRIAL_BREAK_TIME = 120 # 120 second
+TRIAL_BREAK_TIME = 120 # 120 seconds 
 STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
-STIM_TIME = 5
 
 color_code_order = []
 color_freq_order = []
 
 def display_procedure(stop, board, args):
-
-    if testing:
-        START_DELAY_S = 1 
-        NUM_TRIALS = 2
-        INDICATOR_TIME_VALUE_S = 1
-        TRIAL_BREAK_TIME = 1
-        STIM_PERIOD_TRIALS = 3
-        STIM_TIME = 1
-    else:
-        START_DELAY_S = 20 # 20 Seconds
-        NUM_TRIALS = 5 # 5 Trials
-        INDICATOR_TIME_VALUE_S = 5 # 5 Seconds
-        TRIAL_BREAK_TIME = 120 # 120 second
-        STIM_PERIOD_TRIALS = 12 # 12 for the 12 stimuli per trial
-        STIM_TIME = 5    
-        
     f = open("ODC-DEMO/demo_data/" + filename + ".txt", 'a')  # modify depending on CWD
-    f.write(f"Session at {datetime.datetime.now()} \n\n")
+    f.write(f"Session at {datetime.datetime.now()}\n\n")
     start_time = time()
     board.start_stream(450000, args)
     sleep(1)
@@ -62,14 +44,9 @@ def display_procedure(stop, board, args):
         # each trial will have a different order of stimulus
         random.shuffle(order)
         print(order)
-        
-        color_code_order.append(0)
-        color_freq_order.append(0)
         board.insert_marker(0.666) # insert marker for start AS WELL AS BETWEEN TRIALS
 
         for stimPeriod in range(STIM_PERIOD_TRIALS):
-            color_code_order.append(0)
-            color_freq_order.append(0)
             # just for testing otherwise the thread keeps running if you close the window
             if stop():
                 break
@@ -110,77 +87,36 @@ def display_procedure(stop, board, args):
             
             for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOn()
-            sleep(STIM_TIME)  # set length of simulation period (5s)
+        
+            sleep(5)  # set length of simulation period (5s)
             board.insert_marker(0.666)   # insert marker for stimuli flash (individual)   
-      
+
             # turn off all stimuli and prepare for next trial
             for x in range(STIM_PERIOD_TRIALS):
                 stim[x].toggleOff()
-        
-            # Corresponding timestamp creation
-            session_timestamp = []
-            timestamp_rows = np.shape(data[data_index])[0] 
-
-            # One-time millisecond extraction
-            ms = repr(start_time).split('.')[1][:3]
-
-            for each_timestamp_index in range(timestamp_rows):
-
-                # Convert Unix time to desired timestamp format
-                formatted_start_time = time.strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), time.localtime(start_time))[:23]
-                session_timestamp.append( formatted_start_time )
-                
-                # Add 8ms to formatted_start_time 
-                ms = int(ms) + 4
-
-                # Work-around for floating point error from adding 8 ms
-                if ms > 999:
-                    rem_ms = str(ms - 1000)
-                    start_time += 1  
-                    ms = '00' + rem_ms
-                else:
-                    ms = str(ms)
-                    if len(str(ms)) == 1:
-                        ms = '00' + ms
-                    elif len(str(ms)) == 2:
-                        ms = '0' + ms
-                    else:
-                        pass
-
-            timestamp.append(session_timestamp)
-            data_index += 1            
 
         # just for testing otherwise the thread keeps running if you close the window
         if stop():
             break
-        
         for x in range(int(TRIAL_BREAK_TIME)):
             label.setText(
                 labelTxt(f"Time before next trial: ({TRIAL_BREAK_TIME-x})"))
             sleep(1)
 
-    color_code_order.append(0)
-    color_freq_order.append(0)
     data = board.get_board_data().transpose()
-
     label.setText(
                 labelTxt(f"Trials finished"))
     print("all trials finished")
     f.write("Session finished.\n\n")
     f.close()
-    print(color_code_order)
-    print(board.board_id)
 
     board.stop_stream()
-    if not testing:
-        duration = time()-start_time
-        generate_test_report(board, duration, data, color_code_order, color_freq_order)
-    df = post_process(data, start_time, color_code_order, color_freq_order, board.board_id)
+    duration = time()-start_time
+    generate_test_report(board, duration, data, color_code_order, color_freq_order)
+    df = post_process(data, start_time, color_code_order, color_freq_order)
     try:
-        if testing:
-            df.to_csv("test.csv", index=False)
-        else:
-            df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
+        df.to_csv("ODC-DEMO/test_data.csv", index=False)
+        #df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
     except:
         print('Post data processing and CSV Export failed')
     finally:
@@ -189,122 +125,92 @@ def display_procedure(stop, board, args):
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
 
-def post_process(data, start_time, color_code, color_freq, boardId):
-    print(boardId)
-    
+def post_process( data, start_time, color_code, color_freq ):
     split_indices = np.where(data==0.666)[0]
-
-    if boardId == 0:
-        timetime = data[:,22:23]
-        data = np.delete(data, 0,1)
-        data = np.delete(data, range(8,23), 1)
-    elif boardId == -1:
-        timetime = data[:,30:31]
-        data = np.delete(data, 0,1)
-        data = np.delete(data, range(8,31), 1)
-    # GTech Unicorn
-    else:
-        print("good")
-        timetime = data[:,17:18]
-        # data = np.delete(data, 0,1)
-        zzz = data[:,7:18]
-        yyy = data[:,0:7]
-        print(zzz.shape)
-        print(yyy.shape)
-        
-        data = np.delete(data, range(8,19), 1)
-        print(data.shape)
-
-    timexxx = []
-    for i in range(len(timetime)):
-        timexxx.append(datetime.datetime.fromtimestamp(timetime[i][0]))
-    # OpenBCI Setting
-    
-    print(data.shape)
-
-    xx = np.array(timexxx)
-    print(xx.shape)
-
-    wowow = np.array(timexxx).reshape(-1,1)
-
-    # VirtualBoard Setting  
-    # data = np.delete(data, range(8,31), 1)
-    data = np.concatenate((wowow, data), axis=1)
+    data = np.delete(data, 0,1)
+    data = np.delete(data, range(8,23), 1) 
+    # data = np.delete(data, range(8,31), 1) -- Virtual Board
     data = np.split(data, split_indices)
-
+            
     # Create header row
-   
     header = []
-    header.append("time")
     for i in range(1, 9):
         header.append('CH{}'.format(i))
-    
-    for i in data:
-        print(np.shape(i))
 
-    # Convert data blocks from NumPy arrays to pandas DataFrames
+    # Put timestamp, color code, and frequency columns together with data blocks
     for i in range(len(data)):
         data[i] = pd.DataFrame(data[i], columns=header)
 
-    print(len(color_code))
-    print(len(color_freq))
+    main_ctr = 0
+    session_ctr = 0
+    trial_ctr = 0
+    number_of_sessions = STIM_PERIOD_TRIALS
+    done_adding_cols = False
+    is_two_block = True
+    is_stimulus_session = False
+    while not done_adding_cols:
+        if is_two_block and not is_stimulus_session:
+            data[main_ctr].loc[0, 'Color Code'] = 0
+            data[main_ctr].loc[0, 'Frequency'] = 0
+
+            data[main_ctr + 1].loc[0, 'Color Code'] = 0
+            data[main_ctr + 1].loc[0, 'Frequency'] = 0       
+            
+            main_ctr += 2
+            is_two_block = False
+            is_stimulus_session = True
+
+        if not is_two_block and is_stimulus_session:
+            data[main_ctr].loc[0, 'Color Code'] = color_code[session_ctr]
+            data[main_ctr].loc[0, 'Frequency'] = color_freq[session_ctr]
+
+            main_ctr += 1
+            session_ctr += 1
+            if session_ctr == number_of_sessions:
+                is_two_block = True
+                number_of_sessions += STIM_PERIOD_TRIALS
+                trial_ctr += 1
+
+            if trial_ctr == NUM_TRIALS:
+                is_two_block = False
+            is_stimulus_session = False
+
+        if not is_two_block and not is_stimulus_session:
+            data[main_ctr].loc[0, 'Color Code'] = 0
+            data[main_ctr].loc[0, 'Frequency'] = 0
+            main_ctr += 1
+            is_stimulus_session = True
+
+        if main_ctr == (len(data)) and session_ctr == (len(color_code)):
+            done_adding_cols = True
     
+    # Convert to 1 DataFrame
+    df_data = pd.concat(data)
+    timestamp = []
+    ms = repr(start_time).split('.')[1][:3]
+    for i in range(df_data.shape[0]):
+        # Convert Unix time to desired timestamp format
+        formatted_start_time = strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), localtime(start_time))[:23]
+        timestamp.append( formatted_start_time )
 
-    # Put color code and frequency columns together with data blocks
-    for data_block, code, freq in zip(data, color_code, color_freq):
-        data_block.loc[0, 'Color Code'] = code
-        data_block.loc[0, 'Frequency'] = freq
-    
-    # Combine to 1 DataFrame
-    print(len(data))
-    for j in range(len(data)):
-        print(data[j].shape, "  ", j)
-        data[j] = data[j].to_numpy()
-        print(np.shape(data[j]), "  ", j)
-    for i in range(0, len(data)-1):
-        data[i+1] = np.concatenate((data[i], data[i+1]), axis=0)
-
-    df_data = data[-1]
-
-    # timestamp = []
-    # ms = repr(start_time).split('.')[1][:3]
-    # for i in range(df_data.shape[0]):
-    #     # Convert Unix time to desired timestamp format
-    #     formatted_start_time = strftime("%Y-%m-%d %H:%M:%S.{} %Z".format(ms), localtime(start_time))[:23]
-    #     timestamp.append( formatted_start_time )
-
-    #     # Increment by 4ms for 250Hz
-    #     # Increment by 8ms for 125Hz
-    #     ms = int(ms) + 4
-    #     # Work-around for floating point error from adding millisecond
-    #     if ms > 999:
-    #         rem_ms = str(ms - 1000)
-    #         start_time += 1  
-    #         ms = '00' + rem_ms
-    #     else:
-    #         ms = str(ms)
-    #         if len(str(ms)) == 1: 
-    #             ms = '00' + ms
-    #         elif len(str(ms)) == 2:
-    #             ms = '0' + ms
-    #         else:
-    #             pass    
-
-    # mergeable_timestamp = []
-    # # Add timestamp column
-    # for i in timestamp:
-    #     mergeable_timestamp.append([i])
-    # df_all = np.concatenate((mergeable_timestamp, df_data), axis=1)
-    # header.insert(0, 'Timestamp')
-    header.append('Color Code')
-    header.append('Frequency')
-    df_all = pd.DataFrame(df_data, columns=header)
-    
-    #print(mergeable_timestamp)
-    #print(df_all.head())
-    #df_time = pd.DataFrame(timestamp, columns=['Timestamp'])
-    #df_all = pd.merge(df_time, df_data.reset_index(drop=True), how="inner", left_index=True, right_index=True)\\
-
+        # Increment by 4ms for 250Hz
+        # Increment by 8ms for 125Hz
+        ms = int(ms) + 4
+        # Work-around for floating point error from adding millisecond
+        if ms > 999:
+            rem_ms = str(ms - 1000)
+            start_time += 1  
+            ms = '00' + rem_ms
+        else:
+            ms = str(ms)
+            if len(str(ms)) == 1: 
+                ms = '00' + ms
+            elif len(str(ms)) == 2:
+                ms = '0' + ms
+            else:
+                pass    
+    df_time = pd.DataFrame(timestamp, columns=['Timestamp'])
+    df_all = pd.merge(df_time, df_data, left_index=True, right_index=True)   
     return df_all
 
 def generate_test_report(board, duration, data, color_code_order, color_freq_order):
@@ -345,25 +251,6 @@ def generate_test_report(board, duration, data, color_code_order, color_freq_ord
     tf.write("\n")
     tf.close()
 
-def post_process( data, timestamp, color_code, color_freq ):
-
-    header = ['Time']
-    for i in range(1, 17):
-        header.append('CH{}'.format(i))
-
-    for i in range(np.shape( timestamp )[0]):
-        data[i] = np.c_[ timestamp[i] , data[i]  ]
-    
-    for i in range(len(data)):
-        # Color code order going out of range
-        data[i] = pd.DataFrame(data[i], columns=header)
-        data[i].loc[0, 'Color Code'] = color_code[i]
-        data[i].loc[0, 'Frequency'] = color_freq[i]
-    
-    df_all = pd.concat(data)
-    df_all.index.name = 'Count'
-    return df_all
-
 class Stimuli(QWidget):
     def __init__(self):
         super().__init__()
@@ -399,12 +286,14 @@ class Stimuli(QWidget):
         preStimIndicators = []
         for x in range(12):
             preStim = QLabel(labelTxt(""))
-            preStimIndicators.append(preStim)   
+            preStimIndicators.append(preStim)
+            
         self.gridLayout = QGridLayout(self.frame)
         # self.gridLayout.addWidget(QLabel(), 3, 0)
         for row in range(3):
             for col in range(4):
                 stimNum = row*4+col
+
                 self.gridLayout.addWidget(preStimIndicators[stimNum], row*2+3, col*2)
                 if (col != 3):
                     self.gridLayout.addWidget(QLabel(), row*2+3, col*2+1)
@@ -427,54 +316,6 @@ class Stimuli(QWidget):
         # self.gridLayout.setColumnMinimumWidth(1, int(l/12)) # 3 additional columns fill space to make it a 4x3 grid 
         # self.gridLayout.setColumnMinimumWidth(3, int(l/12))
         # self.gridLayout.setColumnMinimumWidth(5, int(l/12))
-
-def Cyton_Board_Config(purpose):
-    
-    BoardShim.enable_dev_board_logger()
-
-    parser = argparse.ArgumentParser()
-    # use docs to check which parameters are required for specific board, e.g. for Cyton - set serial port
-    parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False, default=0)
-    parser.add_argument('--ip-port', type=int, help='ip port', required=False, default=0)
-    parser.add_argument('--ip-protocol', type=int, help='ip protocol, check IpProtocolType enum', required=False, default=0)
-    parser.add_argument('--ip-address', type=str, help='ip address', required=False, default='')
-    parser.add_argument('--serial-port', type=str, help='serial port', required=False, default='')
-    parser.add_argument('--mac-address', type=str, help='mac address', required=False, default='')
-    parser.add_argument('--other-info', type=str, help='other info', required=False, default='')
-    parser.add_argument('--streamer-params', type=str, help='streamer params', required=False, default='')
-    parser.add_argument('--serial-number', type=str, help='serial number', required=False, default='')
-    parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards', required=True)
-    parser.add_argument('--file', type=str, help='file', required=False, default='')
-    args = parser.parse_args()
-
-    params = BrainFlowInputParams()
-    params.ip_port = args.ip_port
-    params.serial_port = args.serial_port
-    params.mac_address = args.mac_address
-    params.other_info = args.other_info
-    params.serial_number = args.serial_number
-    params.ip_address = args.ip_address
-    params.ip_protocol = args.ip_protocol
-    params.timeout = args.timeout
-    params.file = args.file
-    
-    # Cyton Board Object
-    board = BoardShim(args.board_id, params)
-
-    # Start Acquisition
-    board.prepare_session()
-
-    # if purpose=true we're running the whole thing
-    # else we're just running the demo
-    if purpose:
-        board.start_stream(45000, args.streamer_params)
-        return board
-    else:
-        return [board, args.streamer_params]
-
-def Cyton_Board_End(board):
-    board.release_session()
-    return
 
 if __name__ == '__main__':
     # File and GUI config
@@ -504,9 +345,6 @@ if __name__ == '__main__':
     
     # BCI Config
     board_details = Cyton_Board_Config(False)
-
-    global testing
-    testing = False
     stopThread = False
     x = threading.Thread(target=display_procedure, args=(lambda: stopThread, board_details[0], board_details[1]))
     x.start()
