@@ -13,6 +13,7 @@ from Pages.sidebar.sidebar import Sidebar
 from Pages.QAPage.completer2 import suggestWords
 
 
+
 class HomePageWidget(QWidget):
     def __init__(self, parent):
         super().__init__()
@@ -64,6 +65,7 @@ def inputBox(parent):
     return textbox
 
 
+
 def mainStack(parent):
     stack = QStackedWidget()
     stack.setObjectName("Main Stack")
@@ -77,7 +79,6 @@ def mainStack(parent):
     stack.addWidget(HelpWidget(parent))  # 5
 
     return stack
-
 
 def OutputModeWidget(parent):
     outputMode = QWidget()

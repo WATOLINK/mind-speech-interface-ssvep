@@ -1,0 +1,15 @@
+Size of Data List: (142359, 32)
+Size of Color Code List: 126
+Size of Color Freq List: 126
+
+Channel Names: Fp1, Fp2, C3, C4, P7, P8, O1, O2, 
+
+Channel Numbers: 1, 2, 3, 4, 5, 6, 7, 8, 
+
+Number of Channels: 24
+
+Marker Channel: 23
+Data Acquisition Duration: 1222.4352543354034
+
+Expected Samples: 305608.81358385086
+Received Samples: 142359
