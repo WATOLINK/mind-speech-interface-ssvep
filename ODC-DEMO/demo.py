@@ -247,22 +247,18 @@ class Stimuli(QWidget):
         stim = []
 
         # white stims
-        stim.append(Stim.CircleFlash(20, 255, 255, 255, 1))
-        stim.append(Stim.CircleFlash(18, 255, 255, 255, 2))
-        stim.append(Stim.CircleFlash(16, 255, 255, 255, 3))
-        stim.append(Stim.CircleFlash(14, 255, 255, 255, 4))
-        stim.append(Stim.CircleFlash(12, 255, 255, 255, 5))
-        stim.append(Stim.CircleFlash(10, 255, 255, 255, 6))
-        stim.append(Stim.CircleFlash(8, 255, 255, 255, 7))
-        stim.append(Stim.CircleFlash(6, 255, 255, 255, 8))
-
-        # blue stims
-        stim.append(Stim.CircleFlash(11, 0, 0, 255, 9))
-        stim.append(Stim.CircleFlash(7, 0, 0, 255, 10))
-
-        # green stims
-        stim.append(Stim.CircleFlash(9, 0, 255, 0, 11))
-        stim.append(Stim.CircleFlash(5, 0, 255, 0, 12))
+        stim.append(Stim.CircleFlash(9.25, 255, 255, 255, 1))
+        stim.append(Stim.CircleFlash(9.75, 255, 255, 255, 2))
+        stim.append(Stim.CircleFlash(10.25, 255, 255, 255, 3))
+        stim.append(Stim.CircleFlash(10.75, 255, 255, 255, 4))
+        stim.append(Stim.CircleFlash(11.25, 255, 255, 255, 5))
+        stim.append(Stim.CircleFlash(11.75, 255, 255, 255, 6))
+        stim.append(Stim.CircleFlash(12.25, 255, 255, 255, 7))
+        stim.append(Stim.CircleFlash(12.75, 255, 255, 255, 8))
+        stim.append(Stim.CircleFlash(13.25, 255, 255, 255, 9))
+        stim.append(Stim.CircleFlash(13.75, 255, 255, 255, 10))
+        stim.append(Stim.CircleFlash(14.25, 255, 255, 255, 11))
+        stim.append(Stim.CircleFlash(14.75, 255, 255, 255, 12))
 
         # append stimulis to grid in random order
         random.shuffle(stim)
