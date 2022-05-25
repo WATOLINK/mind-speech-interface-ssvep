@@ -13,6 +13,7 @@ from Pages.sidebar.sidebar import Sidebar
 from Pages.QAPage.completer2 import suggestWords
 
 
+
 class HomePageWidget(QWidget):
     def __init__(self, parent):
         super().__init__()
@@ -64,19 +65,46 @@ def inputBox(parent):
     return textbox
 
 
+
 def mainStack(parent):
     stack = QStackedWidget()
     stack.setObjectName("Main Stack")
     stack.setStyleSheet(mainButtonStyle)
 
-    stack.addWidget(homeWidget(parent))  # 0
-    stack.addWidget(MultipleChoiceWidget(parent))  # 1
-    stack.addWidget(YesNoWidget(parent))  # 2
-    stack.addWidget(KeyboardWidget(parent))  # 3
-    stack.addWidget(HelpWidget(parent))  # 4
+    stack.addWidget(OutputModeWidget(parent))  # 0
+    stack.addWidget(homeWidget(parent))  # 1
+    stack.addWidget(MultipleChoiceWidget(parent))  # 2
+    stack.addWidget(YesNoWidget(parent))  # 3
+    stack.addWidget(KeyboardWidget(parent))  # 4
+    stack.addWidget(HelpWidget(parent))  # 5
 
     return stack
 
+def OutputModeWidget(parent):
+    outputMode = QWidget()
+    layout = QGridLayout()
+
+    labels = [['Twitter','Voice'],['Server Communication','Visual Communication']]
+    buttons = []
+
+    for row in range(len(labels)):
+        for col in range(len(labels[0])):
+            button = ButtonContainer(labels[row][col])
+            button.setObjectName(labels[row][col])
+            layout.addWidget(button, row, col)
+            buttons.append(button)
+
+    buttons[0].clicked.connect(
+        lambda: disableOtherButtons(buttons, buttons[0]))
+    buttons[1].clicked.connect(
+        lambda: disableOtherButtons(buttons, buttons[1]))
+    buttons[2].clicked.connect(
+        lambda: disableOtherButtons(buttons, buttons[2]))
+    buttons[3].clicked.connect(
+        lambda: disableOtherButtons(buttons, buttons[3]))
+
+    outputMode.setLayout(layout)
+    return outputMode
 
 def homeWidget(parent):
     home = QWidget()
