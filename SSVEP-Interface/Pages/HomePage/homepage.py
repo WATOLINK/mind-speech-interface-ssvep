@@ -20,7 +20,9 @@ class HomePageWidget(QWidget):
 
         layout = QGridLayout()
         self.setLayout(layout)
-        self.parent = parent
+        
+        #TODO: fix server comm integration
+        #self.parent = parent
 
         width = 4
         height = 6

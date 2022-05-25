@@ -41,10 +41,14 @@ def disableOtherButtons(parent,buttons, selected):
     if selected.isChecked():
 
         inputField.setText(selected.objectName())
-        # parent.parent is kinda awkward, maybe there's a better way?
-        parent.parent.emit_message('client_message', {'message': selected.objectName()})
+        
+        #TODO: fix server comm integration
+        # # parent.parent is kinda awkward, maybe there's a better way?
+        # parent.parent.emit_message('client_message', {'message': selected.objectName()})
+        
         for button in buttons:
             if button != selected:
-                button.setChecked(False)    
+               button.setChecked(False) 
+           
     else:
         inputField.clear()

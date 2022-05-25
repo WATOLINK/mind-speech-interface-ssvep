@@ -173,14 +173,18 @@ def backspace(parent):
 
     if len(temp) != 0 :
         inputField.setText(temp[:-1])
-        parent.parent.emit_message('client_message', {'message': temp[:-1]})
+        
+        #TODO: fix server comm integration
+        #parent.parent.emit_message('client_message', {'message': temp[:-1]})
 
 def space(parent):
     inputField = parent.findChild(QLineEdit,"Input")
 
     temp = inputField.text() + " "
     inputField.setText(temp)
-    parent.parent.emit_message('client_message', {'message': temp})
+    
+    #TODO: fix server comm integration
+    #parent.parent.emit_message('client_message', {'message': temp})
 
 def toggle(parent):
     toggleBtn = parent.findChild(ButtonContainer,"Toggle")

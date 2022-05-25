@@ -53,7 +53,10 @@ def writeToInput(parent, buttons, text):
     temp = text
     if prevText:
         temp = prevText + text
-    parent.parent.emit_message('client_message', {'message': temp})
+
+    #TODO: fix server comm integration
+    # parent.parent.emit_message('client_message', {'message': temp})
+    
     inputField.setText(temp)
 
 def writePredictionToInput(parent, buttons, text, charMode):
