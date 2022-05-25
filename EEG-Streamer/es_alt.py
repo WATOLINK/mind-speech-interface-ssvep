@@ -1,4 +1,9 @@
 '''
+
+
+THIS IS THE ALT VERSION OF THE STREAMER SCRIPT FROM KevinKim1-Embedded-Streamer-Bug-Fixes
+
+
     * Streamer script that interfaces with both OpenBCI and GTech Unicorn hardware
     * Uses multiprocessing for simultaneous server-client model with the DSP post-processing script 
     * Refer to https://brainflow.readthedocs.io/en/stable/UserAPI.html#python-api-reference for useful functions

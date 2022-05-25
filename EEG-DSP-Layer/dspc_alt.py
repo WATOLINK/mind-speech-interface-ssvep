@@ -3,6 +3,8 @@ import pandas as pd
 import pickle
 import socket
 
+#THIS IS THE ALT VERSION OF THE DSP SCRIPT FROM KevinKim1-Embedded-Streamer-Bug-Fixes
+
 def Client(queue, HOST, PORT):
     # Socket initialization 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
