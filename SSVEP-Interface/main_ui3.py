@@ -1,4 +1,5 @@
 import sys
+import socketio
 from PyQt5.QtCore import center, Qt
 from PyQt5.QtGui import QFont
 
@@ -12,6 +13,17 @@ from Pages.styles import windowStyle, navigationButtonStyle
 class Home(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        # SocketIO connection
+        self.connected = False
+        self.sio = socketio.Client()
+        try:
+            self.sio.connect('http://127.0.0.1:5000')
+            print("Connected")
+            self.connected = True
+        except socketio.exceptions.ConnectionError as err:
+            print("ConnectionError:", err)
+
         self.generalLayout = QVBoxLayout()
         self.generalLayout.setAlignment(Qt.AlignCenter)
 
@@ -26,6 +38,12 @@ class Home(QMainWindow):
         # Adds central widget where we are going to do most of our work
         self.setCentralWidget(self.homePage)
         self.setGeometry(0, 0, 1600, 900)
+
+    def emit_message(self, message, data):
+        if self.connected:
+            self.sio.emit(message, data)
+        else:
+            print('Not connected to server')
 
 
 
