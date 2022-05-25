@@ -17,6 +17,7 @@
         TEST_DATA.csv in /EEG-Streamer/ directory is the output CSV from DSP_Client.py
 '''
 import argparse
+from calendar import EPOCH
 import brainflow
 import os
 import pickle
@@ -25,6 +26,7 @@ import sys
 import numpy as np
 import pandas as pd
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
+from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
 from multiprocessing import Process, Queue, Barrier
 from time import time
 
@@ -51,7 +53,7 @@ class EEGSocketPublisher:
     num_channels = None # number of columns in input array 
     input_len = None    # number of rows in input array
 
-    def __init__(self, host='127.0.0.1', port=65432, num_channels=8, input_len=125):
+    def __init__(self, host='127.0.0.1', port=65432, num_channels=8, input_len=250):
         self.host = host
         self.port = port
 
