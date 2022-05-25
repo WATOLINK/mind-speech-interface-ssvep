@@ -43,6 +43,10 @@ class EEGSocketPublisher:
     col_low_lim = 0
     col_hi_lim = 8
 
+    board_id_gtec = 8
+    board_id_obci = 0
+    board_id_synth = -1
+
     # Data Format Definitions
     num_channels = None # number of columns in input array 
     input_len = None    # number of rows in input array
