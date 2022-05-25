@@ -7,7 +7,7 @@
         /EEG-Streamer/
             python Embedded_Server.py --board-id=<BOARD_ID> --serial-port=<SERIAL_PORT>
     * Helpful information:
-        OpenBCI Sample Rate:       125Hz (i.e. 125 rows of data per second)
+        OpenBCI Sample Rate:       250Hz (i.e. 250 rows of data per second)
         GTech Unicorn Sample Rate: 250Hz (i.e. 250 rows of data per second)
         OpenBCI ID:         0
         GTech Unicorn ID:   8
