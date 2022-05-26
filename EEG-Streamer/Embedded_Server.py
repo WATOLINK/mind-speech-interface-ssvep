@@ -29,6 +29,7 @@ from brainflow.board_shim import BoardShim, BrainFlowInputParams
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
 from multiprocessing import Process, Queue, Barrier
 from time import time
+import serial.tools.list_ports as p
 
 sys.path.append( '../EEG-DSP-Layer' )
 from DSP_Client import EEGSocketListener
@@ -44,10 +45,6 @@ class EEGSocketPublisher:
 
     col_low_lim = 0
     col_hi_lim = 8
-
-    board_id_gtec = 8
-    board_id_obci = 0
-    board_id_synth = -1
 
     # Data Format Definitions
     num_channels = None # number of columns in input array 
@@ -116,6 +113,7 @@ class EEGSocketPublisher:
 
 def Cyton_Board_Config():
     parser = argparse.ArgumentParser()
+
     parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False, default=0)
     parser.add_argument('--ip-port', type=int, help='ip port', required=False, default=0)
     parser.add_argument('--ip-protocol', type=int, help='ip protocol, check IpProtocolType enum', required=False, default=0)
@@ -125,13 +123,36 @@ def Cyton_Board_Config():
     parser.add_argument('--other-info', type=str, help='other info', required=False, default='')
     parser.add_argument('--streamer-params', type=str, help='streamer params', required=False, default='')
     parser.add_argument('--serial-number', type=str, help='serial number', required=False, default='')
-    parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards', required=True)
+    parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards', required=False)
     parser.add_argument('--file', type=str, help='file', required=False, default='')
-    
     args = parser.parse_args()
+
+    ports = p.comports()
+    print(len(ports), 'ports found')
+    list_manufacturer = []
+    list_ports = []
+    for port in ports:
+            print(port.manufacturer)
+            list_manufacturer.append(port.manufacturer)
+            list_ports.append(port.device)
+        
+    argument = str(sys.argv)
+    if list_manufacturer.__contains__('FTDI'):
+        id = 0
+        openbci_index = list_manufacturer.index('FTDI')
+        openbci_serial_port = list_ports[openbci_index]
+    else:
+        print("Arguments: " , argument)
+        if (argument.__contains__('--board-id=-1')):
+            id = -1
+        else:
+            id = 8
+        openbci_serial_port = "N/A"
+    print(id)
+
     params = BrainFlowInputParams()
     params.ip_port = args.ip_port
-    params.serial_port = args.serial_port
+    params.serial_port = openbci_serial_port
     params.mac_address = args.mac_address
     params.other_info = args.other_info
     params.serial_number = args.serial_number
@@ -140,7 +161,7 @@ def Cyton_Board_Config():
     params.timeout = args.timeout
     params.file = args.file
 
-    return (args.board_id, params, args.streamer_params)
+    return (id, params, args.streamer_params)
 
 def CSV(data, col):
     start = 0
@@ -185,7 +206,7 @@ if __name__ == "__main__":
 
     q = Queue()
     synch = Barrier(2)
-    sys_processes = [ Process(target=Streamer, args=(publisher, synch, q, info,)), 
+    sys_processes = [ Process(target=Streamer, args=(publisher, synch, q, info)), 
                       Process(target=DSP, args=(listener, synch, q,)) ]
 
     for process in sys_processes:

@@ -31,7 +31,7 @@ class EEGSocketListener:
     data = None         # data buffer array to be sent to AI
     samples = None      # number of samples currently in buffer
 
-    def __init__(self, host='127.0.0.1', port=65432, num_channels=8, input_len=125, output_size=5,
+    def __init__(self, host='127.0.0.1', port=65432, num_channels=8, input_len=250, output_size=5,
                 model_type: str = 'cca_knn', model_path: os.PathLike = None):
         self.host = host
         self.port = port
@@ -58,7 +58,7 @@ class EEGSocketListener:
 
     def recieve_packet(self):
         # the size of the input data = num elements * 8 bytes + 500 for leeway
-        sample = self.socket.recv(self.input_len * self.num_channels * 8 + 500)
+        sample = self.socket.recv(self.input_len * self.num_channels * 8 + 50000)
         sample = pickle.loads(sample)
         if sample is None:
             print("COLLECTION COMPLETE")
