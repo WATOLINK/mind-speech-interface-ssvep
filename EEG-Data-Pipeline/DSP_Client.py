@@ -8,10 +8,10 @@ import pandas as pd
 from time import time
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions
 
-path = os.getcwd()
-if path.split('\\')[-1] != 'mind-speech-interface-ssvep':
-    path = os.path.join(*path.split('\\')[:-1])
-sys.path.append( path + '\EEG-AI-Layer' )
+# path = os.getcwd()
+# if path.split('\\')[-1] != 'mind-speech-interface-ssvep':
+#     path = os.path.join(*path.split('\\')[:-1])
+# sys.path.append( path + '\EEG-AI-Layer' )
 #from models.Model import Model
 
 class EEGSocketListener:
