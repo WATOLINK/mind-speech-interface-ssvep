@@ -88,7 +88,7 @@ class EEGSocketListener:
                 print('TODO: MODEL PREDICTION')
     def filter(self):
         num_eeg_channels = 8
-        sampling_rate = 256
+        sampling_rate = 250
         mid_freq = 8
         band_width = 8
         for channel in range(num_eeg_channels):
