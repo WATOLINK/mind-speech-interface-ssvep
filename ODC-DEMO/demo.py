@@ -270,7 +270,7 @@ class Stimuli(QWidget):
             preStim = QLabel(labelTxt(""))
             preStimIndicators.append(preStim)   
         self.gridLayout = QGridLayout(self.frame)
-        # self.gridLayout.addWidget(QLabel(), 3, 0)
+        #self.gridLayout.addWidget(QLabel(), 3, 0)
         for row in range(3):
             for col in range(4):
                 stimNum = row*4+col
@@ -280,7 +280,7 @@ class Stimuli(QWidget):
 
                 stim[stimNum].toggleOff()
                 self.gridLayout.addWidget(stim[stimNum], row*2+4, col*2)
-        self.gridLayout.setSpacing(10)
+        self.gridLayout.setSpacing(50)
 
     # resizes grid during window resize
     def resizeEvent(self, event): 
@@ -289,7 +289,7 @@ class Stimuli(QWidget):
         l = min(self.width(), self.height())
         center = self.rect().center()
 
-        rect = QRect(0, 0, int(l*(7/6)), l) # 5 x 3 ratio
+        rect = QRect(0, 0, int(l*1.2), l*1) # 5 x 3 ratio
         rect.moveCenter(center)
         self.frame.setGeometry(rect)
 
@@ -356,14 +356,14 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     window = QWidget()
-    window.setWindowTitle('Flashing Stim 1')
+    window.setWindowTitle('Offline Data Collection')
     window.setStyleSheet("background-color: black;")
 
     layout = QVBoxLayout()
 
     # global label
     label = QLabel(labelTxt("ODC-DEMO"))
-    label.setFixedHeight(100)
+    label.setFixedHeight(30)
     layout.addWidget(label)
     print("Test")
     grid = Stimuli() # stimuli grid widget
@@ -380,7 +380,7 @@ if __name__ == '__main__':
     x = threading.Thread(target=display_procedure, args=(lambda: stopThread, board_details[0], board_details[1]))
     x.start()
 
-    window.setFixedSize(1000, 900) # initial window size
+    window.setFixedSize(1660, 940) # initial window size
     window.show()
     
     try:
