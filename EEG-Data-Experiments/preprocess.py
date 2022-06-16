@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 
 # loading in data
-# data = pd.read_csv('data\\055_2022_902854.csv')
+data = pd.read_csv('data\\055_2022_902854.csv')
 
 
 class Preprocess:
@@ -151,20 +151,16 @@ class Preprocess:
         l_data = self.get_sorted_df(new_df, 0)
         r_data = self.get_sorted_df(new_df, 1)
 
-        merged = pd.concat([l_data, r_data])
-        done = merged.drop(['Color Code', 'Trial', 'Batch'], axis=1)
-        # print(done)
-
         # gets into nice format ready for train
-        # new_df1 = self._get_train_data(l_data)
-        # new_df2 = self._get_train_data(r_data)
+        new_df1 = self._get_train_data(l_data)
+        new_df2 = self._get_train_data(r_data)
 
-        # done = self.put_together(new_df1, new_df2)
+        done = self.put_together(new_df1, new_df2)
         return done
 
 
-# if __name__ == "__main__":
-#     # type can be 'Frequency' or 'Color Code'
-#     preprocessor = Preprocess(data, type="Frequency")
-#     d = preprocessor.process()
-#     print(d.shape)
+if __name__ == "__main__":
+    # type can be 'Frequency' or 'Color Code'
+    preprocessor = Preprocess(data, type="Frequency")
+    d = preprocessor.process()
+    print(d.shape)
