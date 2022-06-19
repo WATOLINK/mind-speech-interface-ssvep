@@ -6,7 +6,7 @@ from Pages.styles import promptBoxStyle
 from Pages.button_container import ButtonContainer
 
 from Pages.HomePage.homepage import promptBox, inputBox
-from PyQt5.QtWidgets import QLabel, QWidget, QHBoxLayout, QLineEdit
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLineEdit
 
 class YesNoWidget(QWidget):
     def __init__(self, parent):
@@ -16,7 +16,7 @@ class YesNoWidget(QWidget):
         self.setObjectName("YN Widget")
         self.setLayout(layout)
 
-
+    #Create Yes and no buttons and their functions
     def createLayout(self,parent):
         layout = QHBoxLayout()
         labels = ["Yes", "No"]
