@@ -1,15 +1,33 @@
-import argparse
-from Model import Model
-from CCAKNN import CCAKNNModel
+from argparse import ArgumentParser
 import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from typing import List
 
-def get_args(parser: argparse.ArgumentParser):
+from ssvep_utils import buffer
+from CCAKNN import CCAKNNModel
+from Model import Model
+from utils import parse_and_filter_eeg_data, split_trials
+
+
+def get_args(parser: ArgumentParser):
+    """
+    Parse CLI args
+
+    Args:
+        parser: The ArgumentParser
+
+    Returns:
+        Parsed commandline args
+    """
     parser.add_argument('--train', action="store_true", help="Whether to train a model")
-    parser.add_argument('--verbose', action="store_true", help="Verbosity. Will print a confusion matrix if set")
+    parser.add_argument('--verbose', action="store_true", help="Verbosity level. Will print a confusion matrix if set")
     parser.add_argument('--neighbors', type=int, default=15, help="The number of neighbors to pass to a KNN")
     parser.add_argument('--training-data', type=str, help="Filepath for the training data (csv)")
     parser.add_argument('--testing-data', type=str, help="Filepath for the testing data (csv)")
-    parser.add_argument('--model-path', type=str, help="Filepath for a trained KNN model")
+    parser.add_argument('--model-path', type=str, help="Filepath for a trained model")
+    parser.add_argument('--model-type', type=str, default='ccaknn', help="The model architecture to use. i.e. ccaknn")
+    parser.add_argument('--model-save-path', type=str, default=None, help="Where to save the model")
     parser.add_argument('--data', type=str, help="Filepath for a dataset. Will perform a train/test split.")
     parser.add_argument('--sample-rate', type=int, default=250, help="Sampling rate (hz)")
     parser.add_argument('--window-len', type=int, default=1, help="Window length for data processing")
@@ -17,22 +35,69 @@ def get_args(parser: argparse.ArgumentParser):
     parser.add_argument('--lower-freq', type=float, default=5, help="Lower frequency bound for a bandpass filter")
     parser.add_argument('--upper-freq', type=float, default=5, help="Upper frequency bound for a bandpass filter")
     parser.add_argument('--random-state', type=int, default=42, help="Random State")
-    return parser.parse_args()
+    return parser.parse_known_args()
 
-def train(hparams, model, data, labels):
+
+def train(hparams: dict, model: Model, data: List[pd.DataFrame], labels: List[float]) -> Model:
+    """
+    Training function for the model
+
+    Args:
+        hparams: Model hyper parameters
+        model: Model instance
+        data: Training data
+        labels: Labels that correspond to the frequency for the training data
+
+    Returns:
+        A trained model
+    """
     # labels = data['Frequency'].to_numpy().astype('float64')
     # data = data.drop(columns=['Time', 'Frequency', 'Color Code'])
     # data = data.to_numpy().astype('float64')
-    model.train(hparams, data, labels)
+    return model.train(hparams, data, labels)
 
-def test(hparams, model, data, labels):
-    model.test(hparams, data, labels)
+
+def test(hparams: dict, model: Model, data: List[pd.DataFrame], labels:List[float]):
+    """
+    Testing function for the model
+
+    Args:
+        hparams: Model hyper parameters
+        model: Model instance
+        data: Testing data
+        labels: Labels that correspond to the frequency for the testing data
+
+    Returns:
+        Metrics for the tested model
+    """
+    return model.test(hparams, data, labels)
+
+
+def load_model(hparams: dict, model_type: str) -> Model:
+    """
+    Load a model from model type and initialize its hyperparams.
+    Args:
+        hparams: Model hyperparameters.
+        model_type: The type of model to load.
+
+    The current types are:
+        - ccaknn
+
+    Returns:
+        The loaded model
+    """
+    if model_type == 'ccaknn':
+        return CCAKNNModel(hparams)
+    return Model(hparams)
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    args = get_args(parser)
+    parser = ArgumentParser()
+    args, _ = get_args(parser)
 
-    model = CCAKNNModel(args)
+    if args.model_type:
+        model = load_model(args, args.model_type)
+
     if args.model_path:
         model.load_model(args.model_path)
     train_data, test_data = None, None
@@ -40,16 +105,21 @@ if __name__ == "__main__":
     if args.data:
         data_path = args.data
         data = pd.read_csv(args.data)
-        data = parse_eeg(data)
-        labels = sorted(data['Frequency'].dropna().tolist())
-        possible_frequencies = list(set(labels))
+        # offset 1 for Timestep
+        if all(data.iloc[0, 1:].values == 0):
+            data.at[1, 'Frequency'] = data.loc[0, 'Frequency']
+            data.at[1, 'Color Code'] = data.loc[0, 'Color Code']
+            data = data[1:]
+        data = parse_and_filter_eeg_data(data, args.sample_rate, 6, 80)
+        label_index = sorted(data['Frequency'].dropna().tolist())
+        possible_frequencies = list(set(label_index))
         model.trained_freqs = possible_frequencies
-        train_data = data.drop(columns=['Time', 'Color Code'])
+        train_data = data.drop(columns=['time', 'Color Code'])
         trials = split_trials(train_data)
         segments = []
         segment_labels = []
-        assert all([np.isna(lab) == False for lab in segment_labels])
-        for label, trial in zip(labels, trials):
+        assert all([not np.isna(lab) for lab in segment_labels])
+        for label, trial in zip(label_index, trials):
             duration = args.window_len * args.sample_rate
             data_overlap = (args.window_len - args.shift_len) * args.sample_rate
             segs = buffer(trial, duration, data_overlap)
@@ -64,15 +134,15 @@ if __name__ == "__main__":
 
     if args.training_data:
         train_data = pd.read_csv(args.training_data)
-        train_data = parse_eeg(train_data)
+        train_data = parse_and_filter_eeg_data(train_data)
         data_path = args.training_data
 
     if args.testing_data:
         test_data = pd.read_csv(args.testing_data)
-        test_data, splits = parse_eeg(test_data)
+        test_data, splits = parse_and_filter_eeg_data(test_data)
 
     if args.train:
-        train(args, model, train_data, train_labels)
+        model = train(args, model, train_data, train_labels)
         model_save_path = data_path.split("/")[-1][:-4] + '.model'
         print(f"saving at {model_save_path}")
         model.save_model(model_save_path)
