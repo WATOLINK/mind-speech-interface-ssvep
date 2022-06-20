@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from typing import List
+import os
 
 from ssvep_utils import buffer
 from CCAKNN import CCAKNNModel
@@ -20,14 +21,16 @@ def get_args(parser: ArgumentParser):
     Returns:
         Parsed commandline args
     """
+    parser.add_argument('--components', type=int, default=1, help="Number of components for CCA")
     parser.add_argument('--train', action="store_true", help="Whether to train a model")
     parser.add_argument('--verbose', action="store_true", help="Verbosity level. Will print a confusion matrix if set")
     parser.add_argument('--neighbors', type=int, default=15, help="The number of neighbors to pass to a KNN")
     parser.add_argument('--training-data', type=str, help="Filepath for the training data (csv)")
     parser.add_argument('--testing-data', type=str, help="Filepath for the testing data (csv)")
     parser.add_argument('--model-path', type=str, help="Filepath for a trained model")
-    parser.add_argument('--model-type', type=str, default='ccaknn', help="The model architecture to use. i.e. ccaknn")
-    parser.add_argument('--model-save-path', type=str, default=None, help="Where to save the model")
+    parser.add_argument('--model-type', type=str, default='cca_knn', help="The model architecture to use. i.e. ccaknn")
+    parser.add_argument('--output-path', type=str, default=None, help="Where to save the model")
+    parser.add_argument('--output-name', type=str, default=None, help="Name to save the model")
     parser.add_argument('--data', type=str, help="Filepath for a dataset. Will perform a train/test split.")
     parser.add_argument('--sample-rate', type=int, default=250, help="Sampling rate (hz)")
     parser.add_argument('--window-len', type=int, default=1, help="Window length for data processing")
@@ -38,7 +41,7 @@ def get_args(parser: ArgumentParser):
     return parser.parse_known_args()
 
 
-def train(hparams: dict, model: Model, data: List[pd.DataFrame], labels: List[float]) -> Model:
+def train(model: Model, data: List[pd.DataFrame], labels: List[float]) -> Model:
     """
     Training function for the model
 
@@ -51,10 +54,7 @@ def train(hparams: dict, model: Model, data: List[pd.DataFrame], labels: List[fl
     Returns:
         A trained model
     """
-    # labels = data['Frequency'].to_numpy().astype('float64')
-    # data = data.drop(columns=['Time', 'Frequency', 'Color Code'])
-    # data = data.to_numpy().astype('float64')
-    return model.train(hparams, data, labels)
+    return model.train(data, labels)
 
 
 def test(hparams: dict, model: Model, data: List[pd.DataFrame], labels:List[float]):
@@ -86,7 +86,7 @@ def load_model(hparams: dict, model_type: str) -> Model:
     Returns:
         The loaded model
     """
-    if model_type == 'ccaknn':
+    if model_type == 'cca_knn':
         return CCAKNNModel(hparams)
     return Model(hparams)
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         data = parse_and_filter_eeg_data(data, args.sample_rate, 6, 80)
         label_index = sorted(data['Frequency'].dropna().tolist())
         possible_frequencies = list(set(label_index))
-        model.trained_freqs = possible_frequencies
+        model.create_reference_templates(possible_frequencies)
         train_data = data.drop(columns=['time', 'Color Code'])
         trials = split_trials(train_data)
         segments = []
@@ -142,9 +142,12 @@ if __name__ == "__main__":
         test_data, splits = parse_and_filter_eeg_data(test_data)
 
     if args.train:
-        model = train(args, model, train_data, train_labels)
-        model_save_path = data_path.split("/")[-1][:-4] + '.model'
-        print(f"saving at {model_save_path}")
-        model.save_model(model_save_path)
+        train(model, train_data, train_labels)
+
+    if args.output_path and args.output_name:
+        path = os.path.join(args.output_path, args.output_name)
+        print(f"saving at {path}")
+        os.makedirs(args.output_path, exist_ok=True)
+        model.save_model(path)
 
     test(args, model, test_data, test_labels)

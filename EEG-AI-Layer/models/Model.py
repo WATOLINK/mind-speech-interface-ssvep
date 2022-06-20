@@ -1,4 +1,5 @@
-from .CCAKNN import CCAKNNModel
+from CCAKNN import CCAKNNModel
+
 
 class Model():
     """
