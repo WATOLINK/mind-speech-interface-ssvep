@@ -18,6 +18,7 @@ import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
 import argparse
+from UI_defs import hor, vert
 
 color_code_order = []
 color_freq_order = []
@@ -26,19 +27,19 @@ color_freq_order = []
 def display_procedure(stop, board, args):
 
     if testing:
-        START_DELAY_S = 1
-        NUM_TRIALS = 2
+        START_DELAY_S = 5
+        NUM_TRIALS = 1
         INDICATOR_TIME_VALUE_S = 1
         TRIAL_BREAK_TIME = 1
-        STIM_PERIOD_TRIALS = 3
+        STIM_PERIOD_TRIALS = 4
         STIM_TIME = 1
     else:
-        START_DELAY_S = 1  # 20 Seconds
+        START_DELAY_S = 20  # 20 Seconds
         NUM_TRIALS = 5  # 5 Trials
         INDICATOR_TIME_VALUE_S = 5  # 5 Seconds
         TRIAL_BREAK_TIME = 120  # 120 second
-        STIM_PERIOD_TRIALS = 4
-        STIM_TIME = 5
+        STIM_PERIOD_TRIALS = 4 #number of stim it goes through
+        STIM_TIME = 5 #stim flash time
 
     f = open("ODC-DEMO/demo_data/" + filename +
              ".txt", 'a')  # modify depending on CWD
@@ -257,7 +258,7 @@ def generate_test_report(board, duration, data, color_code_order, color_freq_ord
 class Stimuli(QWidget):
     def __init__(self, distance=1, radius=0.5):
         super().__init__()
-        self.resize(1200, 900)
+        self.resize(1800, 1300)
 
         # ensures correct aspect ratio of grid
         self.frame = QFrame(self, objectName="frame")
@@ -265,10 +266,10 @@ class Stimuli(QWidget):
         stim = []  # number of stimulus
 
         # white stims
-        stim.append(Stim.CircleFlash(9.75, 255, 0, 0, 1, radius))
-        stim.append(Stim.CircleFlash(11.25, 0, 255, 0, 2, radius))
+        stim.append(Stim.CircleFlash(10.25, 255, 255, 255, 1, radius))
+        stim.append(Stim.CircleFlash(11.75, 255, 255, 255, 2, radius))
         stim.append(Stim.CircleFlash(12.75, 255, 255, 255, 3, radius))
-        stim.append(Stim.CircleFlash(14.25, 0, 0, 255, 4, radius))
+        stim.append(Stim.CircleFlash(14.75, 255, 255, 255, 4, radius))
 
         # append stimulis to grid in random order
         random.shuffle(stim)
@@ -298,7 +299,7 @@ class Stimuli(QWidget):
         l = min(self.width(), self.height())
         center = self.rect().center()
 
-        rect = QRect(0, 0, int(l*(7/6)), l)  # 5 x 3 ratio
+        rect = QRect(0, 0, int(l*(14/9)), l)  # 5 x 3 ratio
         rect.moveCenter(center)
         self.frame.setGeometry(rect)
 
@@ -408,12 +409,11 @@ if __name__ == '__main__':
         lambda: stopThread, board_details[0], board_details[1]))
     x.start()
 
-    window.setFixedSize(1000, 900)  # initial window size
+    window.setFixedSize(hor, vert)  # initial window size
     window.show()
 
     try:
         sys.exit(app.exec_())
     except SystemExit:
-        stopThread = True
         file.close()
         print('Closing Window...')
