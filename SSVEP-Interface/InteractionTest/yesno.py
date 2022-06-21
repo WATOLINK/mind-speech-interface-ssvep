@@ -1,77 +1,49 @@
 from PyQt5 import QtWidgets
+from PyQt5 import QtCore
+
+
+from Pages.styles import promptBoxStyle
 from Pages.button_container import ButtonContainer
 
+from Pages.HomePage.homepage import promptBox, inputBox
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLineEdit
 
-class YesNoWindow(QtWidgets.QWidget):
-
+class YesNoWidget(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
-
-        self.generalLayout = QtWidgets.QVBoxLayout()
-
-        topLayout = QtWidgets.QHBoxLayout()
-    
-        bottomLayout = QtWidgets.QHBoxLayout()
-        bottomLayout.setStretch(0, 1)
-        bottomLayout.setStretch(1, 1)
-        bottomLayout.setStretch(2, 1)
         
-        confirmButton = ButtonContainer("Confirm", horizontal=True, checkable=False, border=False)
-        self.yesButton = ButtonContainer("Yes")
-        self.noButton = ButtonContainer("No")
+        layout = self.createLayout(parent)
+        self.setObjectName("YN Widget")
+        self.setLayout(layout)
 
-        topLayout.addWidget(self.yesButton)
-        topLayout.addWidget(self.noButton)
+    #Create Yes and no buttons and their functions
+    def createLayout(self,parent):
+        layout = QHBoxLayout()
+        labels = ["Yes", "No"]
+        buttons = []
 
-        self.dummyWidget = QtWidgets.QWidget()
-        self.dummyWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        bottomLayout.addWidget(self.dummyWidget) # Dummy widget
-        bottomLayout.addWidget(confirmButton)
-        bottomLayout.addWidget(self.dummyWidget) # Dummy widget
+        for i in range(len(labels)):
+            button = ButtonContainer(labels[i])
+            button.setObjectName(labels[i])
+            layout.addWidget(button)
+            buttons.append(button)
 
-        self.dummyButton = QtWidgets.QPushButton()
-        self.dummyButton.setCheckable(True)
-        self.buttonGroup = QtWidgets.QButtonGroup()
-        self.buttonGroup.addButton(self.yesButton)
-        self.buttonGroup.addButton(self.noButton)
-        self.buttonGroup.addButton(self.dummyButton)
+        buttons[0].clicked.connect(lambda: disableOtherButtons(parent, buttons, buttons[0]))
+        buttons[1].clicked.connect(lambda: disableOtherButtons(parent, buttons, buttons[1]))
+
+        return layout
+
+# make the yn array of buttons single select + display selection input field
+def disableOtherButtons(parent,buttons, selected):    
+
+    inputField = parent.findChild(QLineEdit,"Input")
+
+    if selected.isChecked():
         
-        self.generalLayout.addLayout(topLayout)
-        self.generalLayout.addLayout(bottomLayout)
+        inputField.setText(selected.objectName())
 
-        self.generalLayout.setStretch(0, 3)
-        self.generalLayout.setStretch(1, 1)
-        
-        # self.confirm_button = QtWidgets.QPushButton('Confirm')
-        # self.confirm_button.setStyleSheet(confirmButtonStyle)
-        # layout.addWidget(self.confirm_button, 2, 1)
-        confirmButton.clicked.connect(self.confirm_clicked)
-
-        self.setLayout(self.generalLayout)
-
-
-        #automated selection part
-        value = signalReceived()
-        self.automatedSelection(value)
-
-    # Following functions are called when a yes, no, or confirm stimuli is detected by event loop (not implemented yet)
-
-    def confirm_clicked(self):
-        if (self.yesButton.isChecked() == True):
-            self.dummyButton.setChecked(True)
-            # Do what we want when yes is checked and confirm is clicked
-        elif (self.noButton.isChecked() == True):
-            self.dummyButton.setChecked(True)
-            # Do what we want when no is checked and confirm is clicked
-
-    def automatedSelection(self, value):
-        match value:
-            case 111111:
-                self.yesButton.setChecked(True)
-            case 222222:
-                self.noButton.setChecked(True)
-
-#run this code when the signal is received with the 6 digit value
-def signalReceived():
-    receivedValue = 222222      #temporarily hardcoded values, will be replaced with the API call
-    return receivedValue
+        for button in buttons:
+            if button != selected:
+                button.setChecked(False)    
+    else:
+        inputField.clear()
