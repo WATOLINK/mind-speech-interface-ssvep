@@ -71,7 +71,7 @@ class HomePageWidget(QWidget):
         bottomLayout.setStretch(1, 1)
         bottomLayout.setStretch(2, 1)
         
-        self.confirmButton = ButtonContainer("Confirm", horizontal=True, checkable=False, border=False)
+        # self.confirmButton = ButtonContainer("Confirm", horizontal=True, checkable=False, border=False)
         # self.confirmButton.clicked.connect(lambda: confirm(parent, "beepboop"))
         # confirmButton.setChecked(th)
         
@@ -79,18 +79,21 @@ class HomePageWidget(QWidget):
         self.dummyWidget = QWidget()
         self.dummyWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         bottomLayout.addWidget(self.dummyWidget) # Dummy widget
-        bottomLayout.addWidget(self.confirmButton)
+        # bottomLayout.addWidget(self.confirmButton)
         bottomLayout.addWidget(self.dummyWidget) # Dummy widget
 
         self.layout.addLayout(bottomLayout)
 
         self.setLayout(self.layout)
         self.myThread.wait.connect(self.onWait)
+        self.myThread.twoS.connect(self.onTwo)
 
         
     def onWait(self, wow):
-        self.testText = str(wow)
         confirm(self.parent, str(wow))
+    
+    def onTwo(self, wow):
+        lessThan(self.parent, str(wow))
         
         
        
@@ -114,15 +117,20 @@ def confirm(parent, sig):
         temp = messageBox.text() + f"[{inputField.text()}]"
         messageBox.setText(sig)
         inputField.clear()
-        
-
+    
 
     for button in currWidget.findChildren(ButtonContainer):
         if button.isChecked():
             button.setChecked(False)
 
-    messageBox.update()
-    parent.update()
+    # messageBox.update()
+    # parent.update()
+
+def lessThan(parent, sig):
+    inputField = parent.findChild(QLineEdit,"Input")
+
+    inputField.setText(sig)
+
 
 
 def mainFuncTest():
@@ -136,9 +144,9 @@ def mainFuncTest():
 class AThread(QThread):
     
     wait = pyqtSignal(str)
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+    twoS = pyqtSignal(str)
     
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def run(self):
         self.s.connect(('127.0.0.1', 55432))
@@ -146,15 +154,21 @@ class AThread(QThread):
         while True:
             msg = self.s.recv(10000000)
             message = pickle.loads(msg)
+
             
-            time.sleep(1)
-            x = r.randint(0,12)
-            x = str(x)
-            if int(message) < 10:
+           
+            print(message)
+            if int(message) == 8:
                 x = "yes"
-            else:
+                self.wait.emit(x)
+            elif int(message) == 10:
                 x = "no"
-            self.wait.emit(x)
+                self.wait.emit(x)
+            else:
+                self.twoS.emit(str(message))
+            
+            
+            
             count = count + 1
         
 
