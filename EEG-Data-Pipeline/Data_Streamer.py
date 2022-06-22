@@ -116,26 +116,12 @@ class EEGSocketPublisher:
             while time_func():
                 if self.board.get_board_data_count() >=  self.input_len:
                     packet = self.retrieve_sample()
+                    
                     self.send_packet(packet)
 
             self.connection.sendall(pickle.dumps(None))
 
-def Cyton_Board_Config():
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False, default=0)
-    parser.add_argument('--ip-port', type=int, help='ip port', required=False, default=0)
-    parser.add_argument('--ip-protocol', type=int, help='ip protocol, check IpProtocolType enum', required=False, default=0)
-    parser.add_argument('--ip-address', type=str, help='ip address', required=False, default='')
-    parser.add_argument('--serial-port', type=str, help='serial port', required=False, default='')
-    parser.add_argument('--mac-address', type=str, help='mac address', required=False, default='')
-    parser.add_argument('--other-info', type=str, help='other info', required=False, default='')
-    parser.add_argument('--streamer-params', type=str, help='streamer params', required=False, default='')
-    parser.add_argument('--serial-number', type=str, help='serial number', required=False, default='')
-    parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards', required=False)
-    parser.add_argument('--file', type=str, help='file', required=False, default='')
-    args = parser.parse_args()
-
+def Cyton_Board_Config(args):
     ports = p.comports()
     print(len(ports), 'ports found')
     list_manufacturer = []
@@ -209,13 +195,38 @@ def DSP(listener, synch, q):
         listener.close_socket_conn()
 
 
+def get_args(parser):
+
+    parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False, default=0)
+    parser.add_argument('--ip-port', type=int, help='ip port', required=False, default=0)
+    parser.add_argument('--ip-protocol', type=int, help='ip protocol, check IpProtocolType enum', required=False, default=0)
+    parser.add_argument('--ip-address', type=str, help='ip address', required=False, default='')
+    parser.add_argument('--serial-port', type=str, help='serial port', required=False, default='')
+    parser.add_argument('--mac-address', type=str, help='mac address', required=False, default='')
+    parser.add_argument('--other-info', type=str, help='other info', required=False, default='')
+    parser.add_argument('--streamer-params', type=str, help='streamer params', required=False, default='')
+    parser.add_argument('--serial-number', type=str, help='serial number', required=False, default='')
+    parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards', required=False)
+    parser.add_argument('--file', type=str, help='file', required=False, default='')
+    parser.add_argument('--host', type=str, help='host name', required=False, default='127.0.0.1')
+    parser.add_argument('--lisPort', type=int, help='lis port', required=False, default=65432)
+    parser.add_argument('--num-channels', type=int, help='number of channels', required=False, default=8)
+    parser.add_argument('--input-len', type=int, help='timeout for device discovery or connection', required=False, default=250)
+    parser.add_argument('--output-size', type=int, help='timeout for device discovery or connection', required=False, default=5)
+    parser.add_argument('--model-type', type=str, help='timeout for device discovery or connection', required=False, default='cca_knn')
+    parser.add_argument('--model-path', type=str, help='timeout for device discovery or connection', required=False, default=None)
+    parser.add_argument('--pubPort', type=int, help='timeout for device discovery or connection', required=False, default=55432)
+    parser.add_argument('--window-len', type=int, help='timeout for device discovery or connection', required=False, default=1)
+    parser.add_argument('--shift-len', type=int, help='timeout for device discovery or connection', required=False, default=1)
+    return parser.parse_known_args()
+
 
 if __name__ == "__main__":
-    info = Cyton_Board_Config()
+    parser = argparse.ArgumentParser()
+    args, _ = get_args(parser)
+    info = Cyton_Board_Config(args)
     publisher = EEGSocketPublisher()
-    listener = EEGSocketListener()
-    
-
+    listener = EEGSocketListener(**vars(args))
 
     q = Queue()
     synch = Barrier(2)

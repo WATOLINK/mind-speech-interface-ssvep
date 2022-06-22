@@ -17,6 +17,8 @@ from InteractionTest.yesno import YesNoWidget
 import random as r
 import threading
 import time
+import socket
+import pickle
 
 
 class Window(QMainWindow):
@@ -88,7 +90,6 @@ class HomePageWidget(QWidget):
         
     def onWait(self, wow):
         self.testText = str(wow)
-        print("onWaitonWaitonWaitonWaitonWaitonWaitonWaitonWaitonWaitonWaitonWaitonWaitonWaitonWait")
         confirm(self.parent, str(wow))
         
         
@@ -101,8 +102,8 @@ def inputBox(parent):
     return textbox
 
 def confirm(parent, sig):
-    print("entered")
-    print("signal num", sig)
+    # print("entered")
+    # print("signal num", sig)
     messageBox = parent.findChild(QLabel,"Prompt")
     inputField = parent.findChild(QLineEdit,"Input")
     currWidget = parent.findChild(QWidget, "YN Widget")
@@ -129,29 +130,33 @@ def mainFuncTest():
     win = Window()
     win.setStyleSheet(windowStyle)
     win.show()
-    # thread = AThread()
-    # thread.finished.connect(app.exit)
-    # thread.start()
     sys.exit(app.exec_())
 
 
 class AThread(QThread):
-    # global par
+    
     wait = pyqtSignal(str)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    
 
     def run(self):
+        self.s.connect(('127.0.0.1', 55432))
         count = 0
-        while count < 20:
+        while True:
+            msg = self.s.recv(10000000)
+            message = pickle.loads(msg)
+            
             time.sleep(1)
             x = r.randint(0,12)
             x = str(x)
-            print(x)
-            # confirm(par, x)
-            print("asdfoisdjfosdjfosadflas")
+            if int(message) < 10:
+                x = "yes"
+            else:
+                x = "no"
             self.wait.emit(x)
-            # confirm(par, x)
             count = count + 1
-            
+        
 
             
     

@@ -8,13 +8,15 @@ import numpy as np
 import pandas as pd
 from time import time
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions
+import random as r
 
-# need to make it os agnostic 
 path = os.getcwd()
-if path.split('\\')[-1] != 'mind-speech-interface-ssvep':
-    path = os.path.join(*path.split('\\')[:-1])
-sys.path.append( path + '\EEG-AI-Layer' )
+head, tail = os.path.split(path)
+if tail != 'mind-speech-interface-ssvep':
+    path = os.path.join(head)
+sys.path.append(os.path.join(path,'EEG-AI-Layer'))
 from models.Model import Model
+
 
 class EEGSocketListener:
     # Socket Object and Params
@@ -36,7 +38,7 @@ class EEGSocketListener:
     samples = None      # number of samples currently in buffer
 
     def __init__(self, host='127.0.0.1', lisPort=65432, num_channels=8, input_len=250, output_size=5,
-                model_type: str = 'cca_knn', model_path: os.PathLike = None, pubPort=55432):
+                model_type: str = 'cca_knn', model_path: os.PathLike = None, pubPort=55432, **kwargs):
         self.host = host
         self.lisPort = lisPort
         self.pubPort = pubPort
@@ -50,11 +52,9 @@ class EEGSocketListener:
         self.model = Model(model_path, model_type)
         
         self.samplling_rate_hz = 250
-        self.window_len = 1
-        self.shift_len = 1
+        self.window_len = kwargs['window_len']
+        self.shift_len = kwargs['shift_len']
         self.random_state = 42
-
-
 
     def open_socket_conn(self):
         self.lisSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -81,9 +81,10 @@ class EEGSocketListener:
         return sample
 
     def send_packet(self, sample):
+        # self.connection.sendall(pickle.dumps(sample))
         self.connection.sendall(pickle.dumps(sample))
-        print('Data sent,')
-        print(sample.shape)
+        print('Data sent,', sample)
+        # print(sample.shape)
 
     def listen(self, run_time=None):
         self.connection, self.address = self.pubSocket.accept()
@@ -98,20 +99,20 @@ class EEGSocketListener:
             self.data[start:end, :] = packet
             print(f"SUCCESS {self.samples+1}/{self.output_size} - {np.shape(self.data)}")
             del packet
+            print(f"samples: {self.samples}")
             self.samples = (self.samples + 1) % self.output_size
-            print(self.data)
-            self.send_packet(self.data)
-            if self.samples == 0:
-                #self.filter()
-                #prediction = self.model.predict(self.data[start:end])
-                #print(prediction)
-                print('TODO: MODEL PREDICTION')
+            rand = r.randint(8,12)
+            self.send_packet(rand)
+            # if self.samples == 0:
+            #     # self.filter()
+            #     # prediction = self.model.predict(self.data[start:end])
+            #     # print(f"Prediction: {prediction}")
 
     def filter(self):
         num_eeg_channels = 8
         sampling_rate = 250
-        mid_freq = 8
-        band_width = 8
+        mid_freq = 12
+        band_width = 4
         for channel in range(num_eeg_channels):
             DataFilter.perform_bandpass(self.data[channel], sampling_rate, mid_freq, band_width, 2, FilterTypes.BUTTERWORTH, 0)
 

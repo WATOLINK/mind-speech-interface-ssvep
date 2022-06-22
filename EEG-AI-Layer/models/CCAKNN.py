@@ -10,12 +10,14 @@ from typing import List
 class CCAKNNModel:
     """A generic CCA w/ KNN model."""
 
-    def __init__(self, args):
-        self.window_len = args.window_len
-        self.sample_rate = args.sample_rate
-        self.duration = self.window_len * self.sample_rate
-        self.cca = CCA(n_components=args.components)
-        self.knn = KNeighborsClassifier(n_neighbors=args.neighbors)
+    def __init__(self, model_path = None, **kwargs):
+        components = kwargs.get('components', 1)
+        neighbors = kwargs.get('neighbors', 3)
+        self.cca = CCA(n_components=components)
+        if model_path:
+            self.load_model(model_path=model_path)
+        else:
+            self.knn = KNeighborsClassifier(n_neighbors=neighbors)
 
     def create_reference_templates(self, frequencies: List):
         """
