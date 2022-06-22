@@ -7,6 +7,7 @@ from Pages.button_container import ButtonContainer
 
 from Pages.HomePage.homepage import promptBox, inputBox
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLineEdit
+import random as r
 
 class YesNoWidget(QWidget):
     def __init__(self, parent):
@@ -15,10 +16,14 @@ class YesNoWidget(QWidget):
         layout = self.createLayout(parent)
         self.setObjectName("YN Widget")
         self.setLayout(layout)
+        
+    
+
 
     #Create Yes and no buttons and their functions
     def createLayout(self,parent):
         layout = QHBoxLayout()
+        
         labels = ["Yes", "No"]
         buttons = []
 
@@ -27,13 +32,20 @@ class YesNoWidget(QWidget):
             button.setObjectName(labels[i])
             layout.addWidget(button)
             buttons.append(button)
-
+        
+        
         buttons[0].clicked.connect(lambda: disableOtherButtons(parent, buttons, buttons[0]))
         buttons[1].clicked.connect(lambda: disableOtherButtons(parent, buttons, buttons[1]))
 
         return layout
 
 # make the yn array of buttons single select + display selection input field
+def plzWork():
+    while True:
+        print(str(r.randint(0,111)))
+   
+
+
 def disableOtherButtons(parent,buttons, selected):    
 
     inputField = parent.findChild(QLineEdit,"Input")

@@ -3,22 +3,26 @@ import socket
 import os
 import pickle
 import sys
+from turtle import pu
 import numpy as np
 import pandas as pd
 from time import time
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions
 
-# path = os.getcwd()
-# if path.split('\\')[-1] != 'mind-speech-interface-ssvep':
-#     path = os.path.join(*path.split('\\')[:-1])
-# sys.path.append( path + '\EEG-AI-Layer' )
-#from models.Model import Model
+# need to make it os agnostic 
+path = os.getcwd()
+if path.split('\\')[-1] != 'mind-speech-interface-ssvep':
+    path = os.path.join(*path.split('\\')[:-1])
+sys.path.append( path + '\EEG-AI-Layer' )
+from models.Model import Model
 
 class EEGSocketListener:
     # Socket Object and Params
-    socket = None
+    lisSocket = None
+    pubSocket = None
     host = ''           # Server hostname or IP
-    port = None         # Port used by server
+    lisPort = None         # Port used by server
+    pubPort = None #Port used to publish to UI 
 
     # Data Format Definitions
     num_channels = None # number of columns in input array 
@@ -31,10 +35,11 @@ class EEGSocketListener:
     data = None         # data buffer array to be sent to AI
     samples = None      # number of samples currently in buffer
 
-    def __init__(self, host='127.0.0.1', port=65432, num_channels=8, input_len=250, output_size=5,
-                model_type: str = 'cca_knn', model_path: os.PathLike = None):
+    def __init__(self, host='127.0.0.1', lisPort=65432, num_channels=8, input_len=250, output_size=5,
+                model_type: str = 'cca_knn', model_path: os.PathLike = None, pubPort=55432):
         self.host = host
-        self.port = port
+        self.lisPort = lisPort
+        self.pubPort = pubPort
 
         self.input_len = input_len
         self.output_size = output_size
@@ -42,23 +47,30 @@ class EEGSocketListener:
 
         self.data = np.empty((output_size*input_len, num_channels))
         self.samples = 0
-        #self.model = Model(model_path, model_type)
+        self.model = Model(model_path, model_type)
         
         self.samplling_rate_hz = 250
         self.window_len = 1
         self.shift_len = 1
         self.random_state = 42
 
+
+
     def open_socket_conn(self):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect( (self.host, self.port) )
+        self.lisSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.lisSocket.connect( (self.host, self.lisPort) )
+        self.pubSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.pubSocket.bind( (self.host, self.pubPort) )
+        self.pubSocket.listen()
+        print("listening")
     
     def close_socket_conn(self):
-        self.socket.close()
+        self.lisSocket.close()
+        self.pubSocket.close()
 
     def recieve_packet(self):
         # the size of the input data = num elements * 8 bytes + 500 for leeway
-        sample = self.socket.recv(self.input_len * self.num_channels * 8 + 50000)
+        sample = self.lisSocket.recv(self.input_len * self.num_channels * 8 + 50000)
         sample = pickle.loads(sample)
         if sample is None:
             print("COLLECTION COMPLETE")
@@ -68,7 +80,13 @@ class EEGSocketListener:
                 f"Incorrect Shape, Expected: {(self.input_len, self.num_channels)}, Recieved: {sample.shape}"
         return sample
 
+    def send_packet(self, sample):
+        self.connection.sendall(pickle.dumps(sample))
+        print('Data sent,')
+        print(sample.shape)
+
     def listen(self, run_time=None):
+        self.connection, self.address = self.pubSocket.accept()
         init_time = time()
         time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
         while time_func():
@@ -81,11 +99,14 @@ class EEGSocketListener:
             print(f"SUCCESS {self.samples+1}/{self.output_size} - {np.shape(self.data)}")
             del packet
             self.samples = (self.samples + 1) % self.output_size
+            print(self.data)
+            self.send_packet(self.data)
             if self.samples == 0:
                 #self.filter()
                 #prediction = self.model.predict(self.data[start:end])
                 #print(prediction)
                 print('TODO: MODEL PREDICTION')
+
     def filter(self):
         num_eeg_channels = 8
         sampling_rate = 250

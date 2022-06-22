@@ -32,7 +32,16 @@ from time import time
 import serial.tools.list_ports as p
 
 sys.path.append( '../EEG-DSP-Layer' )
+import sys
+from PyQt5.QtCore import center, Qt
+from PyQt5.QtGui import QFont
+
+from PyQt5.QtWidgets import QApplication, QStackedWidget
+from PyQt5.QtWidgets import QMainWindow
 from DSP_Client import EEGSocketListener
+
+sys.path.append(os.path.abspath("C:/Users/adali/Desktop/mind-speech-interface-ssvep/SSVEP-Interface"))
+from InteractionTestDemo import mainFuncTest
 
 class EEGSocketPublisher:
     # Socket Object and Params
@@ -192,22 +201,27 @@ def Streamer(publisher, synch, q, info):
 
 def DSP(listener, synch, q):
     listener.open_socket_conn()
+    
     synch.wait()
     listener.listen()
     q.put(None)
     if q.get() is None:
         listener.close_socket_conn()
-    
+
+
 
 if __name__ == "__main__":
     info = Cyton_Board_Config()
     publisher = EEGSocketPublisher()
     listener = EEGSocketListener()
+    
+
 
     q = Queue()
     synch = Barrier(2)
     sys_processes = [ Process(target=Streamer, args=(publisher, synch, q, info)), 
-                      Process(target=DSP, args=(listener, synch, q,)) ]
+                      Process(target=DSP, args=(listener, synch, q,)),
+                      Process(target=mainFuncTest) ]
 
     for process in sys_processes:
         process.start()
