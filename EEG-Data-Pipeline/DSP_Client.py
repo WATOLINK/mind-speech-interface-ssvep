@@ -1,30 +1,27 @@
-from sre_constants import SUCCESS
 import socket
 import os
 import pickle
 import sys
-from turtle import pu
 import numpy as np
 import pandas as pd
 from time import time
-from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions
-import random as r
+from brainflow.data_filter import DataFilter, FilterTypes
 
 path = os.getcwd()
 head, tail = os.path.split(path)
 if tail != 'mind-speech-interface-ssvep':
     path = os.path.join(head)
-sys.path.append(os.path.join(path,'EEG-AI-Layer'))
-from models.Model import Model
+sys.path.append(os.path.join(path, 'EEG-AI-Layer'))
+from models.Model import load_model
 
 
 class EEGSocketListener:
     # Socket Object and Params
     lisSocket = None
     pubSocket = None
-    host = ''           # Server hostname or IP
-    lisPort = None         # Port used by server
-    pubPort = None #Port used to publish to UI 
+    host = ''  # Server hostname or IP
+    lisPort = None  # Port used by server
+    pubPort = None  # Port used to publish to UI
 
     # Data Format Definitions
     num_channels = None # number of columns in input array 
@@ -37,8 +34,7 @@ class EEGSocketListener:
     data = None         # data buffer array to be sent to AI
     samples = None      # number of samples currently in buffer
 
-    def __init__(self, host='127.0.0.1', lisPort=65432, num_channels=8, input_len=250, output_size=5,
-                model_type: str = 'cca_knn', model_path: os.PathLike = None, pubPort=55432, **kwargs):
+    def __init__(self, host='127.0.0.1', lisPort=65432, num_channels=8, input_len=250, output_size=5, pubPort=55432, **kwargs):
         self.host = host
         self.lisPort = lisPort
         self.pubPort = pubPort
@@ -47,10 +43,10 @@ class EEGSocketListener:
         self.output_size = output_size
         self.num_channels = num_channels
 
-        self.data = np.empty((output_size*input_len, num_channels))
+        self.data = np.empty((output_size * input_len, num_channels))
         self.samples = 0
-        self.model = Model(model_path, model_type)
-        
+        self.model = load_model(**kwargs)
+
         self.samplling_rate_hz = 250
         self.window_len = kwargs['window_len']
         self.shift_len = kwargs['shift_len']
@@ -58,12 +54,12 @@ class EEGSocketListener:
 
     def open_socket_conn(self):
         self.lisSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.lisSocket.connect( (self.host, self.lisPort) )
+        self.lisSocket.connect((self.host, self.lisPort))
         self.pubSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.pubSocket.bind( (self.host, self.pubPort) )
-        self.pubSocket.listen()
+        self.pubSocket.bind((self.host, self.pubPort))
+        self.pubSocket.listen(1)
         print("listening")
-    
+
     def close_socket_conn(self):
         self.lisSocket.close()
         self.pubSocket.close()
@@ -74,17 +70,15 @@ class EEGSocketListener:
         sample = pickle.loads(sample)
         if sample is None:
             print("COLLECTION COMPLETE")
-        else: # If not null sample is recevied
-            assert type(sample) == np.ndarray,  f"Not a Numpy ND Array {type(sample), sample}"
+        else:
+            assert isinstance(sample, np.ndarray), f"Not a Numpy ND Array {type(sample), sample}"
             assert sample.shape == (self.input_len, self.num_channels), \
                 f"Incorrect Shape, Expected: {(self.input_len, self.num_channels)}, Recieved: {sample.shape}"
         return sample
 
     def send_packet(self, sample):
-        # self.connection.sendall(pickle.dumps(sample))
         self.connection.sendall(pickle.dumps(sample))
-        print('Data sent,', sample)
-        # print(sample.shape)
+        print(f'Sent {sample.shape} to {self.pubPort}')
 
     def listen(self, run_time=None):
         self.connection, self.address = self.pubSocket.accept()
@@ -101,12 +95,12 @@ class EEGSocketListener:
             del packet
             print(f"samples: {self.samples}")
             self.samples = (self.samples + 1) % self.output_size
-            rand = r.randint(8,12)
-            self.send_packet(rand)
-            # if self.samples == 0:
-            #     # self.filter()
-            #     # prediction = self.model.predict(self.data[start:end])
-            #     # print(f"Prediction: {prediction}")
+            self.send_packet(self.data)
+            if self.samples == 0:
+                # self.filter()
+                prepared = self.model.prepare(self.data[start:end])
+                prediction = self.model.predict(prepared)
+                print(f"Prediction: {prediction}")
 
     def filter(self):
         num_eeg_channels = 8
@@ -114,10 +108,19 @@ class EEGSocketListener:
         mid_freq = 12
         band_width = 4
         for channel in range(num_eeg_channels):
-            DataFilter.perform_bandpass(self.data[channel], sampling_rate, mid_freq, band_width, 2, FilterTypes.BUTTERWORTH, 0)
+            DataFilter.perform_bandpass(self.data[channel], sampling_rate, mid_freq, band_width, 2,
+                                        FilterTypes.BUTTERWORTH, 0)
 
     def generate_csv(self, data, name="fullOBCI"):
-        df = pd.DataFrame(data=data, columns=list(range(1,17)))
+        df = pd.DataFrame(data=data, columns=list(range(1, 17)))
         print(f'{name}.csv Generated')
         df.to_csv(f'{name}.csv')
         return
+
+
+if __name__ == "__main__":
+    esl = EEGSocketListener()
+    esl.open_socket_conn()
+    esl.accept_connections()
+    esl.listen()
+    esl.close_socket_conn()

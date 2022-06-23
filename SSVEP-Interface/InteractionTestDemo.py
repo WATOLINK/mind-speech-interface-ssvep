@@ -1,12 +1,8 @@
-from concurrent.futures import thread
-from http.client import ImproperConnectionState
-import imp
 import sys
 
 from PyQt5.QtWidgets import QApplication,QVBoxLayout,QWidget,QHBoxLayout,QSizePolicy,QLineEdit,QLabel
 from PyQt5.QtCore import QCoreApplication, QThread, pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMainWindow
-from PyQt5 import QtCore
 
 from Pages.styles import windowStyle,textBoxStyle
 from Pages.button_container import ButtonContainer
@@ -14,9 +10,6 @@ from Pages.button_container import ButtonContainer
 from Pages.HomePage.homepage import promptBox
 
 from InteractionTest.yesno import YesNoWidget
-import random as r
-import threading
-import time
 import socket
 import pickle
 
@@ -37,13 +30,8 @@ class Window(QMainWindow):
         self.centralWidget
         # Sets location (x, y) and size (width, height) of current window
         self.setGeometry(0, 0, 1600, 900)
-        
-        
-    
-    
 
-# global par 
-
+# global par
 class HomePageWidget(QWidget):
     def __init__(self, parent):
         super().__init__()
@@ -94,9 +82,6 @@ class HomePageWidget(QWidget):
     
     def onTwo(self, wow):
         lessThan(self.parent, str(wow))
-        
-        
-       
 
 def inputBox(parent):
     textbox = QLineEdit()
@@ -131,8 +116,6 @@ def lessThan(parent, sig):
 
     inputField.setText(sig)
 
-
-
 def mainFuncTest():
     app = QApplication(sys.argv)
     win = Window()
@@ -155,8 +138,6 @@ class AThread(QThread):
             msg = self.s.recv(10000000)
             message = pickle.loads(msg)
 
-            
-           
             print(message)
             if int(message) == 8:
                 x = "yes"
@@ -166,11 +147,4 @@ class AThread(QThread):
                 self.wait.emit(x)
             else:
                 self.twoS.emit(str(message))
-            
-            
-            
-            count = count + 1
-        
-
-            
-    
+            count += 1
