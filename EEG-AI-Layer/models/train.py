@@ -6,8 +6,7 @@ from typing import List
 import os
 
 from ssvep_utils import buffer
-from CCAKNN import CCAKNNModel
-from Model import Model
+from Model import load_model
 from utils import parse_and_filter_eeg_data, split_trials
 
 
@@ -27,7 +26,7 @@ def get_args(parser: ArgumentParser):
     parser.add_argument('--neighbors', type=int, default=15, help="The number of neighbors to pass to a KNN")
     parser.add_argument('--training-data', type=str, help="Filepath for the training data (csv)")
     parser.add_argument('--testing-data', type=str, help="Filepath for the testing data (csv)")
-    parser.add_argument('--model-path', type=str, help="Filepath for a trained model")
+    parser.add_argument('--model-path', type=str, help="Filepath for a trained model", default=None)
     parser.add_argument('--model-type', type=str, default='cca_knn', help="The model architecture to use. i.e. ccaknn")
     parser.add_argument('--output-path', type=str, default=None, help="Where to save the model")
     parser.add_argument('--output-name', type=str, default=None, help="Name to save the model")
@@ -41,7 +40,7 @@ def get_args(parser: ArgumentParser):
     return parser.parse_known_args()
 
 
-def train(model: Model, data: List[pd.DataFrame], labels: List[float]) -> Model:
+def train(model, data: List[pd.DataFrame], labels: List[float]):
     """
     Training function for the model
 
@@ -57,7 +56,7 @@ def train(model: Model, data: List[pd.DataFrame], labels: List[float]) -> Model:
     return model.train(data, labels)
 
 
-def test(hparams: dict, model: Model, data: List[pd.DataFrame], labels:List[float]):
+def test(hparams: dict, model, data: List[pd.DataFrame], labels:List[float]):
     """
     Testing function for the model
 
@@ -73,33 +72,12 @@ def test(hparams: dict, model: Model, data: List[pd.DataFrame], labels:List[floa
     return model.test(hparams, data, labels)
 
 
-def load_model(hparams: dict, model_type: str) -> Model:
-    """
-    Load a model from model type and initialize its hyperparams.
-    Args:
-        hparams: Model hyperparameters.
-        model_type: The type of model to load.
-
-    The current types are:
-        - ccaknn
-
-    Returns:
-        The loaded model
-    """
-    if model_type == 'cca_knn':
-        return CCAKNNModel(hparams)
-    return Model(hparams)
-
-
 if __name__ == "__main__":
     parser = ArgumentParser()
     args, _ = get_args(parser)
 
-    if args.model_type:
-        model = load_model(args, args.model_type)
+    model = load_model(**vars(args))
 
-    if args.model_path:
-        model.load_model(args.model_path)
     train_data, test_data = None, None
 
     if args.data:
@@ -111,15 +89,15 @@ if __name__ == "__main__":
             data.at[1, 'Color Code'] = data.loc[0, 'Color Code']
             data = data[1:]
         data = parse_and_filter_eeg_data(data, args.sample_rate, 6, 80)
-        label_index = sorted(data['Frequency'].dropna().tolist())
-        possible_frequencies = list(set(label_index))
-        model.create_reference_templates(possible_frequencies)
+        model.create_reference_templates(data['Frequency'].dropna().unique())
         train_data = data.drop(columns=['time', 'Color Code'])
+
         trials = split_trials(train_data)
         segments = []
         segment_labels = []
-        assert all([not np.isna(lab) for lab in segment_labels])
-        for label, trial in zip(label_index, trials):
+        for trial in trials:
+            label = trial.iloc[0]['Frequency']
+            trial.drop(columns=['Frequency'], inplace=True)
             duration = args.window_len * args.sample_rate
             data_overlap = (args.window_len - args.shift_len) * args.sample_rate
             segs = buffer(trial, duration, data_overlap)
@@ -128,7 +106,6 @@ if __name__ == "__main__":
                 segment_labels.append(label)
         seggies = np.arange(len(segment_labels))
         train_segs, test_segs = train_test_split(seggies, test_size=0.2, random_state=42)
-        assert len(segments) == len(segment_labels)
         train_data, train_labels = [segments[ts] for ts in train_segs], [segment_labels[ts] for ts in train_segs]
         test_data, test_labels = [segments[ts] for ts in test_segs], [segment_labels[ts] for ts in test_segs]
 

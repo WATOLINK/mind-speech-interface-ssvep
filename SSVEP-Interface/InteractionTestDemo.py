@@ -1,5 +1,6 @@
 from concurrent.futures import thread
 from http.client import ImproperConnectionState
+import imp
 import sys
 
 from PyQt5.QtWidgets import QApplication,QVBoxLayout,QWidget,QHBoxLayout,QSizePolicy,QLineEdit,QLabel
@@ -153,9 +154,7 @@ class AThread(QThread):
         while True:
             msg = self.s.recv(10000000)
             message = pickle.loads(msg)
-
             
-           
             print(message)
             if int(message) == 8:
                 x = "yes"
