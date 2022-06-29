@@ -73,7 +73,7 @@ def test(hparams: dict, model: Model, data: List[pd.DataFrame], labels:List[floa
     return model.test(hparams, data, labels)
 
 
-def load_model(hparams: dict, model_type: str) -> Model:
+def load_model(hparams: dict, model_type: str, frequencies: List[float] = None) -> Model:
     """
     Load a model from model type and initialize its hyperparams.
     Args:
@@ -87,8 +87,18 @@ def load_model(hparams: dict, model_type: str) -> Model:
         The loaded model
     """
     if model_type == 'cca_knn':
-        return CCAKNNModel(hparams)
+        return CCAKNNModel(args=hparams, frequencies=frequencies)
     return Model(hparams)
+
+def join_datasets(data_path):
+    try:
+        return pd.read_csv(data_path)
+    except IsADirectoryError:
+        paths = os.listdir(data_path)[1:]
+        data = join_datasets(os.path.join(data_path, paths[0]))
+        for path in paths[1:]:
+            data.append(join_datasets(os.path.join(data_path, path)))
+        return data
 
 
 if __name__ == "__main__":
@@ -103,8 +113,8 @@ if __name__ == "__main__":
     train_data, test_data = None, None
 
     if args.data:
-        data_path = args.data
-        data = pd.read_csv(args.data)
+        data = join_datasets(args.data)
+
         # offset 1 for Timestep
         if all(data.iloc[0, 1:].values == 0):
             data.at[1, 'Frequency'] = data.loc[0, 'Frequency']
@@ -113,7 +123,8 @@ if __name__ == "__main__":
         data = parse_and_filter_eeg_data(data, args.sample_rate, 6, 80)
         label_index = sorted(data['Frequency'].dropna().tolist())
         possible_frequencies = list(set(label_index))
-        model.create_reference_templates(possible_frequencies)
+        if args.model_type == 'cca_knn':
+            model = load_model(hparams=args, model_type=args.model_type, frequencies=possible_frequencies)
         train_data = data.drop(columns=['time', 'Color Code'])
         trials = split_trials(train_data)
         segments = []
@@ -144,10 +155,10 @@ if __name__ == "__main__":
     if args.train:
         train(model, train_data, train_labels)
 
+    test(args, model, test_data, test_labels)
+
     if args.output_path and args.output_name:
         path = os.path.join(args.output_path, args.output_name)
         print(f"saving at {path}")
         os.makedirs(args.output_path, exist_ok=True)
         model.save_model(path)
-
-    test(args, model, test_data, test_labels)
