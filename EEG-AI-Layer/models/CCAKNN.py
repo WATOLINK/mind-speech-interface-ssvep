@@ -10,12 +10,19 @@ from typing import List
 class CCAKNNModel:
     """A generic CCA w/ KNN model."""
 
-    def __init__(self, args):
+    def __init__(self, args: dict, frequencies: List[float] = None):
         self.window_len = args.window_len
         self.sample_rate = args.sample_rate
         self.duration = self.window_len * self.sample_rate
         self.cca = CCA(n_components=args.components)
         self.knn = KNeighborsClassifier(n_neighbors=args.neighbors)
+        self.trained_freqs = None
+        self.cca_frequencies = None
+        self.freq2label = None
+        self.reference_templates = None
+        if frequencies:
+            self.trained_freqs = sorted(frequencies)
+            self.reference_templates = self.create_reference_templates(frequencies=self.trained_freqs)
 
     def create_reference_templates(self, frequencies: List):
         """
@@ -27,15 +34,14 @@ class CCAKNNModel:
         Returns:
             An array of reference signals
         """
-        self.trained_freqs = sorted(frequencies)
         self.cca_frequencies = [freq for freq in sorted(frequencies) if freq != 0]
-        self.freq2label = {freq: idx for idx, freq in enumerate(self.trained_freqs)}
+        self.freq2label = {freq: idx for idx, freq in enumerate(frequencies)}
         reference_templates = []
         for freq in self.trained_freqs:
             if freq == 0:
                 continue
             reference_templates.append(self.get_reference_signals(self.duration, freq, self.sample_rate))
-        self.reference_templates = np.array(reference_templates, dtype='float64')
+        return np.array(reference_templates, dtype='float64')
 
     def load_model(self, model_path: os.PathLike):
         self.knn = load(model_path)
@@ -107,7 +113,8 @@ class CCAKNNModel:
         train_data = np.array(train_data)
         predictions, correlations = self.cca_predict(data=train_data)
         predictions = np.array(predictions)
-        print(f'CCA train accuracy: {accuracy_score(y_true=idx_labels, y_pred=predictions):.4f}')
+        cca_accuracy = accuracy_score(y_true=idx_labels, y_pred=predictions)
+        print(f'CCA train accuracy: {cca_accuracy:.4f}')
         self.knn.fit(correlations, idx_labels)
         predictions = self.knn.predict(correlations)
         print(f'kNN train accuracy: {accuracy_score(y_true=idx_labels, y_pred=predictions):.4f}')
