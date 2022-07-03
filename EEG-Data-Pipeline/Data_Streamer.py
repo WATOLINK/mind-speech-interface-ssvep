@@ -144,7 +144,7 @@ if __name__ == "__main__":
     synch = Barrier(2)
     sys_processes = [Process(target=Streamer, args=(publisher, synch, q, info), name="Streamer"),
                      Process(target=DSP, args=(listener, synch, q,), name="Dsp Client"),
-                     Process(target=mainFuncTest, name="Test Application")
+                     Process(target=mainFuncTest, name="UI")
                      ]
 
     for process in sys_processes:
