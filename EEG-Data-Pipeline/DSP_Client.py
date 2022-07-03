@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from time import time
 from brainflow.data_filter import DataFilter, FilterTypes
+import random as r
 
 path = os.getcwd()
 head, tail = os.path.split(path)
@@ -13,6 +14,7 @@ if tail != 'mind-speech-interface-ssvep':
     path = os.path.join(head)
 sys.path.append(os.path.join(path, 'EEG-AI-Layer'))
 from models.Model import load_model
+
 
 
 class EEGSocketListener:
@@ -78,7 +80,7 @@ class EEGSocketListener:
 
     def send_packet(self, sample):
         self.connection.sendall(pickle.dumps(sample))
-        print(f'Sent {sample.shape} to {self.pubPort}')
+        print(f'Sent {sample}')
 
     def listen(self, run_time=None):
         self.connection, self.address = self.pubSocket.accept()
@@ -95,12 +97,14 @@ class EEGSocketListener:
             del packet
             print(f"samples: {self.samples}")
             self.samples = (self.samples + 1) % self.output_size
-            self.send_packet(self.data)
+            
+            
             if self.samples == 0:
                 # self.filter()
                 prepared = self.model.prepare(self.data[start:end])
                 prediction = self.model.predict(prepared)
                 print(f"Prediction: {prediction}")
+                self.send_packet(prediction[0])
 
     def filter(self):
         num_eeg_channels = 8
@@ -117,10 +121,3 @@ class EEGSocketListener:
         df.to_csv(f'{name}.csv')
         return
 
-
-if __name__ == "__main__":
-    esl = EEGSocketListener()
-    esl.open_socket_conn()
-    esl.accept_connections()
-    esl.listen()
-    esl.close_socket_conn()

@@ -154,20 +154,21 @@ class AThread(QThread):
         while True:
             msg = self.s.recv(10000000)
             message = pickle.loads(msg)
-            
+            self.twoS.emit(str(message))
+
             print(message)
-            if int(message) == 8:
-                x = "yes"
-                self.wait.emit(x)
-            elif int(message) == 10:
-                x = "no"
-                self.wait.emit(x)
-            else:
-                self.twoS.emit(str(message))
-            
-            
-            
+            # if int(message) == 8:
+            #     x = "yes"
+            #     self.wait.emit(x)
+            # elif int(message) == 10:
+            #     x = "no"
+            #     self.wait.emit(x)
+            # else:
+                
             count = count + 1
+            
+            
+            
         
 
             
