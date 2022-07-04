@@ -111,25 +111,30 @@ class CCAKNNModel:
     def train(self, train_data, train_labels):
         idx_labels = [self.freq2label[label] for label in train_labels]
         train_data = np.array(train_data)
-        predictions, correlations = self.cca_predict(data=train_data)
-        predictions = np.array(predictions)
-        cca_accuracy = accuracy_score(y_true=idx_labels, y_pred=predictions)
-        print(f'CCA train accuracy: {cca_accuracy:.4f}')
+        cca_predictions, correlations = self.cca_predict(data=train_data)
+        if self.trained_freqs[0] == 0:
+            cca_predictions = [pred + 1 for pred in cca_predictions]
+        cca_predictions = np.array(cca_predictions)
+        cca_accuracy = accuracy_score(y_true=idx_labels, y_pred=cca_predictions)
         self.knn.fit(correlations, idx_labels)
         predictions = self.knn.predict(correlations)
-        print(f'kNN train accuracy: {accuracy_score(y_true=idx_labels, y_pred=predictions):.4f}')
+        knn_accuracy = accuracy_score(y_true=idx_labels, y_pred=predictions)
+        return {'train_cca_accuracy': cca_accuracy, 'train_cca_predictions': cca_predictions,
+                'train_knn_accuracy': knn_accuracy, 'train_knn_predictions': predictions}
 
     def test(self, hparams, test_data, test_labels):
         idx_labels = [self.freq2label[label] for label in test_labels]
         test_data = np.array(test_data)
         cca_predictions, correlations = self.cca_predict(data=test_data)
+        if self.trained_freqs[0] == 0:
+            cca_predictions = [pred + 1 for pred in cca_predictions]
+        cca_accuracy = accuracy_score(y_true=idx_labels, y_pred=cca_predictions)
         knn_predictions = self.knn.predict(correlations)
-        print(f'kNN accuracy: {accuracy_score(y_true=idx_labels, y_pred=knn_predictions):.4f}')
-        print(f'CCA accuracy: {accuracy_score(y_true=idx_labels, y_pred=cca_predictions):.4f}')
+        knn_accuracy = accuracy_score(y_true=idx_labels, y_pred=knn_predictions)
+        metrics = {'test_cca_accuracy': cca_accuracy, 'test_knn_accuracy': knn_accuracy}
         if hparams.verbose:
-            print("kNN Confusion Matrix")
-            print(self.trained_freqs)
-            print(confusion_matrix(test_labels, knn_predictions, labels=self.trained_freqs))
-            print("CCA Confusion Matrix")
-            print(self.trained_freqs)
-            print(confusion_matrix(test_labels, cca_predictions, labels=self.trained_freqs))
+            cca_confusion_matrix = confusion_matrix(idx_labels, cca_predictions)
+            metrics['test_cca_confusion_matrix'] = cca_confusion_matrix
+            knn_confusion_matrix = confusion_matrix(idx_labels, knn_predictions)
+            metrics['test_knn_confusion_matrix'] = knn_confusion_matrix
+        return metrics
