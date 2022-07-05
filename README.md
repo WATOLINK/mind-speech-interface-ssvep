@@ -25,7 +25,7 @@ Then in the browser window navigate to the notebook under EEG-Data-Visualization
 
 Insert the csv name of the recording you want to visualize in that section:
 
-<img width="477" alt="Screen Shot 2022-07-05 at 4 53 51 PM" src="https://user-images.githubusercontent.com/34819737/177414540-edf62736-326a-48ba-95f2-836d0600ce0f.png">
+<img width="715" alt="Screen Shot 2022-07-05 at 5 26 53 PM" src="https://user-images.githubusercontent.com/34819737/177419300-542e8df2-8f5a-4344-a61d-9f73770efc00.png">
 
 Then click:
 
