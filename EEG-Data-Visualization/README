@@ -1,8 +1,1 @@
-This folder contains tools used to visualize EEG data (collected offline) and assess EEG Data quality
-
-To use the Notebook in this folder you must clone this repository: https://github.com/aaravindravi/Brain-computer-interfaces
-
-Then you must paste the Notebook found in EEG-Data-Visualization into the Brain Computer Interfaces repository folder 
-along with any EEG data (csv files) that you wish to visualize and assess.
-
-Finally, run the notebook to obtain the averaged FFT plots of each stimuli response from the electrode channel of your choice!
+none
