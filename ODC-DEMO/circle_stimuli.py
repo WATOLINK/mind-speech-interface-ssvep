@@ -24,7 +24,7 @@ class CircleFlash (QOpenGLWidget):
     on = True
     solidColor = False  # for displaying as indicator
 
-    def __init__(self, freqHz, r, g, b, stimuliNumber, radius=0.5):
+    def __init__(self, freqHz, r, g, b, stimuliNumber, radius=0.8):
         super() . __init__()
         self.flag = True
 
