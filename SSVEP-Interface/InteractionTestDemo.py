@@ -152,21 +152,24 @@ class AThread(QThread):
         self.s.connect(('127.0.0.1', 55432))
         count = 0
         while True:
-            msg = self.s.recv(10000000)
-            message = pickle.loads(msg)
-            self.twoS.emit(str(message))
+            try:
+                msg = self.s.recv(10000000)
+                message = pickle.loads(msg)
+                self.twoS.emit(str(message))
 
-            print(message)
-            # if int(message) == 8:
-            #     x = "yes"
-            #     self.wait.emit(x)
-            # elif int(message) == 10:
-            #     x = "no"
-            #     self.wait.emit(x)
-            # else:
-                
-            count = count + 1
-            
+                print(message)
+                # if int(message) == 8:
+                #     x = "yes"
+                #     self.wait.emit(x)
+                # elif int(message) == 10:
+                #     x = "no"
+                #     self.wait.emit(x)
+                # else:
+                    
+                count = count + 1
+            except EOFError:
+                    continue
+        
             
             
         

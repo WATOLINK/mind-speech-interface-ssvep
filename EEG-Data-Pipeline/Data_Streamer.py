@@ -25,7 +25,7 @@ import sys
 
 from DSP_Client import EEGSocketListener
 from EEG_socket_publisher import EEGSocketPublisher
-from test_socket_listener import TestSocketListener
+
 sys.path.append("SSVEP-Interface")
 from InteractionTestDemo import mainFuncTest
 
@@ -87,7 +87,7 @@ def Streamer(publisher, synch, q, info):
     if q.get() is None:
         publisher.close_connections()
         q.put(None)
-
+   
 
 def DSP(listener, synch, q):
     listener.open_socket_conn()
@@ -96,14 +96,11 @@ def DSP(listener, synch, q):
     q.put(None)
     if q.get() is None:
         listener.close_socket_conn()
+    listener.generate_csv()
+    
 
 
-def run_tsl(tsl, synch, q):
-    tsl.open_socket_conn()
-    synch.wait()
-    tsl.run()
-    if not q.get():
-        tsl.close_socket_conn()
+
 
 
 def get_args(parser):

@@ -3,6 +3,7 @@ from brainflow.board_shim import BoardShim
 import numpy as np
 import pickle
 from time import time
+import random as r 
 
 
 class EEGSocketPublisher:
@@ -56,6 +57,7 @@ class EEGSocketPublisher:
         self.close_board_conn()
 
     def retrieve_sample(self):
+        # self.col_hi_lim = r.randint(2,8)
         sample = self.board.get_board_data(self.input_len).T[:, self.col_low_lim:self.col_hi_lim]
         assert type(sample) == np.ndarray, f"Not a Numpy ND Array {type(sample), sample}"
         assert sample.shape == (self.input_len, self.num_channels), \
@@ -71,7 +73,7 @@ class EEGSocketPublisher:
         self.connection, self.address = self.socket.accept()
         with self.connection:
             print('Connected by', self.address)
-            exp_count = run_time * 2
+            exp_count = run_time *2
             init_time = time()
             time_func = (lambda: (self.count < exp_count) and (time() - init_time < run_time + 1)) if run_time else (
                 lambda: True)
@@ -80,3 +82,4 @@ class EEGSocketPublisher:
                     packet = self.retrieve_sample()
                     self.send_packet(packet)
             self.connection.sendall(pickle.dumps(None))
+            

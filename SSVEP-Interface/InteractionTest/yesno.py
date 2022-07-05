@@ -26,9 +26,10 @@ class YesNoWidget(QWidget):
         
         labels = ["Yes", "No"]
         buttons = []
+        freqs = [10.25, 12.75]
 
         for i in range(len(labels)):
-            button = ButtonContainer(labels[i])
+            button = ButtonContainer(labels[i], freq=freqs[i])
             button.setObjectName(labels[i])
             layout.addWidget(button)
             buttons.append(button)
