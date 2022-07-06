@@ -19,8 +19,8 @@ class CCAKNNModel:
         self.cca = CCA(n_components=components)
         self.duration = kwargs.get('window_len', 1) * kwargs.get('sample_rate', 250)
         self.sample_rate = kwargs.get('sample_rate', 250)
-        self.trained_freqs = kwargs.get('frequencies', None)
-        # [0.0, 12.75, 11.25, 14.75, 9.25, 9.75, 14.25, 11.75, 10.75, 13.25, 10.25, 12.25, 13.75]
+        freqs = [0.0, 12.75, 14.75, 11.75, 10.25]
+        self.trained_freqs = kwargs.get('frequencies', freqs)
         self.cca_frequencies = None
         self.freq2label = None
         self.reference_templates = None
