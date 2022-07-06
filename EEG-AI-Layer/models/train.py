@@ -72,23 +72,6 @@ def test(hparams: dict, model, data: List[pd.DataFrame], labels:List[float]):
     """
     return model.test(hparams, data, labels)
 
-def load_model(hparams: dict, model_type: str, frequencies: List[float] = None) -> Model:
-    """
-    Load a model from model type and initialize its hyperparams.
-    Args:
-        hparams: Model hyperparameters.
-        model_type: The type of model to load.
-
-    The current types are:
-        - ccaknn
-
-    Returns:
-        The loaded model
-    """
-    if model_type == 'cca_knn':
-        return CCAKNNModel(args=hparams, frequencies=frequencies)
-    return Model(hparams)
-
 def join_datasets(data_path):
     try:
         return pd.read_csv(data_path)
