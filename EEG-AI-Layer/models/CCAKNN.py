@@ -8,6 +8,7 @@ from typing import List
 from .ssvep_utils import butter_bandpass_filter
 
 
+
 class CCAKNNModel:
     """A generic CCA w/ KNN model."""
 

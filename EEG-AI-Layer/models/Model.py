@@ -2,5 +2,5 @@ from .CCAKNN import CCAKNNModel
 
 
 def load_model(**kwargs):
-    if kwargs['model_type'] == 'cca_knn':
+    if kwargs.get('model_type', None) == 'cca_knn':
         return CCAKNNModel(**kwargs)

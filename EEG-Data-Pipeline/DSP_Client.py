@@ -113,8 +113,6 @@ class EEGSocketListener:
                 prediction = self.model.predict(prepared)
                 print(f"Prediction: {prediction}")
                 self.send_packet(prediction[0])
-                print("prediction")
-                
             
             if crap: 
                 break
