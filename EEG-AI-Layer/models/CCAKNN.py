@@ -5,7 +5,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from joblib import dump, load
 from sklearn.metrics import confusion_matrix, accuracy_score
 from typing import List
-from ssvep_utils import butter_bandpass_filter
+from .ssvep_utils import butter_bandpass_filter
+
 
 
 class CCAKNNModel:

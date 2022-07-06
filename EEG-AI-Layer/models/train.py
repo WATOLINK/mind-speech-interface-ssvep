@@ -152,3 +152,4 @@ if __name__ == "__main__":
         print(f"saving at {path}")
         os.makedirs(args.output_path, exist_ok=True)
         model.save_model(path)
+        

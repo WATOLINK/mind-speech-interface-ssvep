@@ -1,4 +1,4 @@
-from CCAKNN import CCAKNNModel
+from .CCAKNN import CCAKNNModel
 
 
 def load_model(**kwargs):

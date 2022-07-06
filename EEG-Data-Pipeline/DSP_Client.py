@@ -47,7 +47,7 @@ class EEGSocketListener:
 
         self.data = np.empty((output_size * input_len, num_channels))
         self.samples = 0
-        self.model = load_model(kwargs)
+        self.model = load_model(**kwargs)
 
         self.samplling_rate_hz = 250
         self.window_len = kwargs['window_len']
@@ -113,7 +113,6 @@ class EEGSocketListener:
                 prediction = self.model.predict(prepared)
                 print(f"Prediction: {prediction}")
                 self.send_packet(prediction[0])
-                
             
             if crap: 
                 break
