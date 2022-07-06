@@ -36,7 +36,7 @@ class Window(QMainWindow):
         
         self.centralWidget
         # Sets location (x, y) and size (width, height) of current window
-        self.setGeometry(0, 0, 1600, 900)
+        self.setGeometry(0, 0, 2400, 1360)
         
         
     
@@ -93,7 +93,7 @@ class HomePageWidget(QWidget):
         confirm(self.parent, str(wow))
     
     def onTwo(self, wow):
-        lessThan(self.parent, str(wow))
+        lessThan(self.parent, wow)
         
         
        
@@ -128,8 +128,23 @@ def confirm(parent, sig):
 
 def lessThan(parent, sig):
     inputField = parent.findChild(QLineEdit,"Input")
+    currWidget = parent.findChild(QWidget, "YN Widget")
 
-    inputField.setText(sig)
+    for button in currWidget.findChildren(ButtonContainer):
+        print(button.label.text())
+        if button.label.text() == "YES" and sig == 14.75:
+            button.setChecked(True)
+            inputField.setText("YES")
+        elif button.label.text() == "NO" and sig == 11.75:
+            button.setChecked(True)
+            inputField.setText("NO")
+        else: 
+            inputField.setText(str(sig))
+            button.setChecked(False)
+
+
+
+            
 
 
 
@@ -137,6 +152,7 @@ def mainFuncTest():
     app = QApplication(sys.argv)
     win = Window()
     win.setStyleSheet(windowStyle)
+    win.setFixedSize(2400, 1360) # initial window size
     win.show()
     sys.exit(app.exec_())
 
@@ -144,7 +160,7 @@ def mainFuncTest():
 class AThread(QThread):
     
     wait = pyqtSignal(str)
-    twoS = pyqtSignal(str)
+    twoS = pyqtSignal(float)
     
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -155,7 +171,8 @@ class AThread(QThread):
             try:
                 msg = self.s.recv(10000000)
                 message = pickle.loads(msg)
-                self.twoS.emit(str(message))
+                self.twoS.emit(message)
+                
 
                 print(message)
                 # if int(message) == 8:

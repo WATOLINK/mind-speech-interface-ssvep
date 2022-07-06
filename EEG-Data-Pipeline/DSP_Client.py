@@ -36,7 +36,7 @@ class EEGSocketListener:
     data = None         # data buffer array to be sent to AI
     samples = None      # number of samples currently in buffer
 
-    def __init__(self, host='127.0.0.1', lisPort=65432, num_channels=8, input_len=250, output_size=5, pubPort=55432, **kwargs):
+    def __init__(self, host='127.0.0.1', lisPort=65432, num_channels=8, input_len=250, output_size=1, pubPort=55432, **kwargs):
         self.host = host
         self.lisPort = lisPort
         self.pubPort = pubPort
@@ -68,8 +68,13 @@ class EEGSocketListener:
 
     def recieve_packet(self):
         # the size of the input data = num elements * 8 bytes + 500 for leeway
-        sample = self.lisSocket.recv(self.input_len * self.num_channels * 8 + 50000)
-        sample = pickle.loads(sample)
+        try:
+            sample = self.lisSocket.recv(self.input_len * self.num_channels * 8 + 50000)
+        
+            sample = pickle.loads(sample)
+        except EOFError:
+            print(EOFError)
+
         
         if sample is None:
             print("COLLECTION COMPLETE")
@@ -111,9 +116,10 @@ class EEGSocketListener:
                 # self.filter()
                 prepared = self.model.prepare(self.data[start:end])
                 prediction = self.model.predict(prepared)
-                print(f"Prediction: {prediction}")
-                self.send_packet(prediction[0])
-            
+                frequencies = self.model.convert_index_to_frequency(prediction)
+                print(f"Prediction: {frequencies}")
+                self.send_packet(frequencies[0])
+                
             if crap: 
                 break
 

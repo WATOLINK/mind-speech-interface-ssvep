@@ -24,9 +24,9 @@ class YesNoWidget(QWidget):
     def createLayout(self,parent):
         layout = QHBoxLayout()
         
-        labels = ["Yes", "No"]
+        labels = ["YES", "NO"]
         buttons = []
-        freqs = [10.25, 12.75]
+        freqs = [14.75, 11.75]
 
         for i in range(len(labels)):
             button = ButtonContainer(labels[i], freq=freqs[i])

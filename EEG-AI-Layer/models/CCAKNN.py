@@ -92,7 +92,7 @@ class CCAKNNModel:
         Returns:
             Prepared data for prediction
         """
-        data = butter_bandpass_filter(data.T, 6, 80, 250, 4).T
+        data = butter_bandpass_filter(data.T, 9, 16, 250, 4).T
         return data[np.newaxis, :]
 
     def predict(self, data: np.ndarray):
@@ -108,6 +108,9 @@ class CCAKNNModel:
         predictions, correlations = self.cca_predict(data)
         predictions = self.knn.predict(correlations)
         return predictions
+
+    def convert_index_to_frequency(self, predictions: np.array):
+        return [self.trained_freqs[pred] for pred in predictions]
 
     def calculate_correlation(self, signals: np.array, reference: np.array) -> np.array:
         """

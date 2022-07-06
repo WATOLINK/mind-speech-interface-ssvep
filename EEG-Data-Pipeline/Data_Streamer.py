@@ -83,7 +83,7 @@ def Streamer(publisher, synch, q, info):
         publisher.col_low_lim = 1
         publisher.col_hi_lim = 9
     synch.wait()
-    publisher.publish(10)
+    publisher.publish(9999999999999)
     if q.get() is None:
         publisher.close_connections()
         q.put(None)
@@ -98,9 +98,6 @@ def DSP(listener, synch, q):
         listener.close_socket_conn()
     listener.generate_csv()
     
-
-
-
 
 
 def get_args(parser):
