@@ -1,3 +1,4 @@
+from cgitb import enable
 from locale import currency
 from tkinter import Button
 from PyQt5.QtWidgets import QLabel,QWidget,QLineEdit,QStackedWidget,QVBoxLayout
@@ -6,19 +7,26 @@ from Pages.styles import mainButtonStyle
 from Pages.button_container import ButtonContainer
 from Pages.QAPage.completer2 import suggestWords
 from Pages.QAPage.keyboard2 import groupedChars
+import Pages.sidebar.enterButton
 
+
+from Pages.HomePage.mainWidgetIndexes import getMainWidgetIndex
+from Pages.sidebar.sidebarIndexes import getSidebarIndex
+
+#indexes
 class Sidebar(QStackedWidget):
     def __init__(self, parent):
         super().__init__(parent)
         
         self.setObjectName("Sidebar Stack")
 
-        self.addWidget(homeSidebar(parent))  # 0
-        self.addWidget(characterSidebar(parent))  # 1
-        self.addWidget(enterOnlySidebar(parent))  # 2
+        self.addWidget(OutputModeSidebar(parent))  # 0
+        self.addWidget(homeSidebar(parent))  # 1
+        self.addWidget(characterSidebar(parent))  # 2
+        self.addWidget(enterOnlySidebar(parent))  # 3
+        self.addWidget(enterReturnToOutputModeSidebar(parent))  # 4
 
-    
-def homeSidebar(parent):
+def OutputModeSidebar(parent):
     sidebar = QWidget()
     layout = QVBoxLayout()
 
@@ -30,12 +38,60 @@ def homeSidebar(parent):
     for button in buttons:
         layout.addWidget(button)
 
-    buttons[0].clicked.connect(lambda: navigateFromHome(parent))
-    buttons[1].clicked.connect(lambda: changeStacks(parent,4,2))
+    buttons[0].clicked.connect(lambda: navigateFromOutputMode(parent))
+    buttons[1].clicked.connect(lambda: changeStacks(parent,getMainWidgetIndex("help"),getSidebarIndex("enter only return to output mode")))
 
 
     sidebar.setLayout(layout)
     return sidebar
+    
+def homeSidebar(parent):
+    sidebar = QWidget()
+    layout = QVBoxLayout()
+
+    buttons = []
+
+    buttons.append(EnterButton(parent))
+    buttons.append(ButtonContainer("Help",checkable=False))
+    buttons.append(ButtonContainer("Output Toggle",checkable=False))
+    
+    for button in buttons:
+        layout.addWidget(button)
+
+    buttons[0].clicked.connect(lambda: navigateFromHome(parent))
+    buttons[1].clicked.connect(lambda: changeStacks(parent,getMainWidgetIndex("help"),getSidebarIndex("enter only")))
+    buttons[2].clicked.connect(lambda: changeStacks(parent,getMainWidgetIndex("output mode"),getSidebarIndex("output mode")))
+
+
+    sidebar.setLayout(layout)
+    return sidebar
+
+def navigateFromOutputMode(parent):
+    
+    labels = ['Twitter','Voice','Server Communication','Visual Communication']
+    mainButtons = [parent.findChild(ButtonContainer,label) for label in labels]
+
+    for button in mainButtons:
+        if button.label.text() == labels[0] and button.isChecked():
+            print("going to Twitter")
+            button.setChecked(False)
+            Pages.sidebar.enterButton.outputMode = "twitter"
+            changeStacks(parent,getMainWidgetIndex("home"),getSidebarIndex("home"))
+        elif button.label.text() == labels[1] and button.isChecked():
+            print("going to Voice")
+            button.setChecked(False)
+            Pages.sidebar.enterButton.outputMode = "voice"
+            # changeStacks(parent,2,2)
+        elif button.label.text() == labels[2] and button.isChecked():
+            print("going to Server Communication")
+            button.setChecked(False)
+            Pages.sidebar.enterButton.outputMode = "server"
+            # changeStacks(parent,3,1)
+        elif button.label.text() == labels[3] and button.isChecked():
+            print("going to Visual Communication")
+            button.setChecked(False)
+            Pages.sidebar.enterButton.outputMode = "visual"
+            # changeStacks(parent,3,1)
 
 def navigateFromHome(parent):
     
@@ -46,15 +102,15 @@ def navigateFromHome(parent):
         if button.label.text() == labels[0] and button.isChecked():
             print("going to MC")
             button.setChecked(False)
-            changeStacks(parent,1,2)
+            changeStacks(parent,getMainWidgetIndex("mc"),getSidebarIndex("enter only"))
         elif button.label.text() == labels[1] and button.isChecked():
             print("going to YN")
             button.setChecked(False)
-            changeStacks(parent,2,2)
+            changeStacks(parent,getMainWidgetIndex("yn"),getSidebarIndex("enter only"))
         elif button.label.text() == labels[2] and button.isChecked():
             print("going to Typing")
             button.setChecked(False)
-            changeStacks(parent,3,1)
+            changeStacks(parent,getMainWidgetIndex("keyboard"),getSidebarIndex("character only"))
 
 
 def characterSidebar(parent):
@@ -74,7 +130,7 @@ def characterSidebar(parent):
     for button in buttons:
         layout.addWidget(button)
 
-    buttons[0].clicked.connect(lambda: changeStacks(parent,0,0))
+    # buttons[0].clicked.connect(lambda: changeStacks(parent,getMainWidgetIndex("home"),getSidebarIndex("home")))
     buttons[1].clicked.connect(lambda: backspace(parent))
     buttons[2].clicked.connect(lambda: space(parent))
     buttons[3].clicked.connect(lambda: toggle(parent))
@@ -88,6 +144,16 @@ def enterOnlySidebar(parent):
     sidebar = QWidget()
     layout = QVBoxLayout()
     layout.addWidget(EnterButton(parent))
+    sidebar.setLayout(layout)
+    return sidebar
+
+def enterReturnToOutputModeSidebar(parent):
+    # For MC Page and Yes/No Page
+    sidebar = QWidget()
+    layout = QVBoxLayout()
+    btn = ButtonContainer("Enter",checkable=False)
+    btn.clicked.connect(lambda: changeStacks(parent, getMainWidgetIndex("output mode"), getSidebarIndex("output mode")))
+    layout.addWidget(btn)
     sidebar.setLayout(layout)
     return sidebar
 
@@ -107,12 +173,18 @@ def backspace(parent):
 
     if len(temp) != 0 :
         inputField.setText(temp[:-1])
+        
+        #TODO: fix server comm integration
+        #parent.parent.emit_message('client_message', {'message': temp[:-1]})
 
 def space(parent):
     inputField = parent.findChild(QLineEdit,"Input")
 
     temp = inputField.text() + " "
     inputField.setText(temp)
+    
+    #TODO: fix server comm integration
+    #parent.parent.emit_message('client_message', {'message': temp})
 
 def toggle(parent):
     toggleBtn = parent.findChild(ButtonContainer,"Toggle")
@@ -127,5 +199,4 @@ def toggle(parent):
         
         for x in range(len(keyboardBtns)):
             keyboardBtns[x].label.setText(groupedChars[x])
-        
 
