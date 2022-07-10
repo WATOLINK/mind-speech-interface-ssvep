@@ -70,6 +70,7 @@ class EEGSocketListener:
         # the size of the input data = num elements * 8 bytes + 500 for leeway
         try:
             sample = self.lisSocket.recv(self.input_len * self.num_channels * 8 + 50000)
+            
         
             sample = pickle.loads(sample)
         except EOFError:

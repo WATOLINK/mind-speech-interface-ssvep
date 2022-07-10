@@ -59,7 +59,7 @@ class HomePageWidget(QWidget):
         
         self.layout = QVBoxLayout()
         # self.testText = str(r.randint(1,20))
-        self.testText = "bleh"
+        self.testText = "testing"
         
         
         self.layout.addWidget(promptBox(self.testText))
@@ -85,18 +85,56 @@ class HomePageWidget(QWidget):
         self.layout.addLayout(bottomLayout)
 
         self.setLayout(self.layout)
-        self.myThread.wait.connect(self.onWait)
-        self.myThread.twoS.connect(self.onTwo)
+        self.myThread.yesSig.connect(self.onYes)
+        self.myThread.noSig.connect(self.onNo)
+        self.myThread.badSig.connect(self.onBad)
 
         
-    def onWait(self, wow):
-        confirm(self.parent, str(wow))
+    def onBad(self, msg):
+        showBad(self.parent, str(msg))
     
-    def onTwo(self, wow):
-        lessThan(self.parent, wow)
+    def onNo(self):
+        showNo(self.parent)
+    
+    def onYes(self):
+        showYes(self.parent)
         
         
        
+def showYes(parent):
+    inputField = parent.findChild(QLineEdit,"Input")
+    currWidget = parent.findChild(QWidget, "YN Widget")
+
+    for button in currWidget.findChildren(ButtonContainer):
+        print(button.label.text())
+        if button.label.text() == "YES": 
+            button.setChecked(True)
+            inputField.setText("YES")
+        elif button.label.text() == "NO":
+            button.setChecked(False)
+
+def showNo(parent):
+    inputField = parent.findChild(QLineEdit,"Input")
+    currWidget = parent.findChild(QWidget, "YN Widget")
+
+    for button in currWidget.findChildren(ButtonContainer):
+        print(button.label.text())
+        if button.label.text() == "NO": 
+            button.setChecked(True)
+            inputField.setText("NO")
+        elif button.label.text() == "YES":
+            button.setChecked(False)
+
+def showBad(parent, msg):
+    inputField = parent.findChild(QLineEdit,"Input")
+    currWidget = parent.findChild(QWidget, "YN Widget")
+
+    for button in currWidget.findChildren(ButtonContainer):
+        print(button.label.text())
+        button.setChecked(False)
+
+    inputField.setText(msg)
+
 
 def inputBox(parent):
     textbox = QLineEdit()
@@ -126,26 +164,6 @@ def confirm(parent, sig):
     # messageBox.update()
     # parent.update()
 
-def lessThan(parent, sig):
-    inputField = parent.findChild(QLineEdit,"Input")
-    currWidget = parent.findChild(QWidget, "YN Widget")
-
-    for button in currWidget.findChildren(ButtonContainer):
-        print(button.label.text())
-        if button.label.text() == "YES" and sig == 14.75:
-            button.setChecked(True)
-            inputField.setText("YES")
-        elif button.label.text() == "NO" and sig == 11.75:
-            button.setChecked(True)
-            inputField.setText("NO")
-        else: 
-            inputField.setText(str(sig))
-            button.setChecked(False)
-
-
-
-            
-
 
 
 def mainFuncTest():
@@ -159,31 +177,27 @@ def mainFuncTest():
 
 class AThread(QThread):
     
-    wait = pyqtSignal(str)
-    twoS = pyqtSignal(float)
+    yesSig = pyqtSignal(float)
+    noSig = pyqtSignal(float)
+    badSig = pyqtSignal(float)
     
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def run(self):
         self.s.connect(('127.0.0.1', 55432))
-        count = 0
         while True:
             try:
                 msg = self.s.recv(10000000)
                 message = pickle.loads(msg)
-                self.twoS.emit(message)
-                
+                if float(message) == 14.75:
+                    self.yesSig.emit(message)
+                elif float(message) == 11.75:
+                    self.noSig.emit(message)
+                else:
+                    self.badSig.emit(message)
 
                 print(message)
-                # if int(message) == 8:
-                #     x = "yes"
-                #     self.wait.emit(x)
-                # elif int(message) == 10:
-                #     x = "no"
-                #     self.wait.emit(x)
-                # else:
                     
-                count = count + 1
             except EOFError:
                     continue
         

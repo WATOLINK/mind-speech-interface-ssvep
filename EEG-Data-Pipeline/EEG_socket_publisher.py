@@ -65,7 +65,9 @@ class EEGSocketPublisher:
         return sample
 
     def send_packet(self, sample):
+        print(time())
         self.connection.sendall(pickle.dumps(sample))
+        
         self.count += 1
         print(f'Sample #{self.count}: {sample.shape} to {self.port}')
 
@@ -81,5 +83,6 @@ class EEGSocketPublisher:
                 if self.board.get_board_data_count() >= self.input_len:
                     packet = self.retrieve_sample()
                     self.send_packet(packet)
+                    
             self.connection.sendall(pickle.dumps(None))
             
