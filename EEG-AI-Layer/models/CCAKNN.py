@@ -1,212 +1,160 @@
-import sys
 import os
-import math
 import numpy as np
-import argparse
 from sklearn.cross_decomposition import CCA
-from sklearn.neighbors import KNeighborsClassifier 
-import pandas as pd
+from sklearn.neighbors import KNeighborsClassifier
 from joblib import dump, load
-import argparse
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, accuracy_score
 from typing import List
-from collections import Counter
-
-# Helper functions
-from ssvep_utils import butter_bandpass_filter, buffer, split_trials, parse_eeg
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
+from ssvep_utils import butter_bandpass_filter
 
 
 class CCAKNNModel:
-    """
-    A generic CCA w/ KNN model.
+    """A generic CCA w/ KNN model."""
 
-    Known functions:
-        - load kNN params
-        - make a prediction
-        ===
-        - save kNN params
-        - train
-        - test and develop metrics
-    """
+    def __init__(self, **kwargs):
+        model_path = kwargs.get('model_path', None)
+        components = kwargs.get('components', 1)
+        neighbors = kwargs.get('neighbors', 3)
+        self.cca = CCA(n_components=components)
+        self.duration = kwargs.get('window_len', 1) * kwargs.get('sample_rate', 250)
+        self.sample_rate = kwargs.get('sample_rate', 250)
+        freqs = [0.0, 12.75, 14.75, 11.75, 10.25]
+        self.trained_freqs = kwargs.get('frequencies', freqs)
+        self.cca_frequencies = None
+        self.freq2label = None
+        self.reference_templates = None
+        if self.trained_freqs:
+            self.reference_templates = self.create_reference_templates(frequencies=self.trained_freqs)
+        if model_path:
+            self.load_model(model_path=model_path)
+        else:
+            self.knn = KNeighborsClassifier(n_neighbors=neighbors)
 
-    def __init__(self, args):
-        self.window_len = args.window_len
-        self.sample_rate = args.sample_rate
-        self.duration = self.window_len * self.sample_rate
-        self.trained_freqs = np.array([5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 14.0, 16.0, 18.0, 20.0])
-        self.reference_templates = self.create_reference_templates()
-    
-    def create_reference_templates(self):
+    def create_reference_templates(self, frequencies: List):
+        """
+        Create reference signals for CCA.
+
+        Args:
+            frequencies: The frequencies (hz) for which to create reference signals
+
+        Returns:
+            An array of reference signals
+        """
+        self.trained_freqs = sorted(frequencies)
+        self.cca_frequencies = [freq for freq in sorted(frequencies) if freq != 0]
+        self.freq2label = {freq: idx for idx, freq in enumerate(self.trained_freqs)}
         reference_templates = []
         for freq in self.trained_freqs:
+            if freq == 0:
+                continue
             reference_templates.append(self.get_reference_signals(self.duration, freq, self.sample_rate))
-        return np.array(reference_templates, dtype='float32')
-    
-    def load_model(self, model_path: os.PathLike):
-        self.KNN = load(model_path)
-    
-    def save_model(self, filepath):
-        dump(self.KNN, filepath)
+        return np.array(reference_templates, dtype='float64')
 
-    def predict(self, data: np.ndarray, verbose: bool = False):        
-        correlations = self.calculate_correlation(train_data, self.reference_templates)
-        cca_predictions = np.argmax(correlations, axis=1)
-        preds = []
-        for pred in cca_predictions:
-            preds.append(self.trained_freqs[pred])
-        correlations = np.array(correlations)
-        predictions = self.KNN.predict(correlations)        
-        return predictions
-        
     def get_reference_signals(self, data_len, target_freq, sampling_rate):
         reference_signals = []
-        t = np.arange(0, (data_len/sampling_rate), step=1.0/sampling_rate)
-        reference_signals.append(np.sin(np.pi*2*target_freq*t))
-        reference_signals.append(np.cos(np.pi*2*target_freq*t))
-        reference_signals.append(np.sin(np.pi*4*target_freq*t))
-        reference_signals.append(np.cos(np.pi*4*target_freq*t))
+        t = np.arange(0, (data_len / sampling_rate), step=1.0 / sampling_rate)
+        reference_signals.append(np.sin(np.pi * 2 * target_freq * t))
+        reference_signals.append(np.cos(np.pi * 2 * target_freq * t))
+        reference_signals.append(np.sin(np.pi * 4 * target_freq * t))
+        reference_signals.append(np.cos(np.pi * 4 * target_freq * t))
         reference_signals = np.array(reference_signals)
 
         return reference_signals
 
-    def calculate_correlation(self, signals: np.array, reference: np.array, n_components=1) -> np.array:
+    def load_model(self, model_path: os.PathLike):
+        self.knn = load(model_path)
+    
+    def save_model(self, filepath):
+        dump(self.knn, filepath)
+
+    def cca_predict(self, data: np.ndarray):
+        """
+        Make a prediction using CCA on some parsed and filtered EEG data.
+
+        Args:
+            data: Parsed and filtered EEG data
+
+        Returns:
+            Frequency predictions from the CCA model
+        """
+        correlations = self.calculate_correlation(data, self.reference_templates)
+        predictions = np.argmax(correlations, axis=1)
+        return predictions, correlations
+
+    def prepare(self, data):
+        """
+        Prepare data for prediction. To be used in online context.
+
+        Args:
+            data: Data from a remote client. (sample_rate, num_channels)
+
+        Returns:
+            Prepared data for prediction
+        """
+        data = butter_bandpass_filter(data.T, 6, 80, 250, 4).T
+        return data[np.newaxis, :]
+
+    def predict(self, data: np.ndarray):
+        """
+        Make a prediction on some parsed and filtered EEG data.
+
+        Args:
+            data: Parsed and filtered EEG data
+
+        Returns:
+            Frequency predictions from the CCA and KNN models
+        """
+        predictions, correlations = self.cca_predict(data)
+        predictions = self.knn.predict(correlations)
+        return predictions
+
+    def calculate_correlation(self, signals: np.array, reference: np.array) -> np.array:
         """
         Find correlation between input `signals` and `reference` signals using CCA.
 
         Args:
             signals: The input ndarray of signals
             reference: The reference signals
-            n_components: The number of components for CCA.
 
         Returns:
             Correlations to each of the reference signals
         """
-
-        cca = CCA(n_components=n_components)
         result = np.zeros((signals.shape[0], reference.shape[0]))
         for segment in range(signals.shape[0]):
             for freq in range(reference.shape[0]):
-                cca.fit(signals[segment], np.squeeze(reference[freq, :, :]).T)
-                x_corr, y_corr = cca.transform(signals[segment], np.squeeze(reference[freq, :, :]).T)
+                self.cca.fit(signals[segment], np.squeeze(reference[freq, :, :]).T)
+                x_corr, y_corr = self.cca.transform(signals[segment], np.squeeze(reference[freq, :, :]).T)
                 corr_matrix = np.corrcoef(x_corr[:, 0], y_corr[:, 0])
                 result[segment, freq] = corr_matrix[0, 1]
         return result
     
-    def train(self, hparams, train_data, train_labels):
+    def train(self, train_data, train_labels):
+        idx_labels = [self.freq2label[label] for label in train_labels]
         train_data = np.array(train_data)
-        correlations = self.calculate_correlation(train_data, self.reference_templates)
-        cca_predictions = np.argmax(correlations, axis=1)
-        preds = []
-        for pred in cca_predictions:
-            preds.append(self.trained_freqs[pred])
-        correlations = np.array(correlations)
-        
-        print(f'CCA train accuracy: {accuracy_score(train_labels, preds):.4f}')
-        self.KNN = KNeighborsClassifier(hparams.neighbors)
-        self.KNN.fit(correlations, train_labels)
-        predictions = self.KNN.predict(correlations)
-        print(f'kNN train accuracy: {accuracy_score(train_labels, predictions):.4f}')
+        cca_predictions, correlations = self.cca_predict(data=train_data)
+        if self.trained_freqs[0] == 0:
+            cca_predictions = [pred + 1 for pred in cca_predictions]
+        cca_predictions = np.array(cca_predictions)
+        cca_accuracy = accuracy_score(y_true=idx_labels, y_pred=cca_predictions)
+        self.knn.fit(correlations, idx_labels)
+        predictions = self.knn.predict(correlations)
+        knn_accuracy = accuracy_score(y_true=idx_labels, y_pred=predictions)
+        return {'train_cca_accuracy': cca_accuracy, 'train_cca_predictions': cca_predictions,
+                'train_knn_accuracy': knn_accuracy, 'train_knn_predictions': predictions}
 
     def test(self, hparams, test_data, test_labels):
-        assert all([tl in self.trained_freqs for tl in test_labels])
-        reference_templates = []
-        for freq in self.trained_freqs:
-            reference_templates.append(self.get_reference_signals(duration, freq, hparams.sample_rate))
-        reference_templates = np.array(reference_templates, dtype='float64')
+        idx_labels = [self.freq2label[label] for label in test_labels]
         test_data = np.array(test_data)
-
-        correlations = self.calculate_correlation(test_data, reference_templates)
-        cca_predictions = np.argmax(correlations, axis=1)
-        cca_preds = []
-        for pred in cca_predictions:
-            cca_preds.append(self.trained_freqs[pred])
-        
-        correlations = np.array(correlations)
-
-        knn_predictions = self.KNN.predict(correlations)
-        print(f'kNN accuracy: {accuracy_score(test_labels, knn_predictions):.4f}')
-        print(f'CCA accuracy: {accuracy_score(test_labels, cca_preds):.4f}')
+        cca_predictions, correlations = self.cca_predict(data=test_data)
+        if self.trained_freqs[0] == 0:
+            cca_predictions = [pred + 1 for pred in cca_predictions]
+        cca_accuracy = accuracy_score(y_true=idx_labels, y_pred=cca_predictions)
+        knn_predictions = self.knn.predict(correlations)
+        knn_accuracy = accuracy_score(y_true=idx_labels, y_pred=knn_predictions)
+        metrics = {'test_cca_accuracy': cca_accuracy, 'test_knn_accuracy': knn_accuracy}
         if hparams.verbose:
-            print("kNN Confusion Matrix")
-            print(self.trained_freqs)
-            print(confusion_matrix(test_labels, knn_predictions, labels=self.trained_freqs))
-            print("CCA Confusion Matrix")
-            print(self.trained_freqs)
-            print(confusion_matrix(test_labels, cca_preds, labels=self.trained_freqs))
-
-def get_args(parser):
-    parser.add_argument('--train', action="store_true", help="Whether to train a model")
-    parser.add_argument('--verbose', action="store_true", help="Verbosity. Will print a confusion matrix if set")
-    parser.add_argument('--neighbors', type=int, default=15, help="The number of neighbors to pass to a KNN")
-    parser.add_argument('--training-data', type=str, help="Filepath for the training data (csv)")
-    parser.add_argument('--testing-data', type=str, help="Filepath for the testing data (csv)")
-    parser.add_argument('--model-path', type=str, help="Filepath for a trained KNN model")
-    parser.add_argument('--data', type=str, help="Filepath for a dataset. Will perform a train/test split.")
-    parser.add_argument('--sample-rate', type=int, default=250, help="Sampling rate (hz)")
-    parser.add_argument('--window-len', type=int, default=1, help="Window length for data processing")
-    parser.add_argument('--shift-len', type=int, default=1, help="Shift length for data processing")
-    parser.add_argument('--lower-freq', type=float, default=5, help="Lower frequency bound for a bandpass filter")
-    parser.add_argument('--upper-freq', type=float, default=5, help="Upper frequency bound for a bandpass filter")
-    parser.add_argument('--random-state', type=int, default=42, help="Random State")
-    return parser.parse_args()
-
-def train(hparams, model, data, labels):
-    # labels = data['Frequency'].to_numpy().astype('float64')
-    # data = data.drop(columns=['Time', 'Frequency', 'Color Code'])
-    # data = data.to_numpy().astype('float64')
-    model.train(hparams, data, labels)
-
-def test(hparams, model, data, labels):
-    model.test(hparams, data, labels)
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    args = get_args(parser)
-
-    model = CCAKNNModel(args)
-    if args.model_path:
-        model.load_model(args.model_path)
-    train_data, test_data = None, None
-    
-    if args.data:
-        data_path = args.data
-        data = pd.read_csv(args.data)
-        data = parse_eeg(data)
-        labels = sorted(data['Frequency'].dropna().tolist())
-        possible_frequencies = list(set(labels))
-        model.trained_freqs = possible_frequencies
-        train_data = data.drop(columns=['Time', 'Color Code'])
-        trials = split_trials(train_data)
-        segments = []
-        segment_labels = []
-        assert all([np.isna(lab) == False for lab in segment_labels])
-        for label, trial in zip(labels, trials):
-            duration = args.window_len * args.sample_rate
-            data_overlap = (args.window_len - args.shift_len) * args.sample_rate
-            segs = buffer(trial, duration, data_overlap)
-            for seg in segs:
-                segments.append(seg)
-                segment_labels.append(label)
-        seggies = np.arange(len(segment_labels))
-        train_segs, test_segs = train_test_split(seggies, test_size=0.2, random_state=42)
-        assert len(segments) == len(segment_labels)
-        train_data, train_labels = [segments[ts] for ts in train_segs], [segment_labels[ts] for ts in train_segs]
-        test_data, test_labels = [segments[ts] for ts in test_segs], [segment_labels[ts] for ts in test_segs]
-
-    if args.training_data:
-        train_data = pd.read_csv(args.training_data)
-        train_data = parse_eeg(train_data)
-        data_path = args.training_data
-
-    if args.testing_data:
-        test_data = pd.read_csv(args.testing_data)
-        test_data, splits = parse_eeg(test_data)
-
-    if args.train:        
-        train(args, model, train_data, train_labels)
-        model_save_path = data_path.split("/")[-1][:-4] + '.model'
-        print(f"saving at {model_save_path}")
-        model.save_model(model_save_path)
-    
-    test(args, model, test_data, test_labels)
+            cca_confusion_matrix = confusion_matrix(idx_labels, cca_predictions)
+            metrics['test_cca_confusion_matrix'] = cca_confusion_matrix
+            knn_confusion_matrix = confusion_matrix(idx_labels, knn_predictions)
+            metrics['test_knn_confusion_matrix'] = knn_confusion_matrix
+        return metrics
