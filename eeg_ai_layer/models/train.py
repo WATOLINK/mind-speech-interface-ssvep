@@ -5,9 +5,9 @@ from sklearn.model_selection import train_test_split
 from typing import List
 import os
 
-from ssvep_utils import buffer
-from Model import load_model
-from utils import parse_and_filter_eeg_data, split_trials
+from eeg_ai_layer.models.ssvep_utils import buffer
+from eeg_ai_layer.models.Model import load_model
+from eeg_ai_layer.models.utils import parse_and_filter_eeg_data, split_trials
 
 
 def get_args(parser: ArgumentParser):
@@ -33,8 +33,8 @@ def get_args(parser: ArgumentParser):
     parser.add_argument('--output-name', type=str, default=None, help="Name to save the model")
     parser.add_argument('--data', type=str, help="Filepath for a dataset. Will perform a train/test split.")
     parser.add_argument('--sample-rate', type=int, default=250, help="Sampling rate (hz)")
-    parser.add_argument('--window-len', type=int, default=1, help="Window length for data processing")
-    parser.add_argument('--shift-len', type=int, default=1, help="Shift length for data processing")
+    parser.add_argument('--window-length', type=int, default=1, help="Window length for data processing")
+    parser.add_argument('--shift-length', type=int, default=1/250, help="Shift length for data processing")
     parser.add_argument('--lower-freq', type=float, default=5, help="Lower frequency bound for a bandpass filter")
     parser.add_argument('--upper-freq', type=float, default=5, help="Upper frequency bound for a bandpass filter")
     parser.add_argument('--random-state', type=int, default=42, help="Random State")
@@ -46,7 +46,6 @@ def train(model, data: List[pd.DataFrame], labels: List[float]):
     Training function for the model
 
     Args:
-        hparams: Model hyper parameters
         model: Model instance
         data: Training data
         labels: Labels that correspond to the frequency for the training data
@@ -72,24 +71,17 @@ def test(hparams: dict, model, data: List[pd.DataFrame], labels:List[float]):
     """
     return model.test(hparams, data, labels)
 
-def load_model(hparams: dict, model_type: str, frequencies: List[float] = None) -> Model:
-    """
-    Load a model from model type and initialize its hyperparams.
-    Args:
-        hparams: Model hyperparameters.
-        model_type: The type of model to load.
 
-    The current types are:
-        - ccaknn
+def join_datasets(data_path: str) -> pd.DataFrame:
+    """
+    A recursive function to join csvs.
+
+    Args:
+        data_path: The root directory for csvs in folders.
 
     Returns:
-        The loaded model
+        A single dataFrame containing joined data of all csvs.
     """
-    if model_type == 'cca_knn':
-        return CCAKNNModel(args=hparams, frequencies=frequencies)
-    return Model(hparams)
-
-def join_datasets(data_path):
     try:
         return pd.read_csv(data_path)
     except IsADirectoryError:
@@ -104,8 +96,6 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     args, _ = get_args(parser)
 
-    model = load_model(**vars(args))
-
     train_data, test_data = None, None
 
     if args.data:
@@ -116,11 +106,8 @@ if __name__ == "__main__":
             data.at[1, 'Frequency'] = data.loc[0, 'Frequency']
             data.at[1, 'Color Code'] = data.loc[0, 'Color Code']
             data = data[1:]
-        data = parse_and_filter_eeg_data(data, args.sample_rate, 6, 80)
-        label_index = sorted(data['Frequency'].dropna().tolist())
-        possible_frequencies = list(set(label_index))
-        if args.model_type == 'cca_knn':
-            model = load_model(hparams=args, model_type=args.model_type, frequencies=possible_frequencies)
+        data = parse_and_filter_eeg_data(data=data, sample_rate=args.sample_rate, lowcut=9, highcut=16)
+
         train_data = data.drop(columns=['time', 'Color Code'])
 
         trials = split_trials(train_data)
@@ -129,8 +116,8 @@ if __name__ == "__main__":
         for trial in trials:
             label = trial.iloc[0]['Frequency']
             trial.drop(columns=['Frequency'], inplace=True)
-            duration = args.window_len * args.sample_rate
-            data_overlap = (args.window_len - args.shift_len) * args.sample_rate
+            duration = args.window_length * args.sample_rate
+            data_overlap = (args.window_length - args.shift_length) * args.sample_rate
             segs = buffer(trial, duration, data_overlap)
             for seg in segs:
                 segments.append(seg)
@@ -147,15 +134,20 @@ if __name__ == "__main__":
     if args.training_data:
         train_data = pd.read_csv(args.training_data)
         train_data = parse_and_filter_eeg_data(train_data)
-        data_path = args.training_data
 
     if args.testing_data:
         test_data = pd.read_csv(args.testing_data)
         test_data, splits = parse_and_filter_eeg_data(test_data)
 
+    if args.model_type == 'cca_knn':
+        args.__dict__['frequencies'] = np.unique(data['Frequency'].dropna().sort_values())
+    model = load_model(args=args)
+
     if args.train:
+        print("Train")
         train_metrics = train(model, train_data, train_labels)
 
+    print("Test")
     test_metrics = test(args, model, test_data, test_labels)
 
     if args.train:

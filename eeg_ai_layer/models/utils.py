@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
 from typing import List
-from ssvep_utils import butter_bandpass_filter
+from eeg_ai_layer.models.ssvep_utils import butter_bandpass_filter
+
 
 def make_confusion_matrix(y_true, y_pred, classes=None, figsize=(10, 10), text_size=15, norm=False, savefig=False):
     """Makes a labelled confusion matrix comparing predictions and ground truth labels.
@@ -96,7 +97,7 @@ def split_trials(data) -> List[pd.DataFrame]:
     return segmented_data
 
 
-def parse_and_filter_eeg_data(data: pd.DataFrame, sample_rate: int, lowcut, highcut) -> pd.DataFrame:
+def parse_and_filter_eeg_data(data: pd.DataFrame, sample_rate: int, lowcut: float, highcut: float) -> pd.DataFrame:
     """
     Perform basic parsing and filter EEG data.
 

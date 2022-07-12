@@ -5,30 +5,27 @@ from sklearn.neighbors import KNeighborsClassifier
 from joblib import dump, load
 from sklearn.metrics import confusion_matrix, accuracy_score
 from typing import List
-from .ssvep_utils import butter_bandpass_filter
+from eeg_ai_layer.models.ssvep_utils import butter_bandpass_filter, buffer
+from tqdm import trange
 
 
 class CCAKNNModel:
     """A generic CCA w/ KNN model."""
 
-    def __init__(self, **kwargs):
-        model_path = kwargs.get('model_path', None)
-        components = kwargs.get('components', 1)
-        neighbors = kwargs.get('neighbors', 3)
-        self.cca = CCA(n_components=components)
-        self.duration = kwargs.get('window_len', 1) * kwargs.get('sample_rate', 250)
-        self.sample_rate = kwargs.get('sample_rate', 250)
-        self.trained_freqs = kwargs.get('frequencies', None)
-        # [0.0, 12.75, 11.25, 14.75, 9.25, 9.75, 14.25, 11.75, 10.75, 13.25, 10.25, 12.25, 13.75]
-        self.cca_frequencies = None
-        self.freq2label = None
-        self.reference_templates = None
-        if self.trained_freqs:
-            self.reference_templates = self.create_reference_templates(frequencies=self.trained_freqs)
-        if model_path:
-            self.load_model(model_path=model_path)
+    def __init__(self, args):
+        if args.model_path:
+            self.knn, self.frequencies, self.components = self.load_model(model_path=args.model_path)
         else:
-            self.knn = KNeighborsClassifier(n_neighbors=neighbors)
+            self.frequencies = args.frequencies  # [0.0, 12.75, 14.75, 11.75, 10.25]
+            self.components = args.components
+            self.knn = KNeighborsClassifier(n_neighbors=args.neighbors)
+        self.cca = CCA(n_components=self.components)
+        self.duration = args.window_length * args.sample_rate
+        self.sample_rate = args.sample_rate
+
+        self.cca_frequencies = None
+        self.reference_templates = self.create_reference_templates(frequencies=self.frequencies)
+        self.freq2label = {freq: idx for idx, freq in enumerate(self.frequencies)}
 
     def create_reference_templates(self, frequencies: List):
         """
@@ -40,11 +37,10 @@ class CCAKNNModel:
         Returns:
             An array of reference signals
         """
-        self.trained_freqs = sorted(frequencies)
+        self.frequencies = sorted(frequencies)
         self.cca_frequencies = [freq for freq in sorted(frequencies) if freq != 0]
-        self.freq2label = {freq: idx for idx, freq in enumerate(self.trained_freqs)}
         reference_templates = []
-        for freq in self.trained_freqs:
+        for freq in self.frequencies:
             if freq == 0:
                 continue
             reference_templates.append(self.get_reference_signals(self.duration, freq, self.sample_rate))
@@ -62,10 +58,11 @@ class CCAKNNModel:
         return reference_signals
 
     def load_model(self, model_path: os.PathLike):
-        self.knn = load(model_path)
-    
+        state = load(model_path)
+        return state['knn'], state['frequencies'], state['components']
+
     def save_model(self, filepath):
-        dump(self.knn, filepath)
+        dump({'components': self.components, 'knn': self.knn, 'frequencies': self.frequencies}, filepath)
 
     def cca_predict(self, data: np.ndarray):
         """
@@ -91,8 +88,9 @@ class CCAKNNModel:
         Returns:
             Prepared data for prediction
         """
-        data = butter_bandpass_filter(data.T, 6, 80, 250, 4).T
-        return data[np.newaxis, :]
+        data = butter_bandpass_filter(data.T, 9, 16, 250, 4).T
+        data = buffer(data=data, duration=self.duration, data_overlap=self.sample_rate - 1)
+        return data
 
     def predict(self, data: np.ndarray):
         """
@@ -107,6 +105,9 @@ class CCAKNNModel:
         predictions, correlations = self.cca_predict(data)
         predictions = self.knn.predict(correlations)
         return predictions
+
+    def convert_index_to_frequency(self, predictions: np.array):
+        return [self.frequencies[pred] for pred in predictions]
 
     def calculate_correlation(self, signals: np.array, reference: np.array) -> np.array:
         """
@@ -132,7 +133,7 @@ class CCAKNNModel:
         idx_labels = [self.freq2label[label] for label in train_labels]
         train_data = np.array(train_data)
         cca_predictions, correlations = self.cca_predict(data=train_data)
-        if self.trained_freqs[0] == 0:
+        if self.frequencies[0] == 0:
             cca_predictions = [pred + 1 for pred in cca_predictions]
         cca_predictions = np.array(cca_predictions)
         cca_accuracy = accuracy_score(y_true=idx_labels, y_pred=cca_predictions)
@@ -146,7 +147,7 @@ class CCAKNNModel:
         idx_labels = [self.freq2label[label] for label in test_labels]
         test_data = np.array(test_data)
         cca_predictions, correlations = self.cca_predict(data=test_data)
-        if self.trained_freqs[0] == 0:
+        if self.frequencies[0] == 0:
             cca_predictions = [pred + 1 for pred in cca_predictions]
         cca_accuracy = accuracy_score(y_true=idx_labels, y_pred=cca_predictions)
         knn_predictions = self.knn.predict(correlations)

@@ -25,9 +25,10 @@ import sys
 
 from DSP_Client import EEGSocketListener
 from EEG_socket_publisher import EEGSocketPublisher
+from test_socket_listener import TestSocketListener, run_tsl
 
-sys.path.append("SSVEP-Interface")
-from InteractionTestDemo import mainFuncTest
+# sys.path.append("SSVEP-Interface")
+# from InteractionTestDemo import mainFuncTest
 
 
 def Cyton_Board_Config(args):
@@ -99,10 +100,6 @@ def DSP(listener, synch, q):
     listener.generate_csv()
     
 
-
-
-
-
 def get_args(parser):
     parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False, default=0)
     parser.add_argument('--ip-port', type=int, help='ip port', required=False, default=0)
@@ -123,9 +120,10 @@ def get_args(parser):
     parser.add_argument('--model-type', type=str, help='model type (CCA-KNN)', required=False, default='cca_knn')
     parser.add_argument('--model-path', type=str, help='path for saved model', required=False, default=None)
     parser.add_argument('--pubPort', type=int, help='publisher port', required=False, default=55432)
-    parser.add_argument('--window-len', type=int, help='window size (s)', required=False, default=1)
-    parser.add_argument('--shift-len', type=int, help='shift length', required=False, default=1)
+    parser.add_argument('--window-length', type=int, help='window size (s)', required=False, default=1)
+    parser.add_argument('--shift-length', type=int, help='shift length', required=False, default=1)
     parser.add_argument('--sample-rate', type=int, help='sample rate', required=False, default=250)
+    parser.add_argument('--components', type=int, help='Number of components for CCA', required=False, default=3)
     return parser.parse_known_args()
 
 
@@ -133,15 +131,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     args, _ = get_args(parser)
     info = Cyton_Board_Config(args)
-    publisher = EEGSocketPublisher()
-    listener = EEGSocketListener(**vars(args))
-
+    publisher = EEGSocketPublisher(args)
+    listener = EEGSocketListener(args)
 
     q = Queue()
     synch = Barrier(2)
     sys_processes = [Process(target=Streamer, args=(publisher, synch, q, info), name="Streamer"),
                      Process(target=DSP, args=(listener, synch, q,), name="Dsp Client"),
-                     Process(target=mainFuncTest, name="UI")
+                     Process(target=run_tsl, args=(TestSocketListener(), synch, q))
+                     # Process(target=mainFuncTest, name="UI")
                      ]
 
     for process in sys_processes:

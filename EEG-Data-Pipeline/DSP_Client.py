@@ -6,15 +6,14 @@ import numpy as np
 import pandas as pd
 from time import time
 from brainflow.data_filter import DataFilter, FilterTypes
-import random as r
+from collections import Counter
 
 path = os.getcwd()
 head, tail = os.path.split(path)
 if tail != 'mind-speech-interface-ssvep':
-    path = os.path.join(head)
-sys.path.append(os.path.join(path, 'EEG-AI-Layer'))
-from models.Model import load_model
-
+    path = head
+sys.path.append(path)
+from eeg_ai_layer.models.Model import load_model
 
 
 class EEGSocketListener:
@@ -36,23 +35,18 @@ class EEGSocketListener:
     data = None         # data buffer array to be sent to AI
     samples = None      # number of samples currently in buffer
 
-    def __init__(self, host='127.0.0.1', lisPort=65432, num_channels=8, input_len=250, output_size=5, pubPort=55432, **kwargs):
-        self.host = host
-        self.lisPort = lisPort
-        self.pubPort = pubPort
+    def __init__(self, args):
+        self.host = args.host
+        self.lisPort = args.lisPort
+        self.pubPort = args.pubPort
 
-        self.input_len = input_len
-        self.output_size = output_size
-        self.num_channels = num_channels
+        self.input_len = args.input_len
+        self.output_size = args.output_size
+        self.num_channels = args.num_channels
 
-        self.data = np.empty((output_size * input_len, num_channels))
+        self.data = np.empty((args.output_size * args.input_len, args.num_channels))
         self.samples = 0
-        self.model = load_model(**kwargs)
-
-        self.samplling_rate_hz = 250
-        self.window_len = kwargs['window_len']
-        self.shift_len = kwargs['shift_len']
-        self.random_state = 42
+        self.model = load_model(args)
 
     def open_socket_conn(self):
         self.lisSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -68,20 +62,14 @@ class EEGSocketListener:
 
     def recieve_packet(self):
         # the size of the input data = num elements * 8 bytes + 500 for leeway
-        sample = self.lisSocket.recv(self.input_len * self.num_channels * 8 + 50000)
-        sample = pickle.loads(sample)
-        
+        try:
+            sample = self.lisSocket.recv(self.input_len * self.num_channels * 8 + 50000)
+            sample = pickle.loads(sample)
+        except EOFError as e:
+            print(e)
+
         if sample is None:
             print("COLLECTION COMPLETE")
-        else:
-            print("")
-            print("")
-            print(sample.shape)
-            print("")
-            print("")
-            assert isinstance(sample, np.ndarray), f"Not a Numpy ND Array {type(sample), sample}"
-            assert sample.shape == (self.input_len, self.num_channels), \
-                f"Incorrect Shape, Expected: {(self.input_len, self.num_channels)}, Recieved: {sample.shape}"
         return sample
 
     def send_packet(self, sample):
@@ -89,34 +77,34 @@ class EEGSocketListener:
         print(f'Sent {sample}')
 
     def listen(self, run_time=None):
-        crap = False
         self.connection, self.address = self.pubSocket.accept()
         init_time = time()
         time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
-        while True:
+        while time_func:
             packet = self.recieve_packet()
             if packet is None:
                 break
-            start = self.input_len * self.samples 
+            start = self.input_len * self.samples
             end = self.input_len * (self.samples + 1)
 
             self.data[start:end, :] = packet
-            print(f"SUCCESS {self.samples+1}/{self.output_size} - {np.shape(packet)}")
-            del packet
-            print(f"samples: {self.samples}")
+            # print(f"SUCCESS {self.samples+1}/{self.output_size} - {np.shape(packet)}")
+            # del packet
+            # print(f"samples: {self.samples}")
             self.samples = (self.samples + 1) % self.output_size
-            
-            
-            if self.samples == 0:
+            if not self.samples:
                 # self.filter()
-                prepared = self.model.prepare(self.data[start:end])
+                sample = self.data[end - self.output_size * self.input_len:end]
+                print(end)
+                print(np.any(np.isnan(sample)))
+                print(f"sample shape: {sample.shape}")
+                prepared = self.model.prepare(sample)
+                print(np.any(np.isnan(prepared)))
                 prediction = self.model.predict(prepared)
-                print(f"Prediction: {prediction}")
-                self.send_packet(prediction[0])
-                
-            
-            if crap: 
-                break
+                frequencies = self.model.convert_index_to_frequency(prediction)
+                c = Counter(frequencies)
+                print(f"Prediction: {c.most_common(1)[0][0]}")
+                self.send_packet(int(c.most_common(1)[0][0]))
 
     def filter(self):
         num_eeg_channels = 8

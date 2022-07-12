@@ -22,12 +22,12 @@ class EEGSocketPublisher:
     num_channels = None  # number of columns in input array
     input_len = None  # number of rows in input array
 
-    def __init__(self, host='127.0.0.1', port=65432, num_channels=8, input_len=250):
-        self.host = host
-        self.port = port
+    def __init__(self, args):
+        self.host = args.host
+        self.port = args.lisPort
 
-        self.input_len = input_len
-        self.num_channels = num_channels
+        self.input_len = args.input_len
+        self.num_channels = args.num_channels
 
     def open_socket_conn(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -65,7 +65,9 @@ class EEGSocketPublisher:
         return sample
 
     def send_packet(self, sample):
+        print(time())
         self.connection.sendall(pickle.dumps(sample))
+        
         self.count += 1
         print(f'Sample #{self.count}: {sample.shape} to {self.port}')
 
@@ -81,5 +83,6 @@ class EEGSocketPublisher:
                 if self.board.get_board_data_count() >= self.input_len:
                     packet = self.retrieve_sample()
                     self.send_packet(packet)
+                    
             self.connection.sendall(pickle.dumps(None))
             

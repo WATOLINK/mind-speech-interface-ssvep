@@ -4,9 +4,9 @@ from Pages.styles import toggleButtonStyle, yesLabelStyle, toggleButtonStyleNoBo
 from Pages.circle_stimuli import CircleFlash
 
 class ButtonContainer(QtWidgets.QPushButton):
-    def __init__(self, labelText="", freq=10, red=255, green=255, blue=255, horizontal=False, parent=None, checkable=True, border=True):
+    def __init__(self, labelText="", freq=60, red=255, green=255, blue=255, horizontal=False, parent=None, checkable=True, border=True):
         super(ButtonContainer, self).__init__(parent)
-        self.setMinimumHeight(50)
+        self.setMinimumHeight(150)
         if border:
             self.setStyleSheet(toggleButtonStyle)
         else:
@@ -33,8 +33,8 @@ class ButtonContainer(QtWidgets.QPushButton):
 
         # Configure stimuli
         self.stimuli = CircleFlash(freq, red, green, blue)
-        self.stimuli.setMinimumHeight(50)
-        self.stimuli.setMinimumWidth(50)
+        self.stimuli.setMinimumHeight(400)
+        self.stimuli.setMinimumWidth(400)
         self.stimuli.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         # Add stimuli
