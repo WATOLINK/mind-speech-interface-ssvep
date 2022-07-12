@@ -21,14 +21,12 @@ import pandas as pd
 from brainflow.board_shim import BrainFlowInputParams
 from multiprocessing import Process, Queue, Barrier
 import serial.tools.list_ports as p
-import sys
 
 from DSP_Client import EEGSocketListener
 from EEG_socket_publisher import EEGSocketPublisher
-from test_socket_listener import TestSocketListener, run_tsl
-
-# sys.path.append("SSVEP-Interface")
-# from InteractionTestDemo import mainFuncTest
+import sys
+sys.path.append("SSVEP-Interface")
+from InteractionTestDemo import mainFuncTest
 
 
 def Cyton_Board_Config(args):
@@ -138,8 +136,7 @@ if __name__ == "__main__":
     synch = Barrier(2)
     sys_processes = [Process(target=Streamer, args=(publisher, synch, q, info), name="Streamer"),
                      Process(target=DSP, args=(listener, synch, q,), name="Dsp Client"),
-                     Process(target=run_tsl, args=(TestSocketListener(), synch, q))
-                     # Process(target=mainFuncTest, name="UI")
+                     Process(target=mainFuncTest, name="UI")
                      ]
 
     for process in sys_processes:
