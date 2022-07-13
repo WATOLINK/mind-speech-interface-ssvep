@@ -1,6 +1,14 @@
 # mind-speech-interface-ssvep
 Mind-Speech Interface for NeuroTechX Student Clubs Competition 2022
 
+This repository includes an EEG data collection tool for SSVEP as well as an SSVEP text/speech interface.
+
+Platform Support: Currently our repository supports Windows 10 and up, as well as MacOS Big Sur and newer.
+Note: For Mac Devices with ARM SOCs (M1, M2 etc) you will need to run our tools in a Rosetta emulated terminal.
+
+# Credit
+Some of our models and signal processing methods were adapted from Aravind Ravi's Brain Computer Interface Repository (see here: https://github.com/aaravindravi/Brain-computer-interfaces)
+
 ## Requirements
 
 To install requirements, make sure you have Python 3.8 or older installed, then run
@@ -20,7 +28,7 @@ When setting up the device please make sure the channel numbers correspond to th
 
 ## Offline SSVEP Data Collection 
 
-To run the offline data-collection demo, copy and paste the following command.
+To run the offline data-collection demo, copy and paste the following commands:
 ```python
     cd mind-speech-interface-ssvep
 ```
@@ -32,6 +40,11 @@ for gTec
 ```python
     python ODC-DEMO/4_stim_demo.py --board-id=8 --serial-port=deviceserialport
 ```
+Note: to find your device serial port, either look in you device settings (windows) or if using a mac type this in the terminal:
+
+    ls /dev/cu.*
+
+
 ## Offline SSVEP Data Analysis 
 To visualize the csv created from data collection, in your terminal run:
 ```python
