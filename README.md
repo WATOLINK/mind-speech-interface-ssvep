@@ -9,16 +9,21 @@ To install requirements, make sure you have Python 3.8 or older installed, then 
 ```
 Make sure to run the command from the base directory (mind-speech-interface-ssvep) of the Git repo
 
+## General Hardware Setup
+
+Our software tools support the OpenBCI Cyton board as well as the gtec Unicorn Hybrid for EEG data capturing.   
+
+When setting up the device please make sure the channel numbers correspond to the following 10-20 electrode locations.
+
+![image](https://user-images.githubusercontent.com/34819737/178824314-7b1296b8-cdd2-424b-86ef-b65fec7e2d6e.png)
+
+
 ## Offline SSVEP Data Collection 
 
 To run the offline data-collection demo, copy and paste the following command.
 ```python
     cd mind-speech-interface-ssvep
 ```
-When setting up the device please make sure the channel numbers correspond to the following 10-20 electrode locations.
-
-![image](https://user-images.githubusercontent.com/34819737/178824314-7b1296b8-cdd2-424b-86ef-b65fec7e2d6e.png)
-
 for openBCI
 ```python
     python ODC-DEMO/4_stim_demo.py --board-id=0 --serial-port=deviceserialport
