@@ -9,6 +9,8 @@ To install requirements, make sure you have Python 3.8 or older installed, then 
 
 Make sure to run the command from the base directory (mind-speech-interface-ssvep) of the Git repo
 
+## CCAKNN Model Training
+
 ## Online SSVEP Interface
 
     cd mind-speech-interface-ssvep
