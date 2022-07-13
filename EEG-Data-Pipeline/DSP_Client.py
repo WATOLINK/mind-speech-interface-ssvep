@@ -102,7 +102,7 @@ class EEGSocketListener:
                 frequencies = self.model.convert_index_to_frequency(prediction)
                 c = Counter(frequencies)
                 print(f"Prediction: {c.most_common(1)[0][0]}")
-                self.send_packet((c.most_common(1)[0][0]))
+                self.send_packet(c.most_common(1)[0][0])
 
     def filter(self):
         num_eeg_channels = 8
