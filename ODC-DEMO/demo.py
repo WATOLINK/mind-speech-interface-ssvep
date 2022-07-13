@@ -306,14 +306,9 @@ class Stimuli(QWidget):
         l = min(self.width(), self.height())
         center = self.rect().center()
 
-
-<< << << < HEAD
-rect = QRect(0, 0, int(l*(7/6)), l)  # 5 x 3 ratio
-== == == =
-rect = QRect(0, 0, int(l*1.2), l*1)  # 5 x 3 ratio
->>>>>> > d80dbc1fb8e84f997935286909d4138bbac45b92
-rect.moveCenter(center)
-self.frame.setGeometry(rect)
+        rect = QRect(0, 0, int(l*(7/6)), l)  # 5 x 3 ratio
+        rect.moveCenter(center)
+        self.frame.setGeometry(rect)
 
 # self.gridLayout.setColumnMinimumWidth(1, int(l/12)) # 3 additional columns fill space to make it a 4x3 grid
 # self.gridLayout.setColumnMinimumWidth(3, int(l/12))
