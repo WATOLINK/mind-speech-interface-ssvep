@@ -26,7 +26,14 @@ for non synthetic board:
 To run the offline data-collection demo, copy and paste the following command.
 
     cd mind-speech-interface-ssvep
+    
+for openBCI
+
     python ODC-DEMO/4_stim_demo.py --board-id=0 --serial-port=deviceserialport
+    
+for gTec
+
+    python ODC-DEMO/4_stim_demo.py --board-id=8 --serial-port=deviceserialport
     
 ## Offline SSVEP Data Analysis 
 To visualize the csv created from data collection, in your terminal run:
