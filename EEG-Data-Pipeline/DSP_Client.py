@@ -63,7 +63,8 @@ class EEGSocketListener:
     def recieve_packet(self):
         # the size of the input data = num elements * 8 bytes + 500 for leeway
         try:
-            sample = self.lisSocket.recv(self.input_len * self.num_channels * 8 + 50000)
+            sample = self.lisSocket.recv(1000000000)
+                # self.input_len * self.num_channels * 8 + 50000)
             sample = pickle.loads(sample)
         except EOFError as e:
             print(e)
@@ -94,13 +95,14 @@ class EEGSocketListener:
             self.samples = (self.samples + 1) % self.output_size
             if not self.samples:
                 # self.filter()
-                sample = self.data[end - self.output_size * self.input_len:end]
+                #sample = self.data[end - self.output_size * self.input_len:end]
+                sample = self.data[start:end]
                 prepared = self.model.prepare(sample)
                 prediction = self.model.predict(prepared)
                 frequencies = self.model.convert_index_to_frequency(prediction)
                 c = Counter(frequencies)
                 print(f"Prediction: {c.most_common(1)[0][0]}")
-                self.send_packet(int(c.most_common(1)[0][0]))
+                self.send_packet((c.most_common(1)[0][0]))
 
     def filter(self):
         num_eeg_channels = 8

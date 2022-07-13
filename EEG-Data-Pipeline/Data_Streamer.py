@@ -82,7 +82,7 @@ def Streamer(publisher, synch, q, info):
         publisher.col_low_lim = 1
         publisher.col_hi_lim = 9
     synch.wait()
-    publisher.publish(10)
+    publisher.publish(99999999999)
     if q.get() is None:
         publisher.close_connections()
         q.put(None)
@@ -114,7 +114,7 @@ def get_args(parser):
     parser.add_argument('--lisPort', type=int, help='lis port', required=False, default=65432)
     parser.add_argument('--num-channels', type=int, help='number of channels', required=False, default=8)
     parser.add_argument('--input-len', type=int, help='input size', required=False, default=250)
-    parser.add_argument('--output-size', type=int, help='output size', required=False, default=5)
+    parser.add_argument('--output-size', type=int, help='output size', required=False, default=1)
     parser.add_argument('--model-type', type=str, help='model type (CCA-KNN)', required=False, default='cca_knn')
     parser.add_argument('--model-path', type=str, help='path for saved model', required=False, default=None)
     parser.add_argument('--pubPort', type=int, help='publisher port', required=False, default=55432)
