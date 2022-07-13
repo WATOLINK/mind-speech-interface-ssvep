@@ -4,43 +4,69 @@ Mind-Speech Interface for NeuroTechX Student Clubs Competition 2022
 ## Requirements
 
 To install requirements, make sure you have Python 3.8 or older installed, then run
-
+```python
     pip install -r requirements.txt
-
+```
 Make sure to run the command from the base directory (mind-speech-interface-ssvep) of the Git repo
 
-## CCAKNN Model Training
+## Model Training
+
+Training models is relatively simple using the training script! 
+
+The only default parameters to pass would be:
+
+- data: The path to your data. The data path can be a folder of folders of csvs or a path to the csv itself. Both should be fine.
+- output-path: The directory where a model will be saved.
+- output-name: The name of the saved model.
+- model-type: Specify the type of model to train here.
+
+There are some handy flags:
+- train: Whether to train a model
+- verbose: Whether to output metrics information like accuracy and a confusion matrix to the terminal.
+
+To train a CCA-KNN model, navigate to `mind-speech-interface-ssvep/` and run
+
+```python
+python -m eeg_ai_layer.models.train.py --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --name=<YOUR_MODEL_NAME>
+```
+
+If you'd like to see some metrics, pass the `--verbose` flag like so:
+
+```python
+python -m eeg_ai_layer.models.train.py --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --name=<YOUR_MODEL_NAME> --verbose
+```
 
 ## Online SSVEP Interface
-
+```python
     cd mind-speech-interface-ssvep
-
+```
 for synthetic board:
-
+```python
     python EEG-DATA-Pipeline/Data_Streamer.py --board-id=-1 --model-path=eeg-ai-layer\modelname.model
-
+```
 for non synthetic board:
-
+```python
     python EEG-DATA-Pipeline/Data_Streamer.py --model-path=eeg-ai-layer\modelname.model
-
+```
 ## Offline SSVEP Data Collection 
 
 To run the offline data-collection demo, copy and paste the following command.
-
+```python
     cd mind-speech-interface-ssvep
-    
+```
 for openBCI
-
+```python
     python ODC-DEMO/4_stim_demo.py --board-id=0 --serial-port=deviceserialport
-    
+```
 for gTec
-
+```python
     python ODC-DEMO/4_stim_demo.py --board-id=8 --serial-port=deviceserialport
-    
+```
 ## Offline SSVEP Data Analysis 
 To visualize the csv created from data collection, in your terminal run:
+```python
     jupyter notebook
-
+```
 Then in the browser window navigate to the notebook under EEG-Data-Visualization:
 
 <img width="408" alt="Screen Shot 2022-07-05 at 5 00 37 PM" src="https://user-images.githubusercontent.com/34819737/177415768-4630ae1e-c9fb-4b94-b82f-02cc252556d5.png">
