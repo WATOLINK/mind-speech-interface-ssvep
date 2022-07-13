@@ -18,7 +18,7 @@ import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
 import argparse
-from UI_defs import hor, vert
+from configs import hor, vert
 
 color_code_order = []
 color_freq_order = []
@@ -38,8 +38,8 @@ def display_procedure(stop, board, args):
         NUM_TRIALS = 5  # 5 Trials
         INDICATOR_TIME_VALUE_S = 5  # 5 Seconds
         TRIAL_BREAK_TIME = 120  # 120 second
-        STIM_PERIOD_TRIALS = 4 #number of stim it goes through
-        STIM_TIME = 5 #stim flash time
+        STIM_PERIOD_TRIALS = 4  # number of stim it goes through
+        STIM_TIME = 5  # stim flash time
 
     f = open("ODC-DEMO/demo_data/" + filename +
              ".txt", 'a')  # modify depending on CWD
