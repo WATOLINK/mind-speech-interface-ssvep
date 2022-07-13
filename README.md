@@ -15,6 +15,10 @@ To run the offline data-collection demo, copy and paste the following command.
 ```python
     cd mind-speech-interface-ssvep
 ```
+When setting up the device please make sure the channel numbers correspond to the following 10-20 electrode locations.
+
+![image](https://user-images.githubusercontent.com/34819737/178824157-caa5d8f9-faca-4b1f-8f0c-45e0bfff38ac.png)
+
 for openBCI
 ```python
     python ODC-DEMO/4_stim_demo.py --board-id=0 --serial-port=deviceserialport
