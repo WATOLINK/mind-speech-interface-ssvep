@@ -14,10 +14,12 @@ Make sure to run the command from the base directory (mind-speech-interface-ssve
 cd mind-speech-interface-ssvep
 
 for synthetic board:
-python EEG-DATA-Pipeline/Data_Streamer.py --board-id=-1 --model-path=eeg-ai-layer\modelname.model
+
+    python EEG-DATA-Pipeline/Data_Streamer.py --board-id=-1 --model-path=eeg-ai-layer\modelname.model
 
 for non synthetic board:
-python EEG-DATA-Pipeline/Data_Streamer.py --model-path=eeg-ai-layer\modelname.model
+
+    python EEG-DATA-Pipeline/Data_Streamer.py --model-path=eeg-ai-layer\modelname.model
 
 ## Offline SSVEP Data Collection 
 
