@@ -29,7 +29,7 @@ class HomePageWidget(QWidget):
         mainWidget = mainStack(self)
         
         layout.addWidget(title(), 0, 0, 1, 1)
-        layout.addWidget(promptBox(), 1, 0, 1, 3)
+        layout.addWidget(promptBox("What did you have for dinner last night?"), 1, 0, 1, 3)
         layout.addWidget(inputBox(self), 2, 0, 1, 3)
         layout.addWidget(mainWidget, 3, 0, 4, 3)
         layout.addWidget(Sidebar(self), 1, 4, height, 1)
@@ -52,8 +52,8 @@ def title():
     return title
 
 
-def promptBox():
-    prompt = QLabel("What did you have for dinner last night?")
+def promptBox(text=""):
+    prompt = QLabel(text)
     prompt.setStyleSheet(promptBoxStyle)
     prompt.setAlignment(QtCore.Qt.AlignCenter)
     prompt.setObjectName("Prompt")

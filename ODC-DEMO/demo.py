@@ -179,8 +179,8 @@ def post_process(data, start_time, color_code, color_freq, boardId):
     for i in range(len(unix_timestamp)):
         main_timestamp.append(
             datetime.datetime.fromtimestamp(unix_timestamp[i][0]))
-
-    main_timestamp = np.array(main_timestamp).reshape(-1, 1)
+            
+    main_timestamp = np.array(main_timestamp).reshape(-1,1)
     data = np.concatenate((main_timestamp, data), axis=1)
     data = np.split(data, split_indices)
 
@@ -263,18 +263,22 @@ class Stimuli(QWidget):
         stim = []
 
         # white stims
-        stim.append(Stim.CircleFlash(9.25, 255, 255, 255, 1))
-        stim.append(Stim.CircleFlash(9.75, 255, 255, 255, 2))
-        stim.append(Stim.CircleFlash(10.25, 255, 255, 255, 3))
-        stim.append(Stim.CircleFlash(10.75, 255, 255, 255, 4))
-        stim.append(Stim.CircleFlash(11.25, 255, 255, 255, 5))
-        stim.append(Stim.CircleFlash(11.75, 255, 255, 255, 6))
-        stim.append(Stim.CircleFlash(12.25, 255, 255, 255, 7))
-        stim.append(Stim.CircleFlash(12.75, 255, 255, 255, 8))
-        stim.append(Stim.CircleFlash(13.25, 255, 255, 255, 9))
-        stim.append(Stim.CircleFlash(13.75, 255, 255, 255, 10))
-        stim.append(Stim.CircleFlash(14.25, 255, 255, 255, 11))
-        stim.append(Stim.CircleFlash(14.75, 255, 255, 255, 12))
+        stim.append(Stim.CircleFlash(20, 255, 255, 255, 1))
+        stim.append(Stim.CircleFlash(18, 255, 255, 255, 2))
+        stim.append(Stim.CircleFlash(16, 255, 255, 255, 3))
+        stim.append(Stim.CircleFlash(14, 255, 255, 255, 4))
+        stim.append(Stim.CircleFlash(12, 255, 255, 255, 5))
+        stim.append(Stim.CircleFlash(10, 255, 255, 255, 6))
+        stim.append(Stim.CircleFlash(8, 255, 255, 255, 7))
+        stim.append(Stim.CircleFlash(6, 255, 255, 255, 8))
+
+        # blue stims
+        stim.append(Stim.CircleFlash(11, 0, 0, 255, 9))
+        stim.append(Stim.CircleFlash(7, 0, 0, 255, 10))
+
+        # green stims
+        stim.append(Stim.CircleFlash(9, 0, 255, 0, 11))
+        stim.append(Stim.CircleFlash(5, 0, 255, 0, 12))
 
         # append stimulis to grid in random order
         random.shuffle(stim)
@@ -286,7 +290,7 @@ class Stimuli(QWidget):
             preStim = QLabel(labelTxt(""))
             preStimIndicators.append(preStim)
         self.gridLayout = QGridLayout(self.frame)
-        #self.gridLayout.addWidget(QLabel(), 3, 0)
+        # self.gridLayout.addWidget(QLabel(), 3, 0)
         for row in range(3):
             for col in range(4):
                 stimNum = row*4+col
@@ -297,7 +301,7 @@ class Stimuli(QWidget):
 
                 stim[stimNum].toggleOff()
                 self.gridLayout.addWidget(stim[stimNum], row*2+4, col*2)
-        self.gridLayout.setSpacing(50)
+        self.gridLayout.setSpacing(10)
 
     # resizes grid during window resize
     def resizeEvent(self, event):
@@ -305,8 +309,7 @@ class Stimuli(QWidget):
 
         l = min(self.width(), self.height())
         center = self.rect().center()
-
-        rect = QRect(0, 0, int(l*(7/6)), l)  # 5 x 3 ratio
+        rect = QRect(0, 0, int(l*(7/6)), l) # 5 x 3 ratio
         rect.moveCenter(center)
         self.frame.setGeometry(rect)
 
@@ -388,14 +391,14 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     window = QWidget()
-    window.setWindowTitle('Offline Data Collection')
+    window.setWindowTitle('Flashing Stim 1')
     window.setStyleSheet("background-color: black;")
 
     layout = QVBoxLayout()
 
     # global label
     label = QLabel(labelTxt("ODC-DEMO"))
-    label.setFixedHeight(30)
+    label.setFixedHeight(100)
     layout.addWidget(label)
     print("Test")
     grid = Stimuli()  # stimuli grid widget
@@ -413,7 +416,7 @@ if __name__ == '__main__':
         lambda: stopThread, board_details[0], board_details[1]))
     x.start()
 
-    window.setFixedSize(1000, 900)  # initial window size
+    window.setFixedSize(1000, 900) # initial window size
     window.show()
 
     try:
@@ -422,3 +425,4 @@ if __name__ == '__main__':
         stopThread = True
         file.close()
         print('Closing Window...')
+
