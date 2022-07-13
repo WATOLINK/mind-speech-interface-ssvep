@@ -17,7 +17,7 @@ To run the offline data-collection demo, copy and paste the following command.
 ```
 When setting up the device please make sure the channel numbers correspond to the following 10-20 electrode locations.
 
-![image](https://user-images.githubusercontent.com/34819737/178824157-caa5d8f9-faca-4b1f-8f0c-45e0bfff38ac.png)
+![image](https://user-images.githubusercontent.com/34819737/178824314-7b1296b8-cdd2-424b-86ef-b65fec7e2d6e.png)
 
 for openBCI
 ```python
