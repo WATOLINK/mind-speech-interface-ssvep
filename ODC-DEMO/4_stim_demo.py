@@ -18,6 +18,7 @@ import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
 import argparse
+from configs import hor, vert
 
 color_code_order = []
 color_freq_order = []
@@ -26,19 +27,19 @@ color_freq_order = []
 def display_procedure(stop, board, args):
 
     if testing:
-        START_DELAY_S = 1
-        NUM_TRIALS = 2
+        START_DELAY_S = 5
+        NUM_TRIALS = 1
         INDICATOR_TIME_VALUE_S = 1
         TRIAL_BREAK_TIME = 1
-        STIM_PERIOD_TRIALS = 3
+        STIM_PERIOD_TRIALS = 4
         STIM_TIME = 1
     else:
         START_DELAY_S = 20  # 20 Seconds
         NUM_TRIALS = 5  # 5 Trials
         INDICATOR_TIME_VALUE_S = 5  # 5 Seconds
         TRIAL_BREAK_TIME = 120  # 120 second
-        STIM_PERIOD_TRIALS = 12  # 12 for the 12 stimuli per trial
-        STIM_TIME = 5
+        STIM_PERIOD_TRIALS = 4  # number of stim it goes through
+        STIM_TIME = 5  # stim flash time
 
     f = open("ODC-DEMO/demo_data/" + filename +
              ".txt", 'a')  # modify depending on CWD
@@ -50,7 +51,7 @@ def display_procedure(stop, board, args):
     for x in range(startDelay):
         label.setText(labelTxt(f"Starting in {str(startDelay-x)}"))
         sleep(1)
-    order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    order = [0, 1, 2, 3]
 
     for trial in range(NUM_TRIALS):  # number of trials (5 times)
         print("=====Trial "+str(trial+1)+"=====")
@@ -77,6 +78,7 @@ def display_procedure(stop, board, args):
             # log color and hz to terminal
             color = str(currentStim.rValue)+"," + \
                 str(currentStim.gValue)+","+str(currentStim.bValue)
+            colorCode = ""
             if color == "255,255,255":
                 color = "white"
                 colorCode = "01"
@@ -121,6 +123,7 @@ def display_procedure(stop, board, args):
         if stop():
             break
 
+        # trial break
         for x in range(int(TRIAL_BREAK_TIME)):
             label.setText(
                 labelTxt(f"Time before next trial: ({TRIAL_BREAK_TIME-x})"))
@@ -179,8 +182,8 @@ def post_process(data, start_time, color_code, color_freq, boardId):
     for i in range(len(unix_timestamp)):
         main_timestamp.append(
             datetime.datetime.fromtimestamp(unix_timestamp[i][0]))
-            
-    main_timestamp = np.array(main_timestamp).reshape(-1,1)
+
+    main_timestamp = np.array(main_timestamp).reshape(-1, 1)
     data = np.concatenate((main_timestamp, data), axis=1)
     data = np.split(data, split_indices)
 
@@ -253,32 +256,20 @@ def generate_test_report(board, duration, data, color_code_order, color_freq_ord
 
 
 class Stimuli(QWidget):
-    def __init__(self):
+    def __init__(self, distance=1, radius=0.5):
         super().__init__()
-        self.resize(1200, 900)
+        self.resize(1800, 1300)
 
         # ensures correct aspect ratio of grid
         self.frame = QFrame(self, objectName="frame")
         global stim
-        stim = []
+        stim = []  # number of stimulus
 
         # white stims
-        stim.append(Stim.CircleFlash(20, 255, 255, 255, 1))
-        stim.append(Stim.CircleFlash(18, 255, 255, 255, 2))
-        stim.append(Stim.CircleFlash(16, 255, 255, 255, 3))
-        stim.append(Stim.CircleFlash(14, 255, 255, 255, 4))
-        stim.append(Stim.CircleFlash(12, 255, 255, 255, 5))
-        stim.append(Stim.CircleFlash(10, 255, 255, 255, 6))
-        stim.append(Stim.CircleFlash(8, 255, 255, 255, 7))
-        stim.append(Stim.CircleFlash(6, 255, 255, 255, 8))
-
-        # blue stims
-        stim.append(Stim.CircleFlash(11, 0, 0, 255, 9))
-        stim.append(Stim.CircleFlash(7, 0, 0, 255, 10))
-
-        # green stims
-        stim.append(Stim.CircleFlash(9, 0, 255, 0, 11))
-        stim.append(Stim.CircleFlash(5, 0, 255, 0, 12))
+        stim.append(Stim.CircleFlash(10.25, 255, 255, 255, 1, radius))
+        stim.append(Stim.CircleFlash(11.75, 255, 255, 255, 2, radius))
+        stim.append(Stim.CircleFlash(12.75, 255, 255, 255, 3, radius))
+        stim.append(Stim.CircleFlash(14.75, 255, 255, 255, 4, radius))
 
         # append stimulis to grid in random order
         random.shuffle(stim)
@@ -286,22 +277,20 @@ class Stimuli(QWidget):
         # create array of indicators
         global preStimIndicators
         preStimIndicators = []
-        for x in range(12):
+
+        # labels above stimulus before
+        for _ in range(len(stim)):
             preStim = QLabel(labelTxt(""))
             preStimIndicators.append(preStim)
         self.gridLayout = QGridLayout(self.frame)
-        # self.gridLayout.addWidget(QLabel(), 3, 0)
-        for row in range(3):
-            for col in range(4):
-                stimNum = row*4+col
-                self.gridLayout.addWidget(
-                    preStimIndicators[stimNum], row*2+3, col*2)
-                if (col != 3):
-                    self.gridLayout.addWidget(QLabel(), row*2+3, col*2+1)
 
+        for row in range(2):
+            for col in range(2):
+                stimNum = row*2 + col
                 stim[stimNum].toggleOff()
-                self.gridLayout.addWidget(stim[stimNum], row*2+4, col*2)
-        self.gridLayout.setSpacing(10)
+                self.gridLayout.addWidget(stim[stimNum], row, col)
+
+        self.gridLayout.setSpacing(distance)
 
     # resizes grid during window resize
     def resizeEvent(self, event):
@@ -309,13 +298,10 @@ class Stimuli(QWidget):
 
         l = min(self.width(), self.height())
         center = self.rect().center()
-        rect = QRect(0, 0, int(l*(7/6)), l) # 5 x 3 ratio
+
+        rect = QRect(0, 0, int(l*(14/9)), l)  # 5 x 3 ratio
         rect.moveCenter(center)
         self.frame.setGeometry(rect)
-
-# self.gridLayout.setColumnMinimumWidth(1, int(l/12)) # 3 additional columns fill space to make it a 4x3 grid
-# self.gridLayout.setColumnMinimumWidth(3, int(l/12))
-# self.gridLayout.setColumnMinimumWidth(5, int(l/12))
 
 
 def Cyton_Board_Config(purpose):
@@ -343,7 +329,7 @@ def Cyton_Board_Config(purpose):
     parser.add_argument('--serial-number', type=str,
                         help='serial number', required=False, default='')
     parser.add_argument('--board-id', type=int,
-                        help='board id, check docs to get a list of supported boards', required=True)
+                        help='board id, check docs to get a list of supported boards', required=False)
     parser.add_argument('--file', type=str, help='file',
                         required=False, default='')
     args = parser.parse_args()
@@ -380,6 +366,14 @@ def Cyton_Board_End(board):
 
 
 if __name__ == '__main__':
+    distance = int(input("Distance between stimuli:\n"))
+    radius = input("Radius of stimuli (0.5 default):\n")
+
+    if radius == None or not radius:
+        radius = 0.5
+    else:
+        radius = float(radius)
+
     # File and GUI config
     x = datetime.datetime.now()
 
@@ -400,8 +394,7 @@ if __name__ == '__main__':
     label = QLabel(labelTxt("ODC-DEMO"))
     label.setFixedHeight(100)
     layout.addWidget(label)
-    print("Test")
-    grid = Stimuli()  # stimuli grid widget
+    grid = Stimuli(distance, radius)  # stimuli grid widget
 
     layout.addWidget(grid)
     window.setLayout(layout)
@@ -416,13 +409,11 @@ if __name__ == '__main__':
         lambda: stopThread, board_details[0], board_details[1]))
     x.start()
 
-    window.setFixedSize(1000, 900) # initial window size
+    window.setFixedSize(hor, vert)  # initial window size
     window.show()
 
     try:
         sys.exit(app.exec_())
     except SystemExit:
-        stopThread = True
         file.close()
         print('Closing Window...')
-
