@@ -94,6 +94,8 @@ python -m eeg_ai_layer.models.train.py --data=<YOUR_DATA_PATH> --train --output-
 ```
 
 ## Online SSVEP Interface
+To run our fully integrated SSVEP interface, copy and paste the following commands:
+
 ```python
     cd mind-speech-interface-ssvep
 ```
@@ -106,3 +108,4 @@ for non synthetic board:
     python EEG-DATA-Pipeline/Data_Streamer.py --model-path=eeg-ai-layer\modelname.model
 ```
 
+After following this readme you should be all set to use our repository to communicate with your brain ;)
