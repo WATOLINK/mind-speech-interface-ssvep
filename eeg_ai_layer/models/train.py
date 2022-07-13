@@ -56,7 +56,7 @@ def train(model, data: List[pd.DataFrame], labels: List[float]):
     return model.train(data, labels)
 
 
-def test(hparams: dict, model, data: List[pd.DataFrame], labels:List[float]):
+def test(hparams: dict, model, data: List[pd.DataFrame], labels: List[float]):
     """
     Testing function for the model
 

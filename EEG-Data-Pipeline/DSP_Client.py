@@ -29,7 +29,7 @@ class EEGSocketListener:
     input_len = None    # number of rows in input array
     output_size = None  # number of samples needed to fill output array
                         #   the shape of the output array will be 
-                        #   (num_channels, input_len*output_size)
+                        #   (num_channels, input_len * output_size)
     fullData = None
     # Buffer Info
     data = None         # data buffer array to be sent to AI
@@ -95,11 +95,7 @@ class EEGSocketListener:
             if not self.samples:
                 # self.filter()
                 sample = self.data[end - self.output_size * self.input_len:end]
-                print(end)
-                print(np.any(np.isnan(sample)))
-                print(f"sample shape: {sample.shape}")
                 prepared = self.model.prepare(sample)
-                print(np.any(np.isnan(prepared)))
                 prediction = self.model.predict(prepared)
                 frequencies = self.model.convert_index_to_frequency(prediction)
                 c = Counter(frequencies)

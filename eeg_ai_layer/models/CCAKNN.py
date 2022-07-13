@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from sklearn.cross_decomposition import CCA
-from sklearn.neighbors import KNeighborsClassifier 
+from sklearn.neighbors import KNeighborsClassifier
 from joblib import dump, load
 from sklearn.metrics import confusion_matrix, accuracy_score
 from typing import List
@@ -19,6 +19,10 @@ class CCAKNNModel:
             self.frequencies = args.frequencies  # [0.0, 12.75, 14.75, 11.75, 10.25]
             self.components = args.components
             self.knn = KNeighborsClassifier(n_neighbors=args.neighbors)
+        if hasattr(args, 'train'):
+            self.in_train = args.train
+        else:
+            self.in_train = False
         self.cca = CCA(n_components=self.components)
         self.duration = args.window_length * args.sample_rate
         self.sample_rate = args.sample_rate
@@ -121,7 +125,10 @@ class CCAKNNModel:
             Correlations to each of the reference signals
         """
         result = np.zeros((signals.shape[0], reference.shape[0]))
-        for segment in range(signals.shape[0]):
+        signals_range = range(signals.shape[0])
+        if self.in_train:
+            signals_range = trange(signals.shape[0])
+        for segment in signals_range:
             for freq in range(reference.shape[0]):
                 self.cca.fit(signals[segment], np.squeeze(reference[freq, :, :]).T)
                 x_corr, y_corr = self.cca.transform(signals[segment], np.squeeze(reference[freq, :, :]).T)
