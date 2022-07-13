@@ -4,7 +4,7 @@ Mind-Speech Interface for NeuroTechX Student Clubs Competition 2022
 This repository includes an EEG data collection tool for SSVEP as well as an SSVEP text/speech interface.
 
 Platform Support: Currently our repository supports Windows 10 and up, as well as MacOS Big Sur and newer.
-Note: For Mac Devices with ARM SOCs (M1, M2 etc) you will need to run our tools in a Rosetta emulated terminal.
+Note: For Mac devices with ARM SOCs (M1, M2 etc) you will need to run our tools in a Rosetta emulated terminal.
 
 ## Credit
 Some of our models and signal processing methods were adapted from Aravind Ravi's Brain Computer Interface Repository (see here: https://github.com/aaravindravi/Brain-computer-interfaces)
