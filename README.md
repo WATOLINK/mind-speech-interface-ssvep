@@ -1,7 +1,7 @@
 # mind-speech-interface-ssvep
 Mind-Speech Interface for NeuroTechX Student Clubs Competition 2022
 
-This repository includes an EEG data collection tool for SSVEP as well as an SSVEP text/speech interface.
+This repository includes offline data collection and analysis tools for SSVEP, trainable models for SSVEP prediction, as well as an SSVEP text/speech interface.
 
 Platform Support: Currently our repository supports Windows 10 and up, as well as MacOS Big Sur and newer.
 Note: For Mac devices with ARM SOCs (M1, M2 etc) you will need to run our tools in a Rosetta emulated terminal.
