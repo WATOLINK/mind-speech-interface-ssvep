@@ -1,1 +1,0 @@
-from .CCAKNN import CCAKNNModel
