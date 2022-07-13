@@ -11,5 +11,4 @@ socketio>=0.2.1
 pyserial>=3.5
 scikit-learn==1.0.2
 keras==2.8.0
-tensorflow==2.9.0
 tqdm==4.64.0
