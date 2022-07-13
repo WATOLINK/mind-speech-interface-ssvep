@@ -24,9 +24,10 @@ import serial.tools.list_ports as p
 
 from DSP_Client import EEGSocketListener
 from EEG_socket_publisher import EEGSocketPublisher
-import sys
-sys.path.append("SSVEP-Interface")
-from InteractionTestDemo import mainFuncTest
+from test_socket_listener import run_tsl, TestSocketListener
+# import sys
+# sys.path.append("SSVEP-Interface")
+# from InteractionTestDemo import mainFuncTest
 
 
 def Cyton_Board_Config(args):
@@ -131,12 +132,14 @@ if __name__ == "__main__":
     info = Cyton_Board_Config(args)
     publisher = EEGSocketPublisher(args)
     listener = EEGSocketListener(args)
+    app = TestSocketListener()
 
     q = Queue()
     synch = Barrier(2)
     sys_processes = [Process(target=Streamer, args=(publisher, synch, q, info), name="Streamer"),
                      Process(target=DSP, args=(listener, synch, q,), name="Dsp Client"),
-                     Process(target=mainFuncTest, name="App")
+                     Process(target=run_tsl, args=(app, synch, q), name="App")
+                     # Process(target=mainFuncTest, name="App")
                      ]
 
     for process in sys_processes:

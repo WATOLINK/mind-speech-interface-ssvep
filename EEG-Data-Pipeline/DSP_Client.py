@@ -90,17 +90,16 @@ class EEGSocketListener:
             self.data[start:end, :] = packet
             # print(f"SUCCESS {self.samples+1}/{self.output_size} - {np.shape(packet)}")
             # del packet
-            # print(f"samples: {self.samples}")
             self.samples = (self.samples + 1) % self.output_size
-            if not self.samples:
+            if self.samples == 0:
                 # self.filter()
-                sample = self.data[end - self.output_size * self.input_len:end]
+                sample = self.data[start:end]
                 prepared = self.model.prepare(sample)
                 prediction = self.model.predict(prepared)
                 frequencies = self.model.convert_index_to_frequency(prediction)
                 c = Counter(frequencies)
                 print(f"Prediction: {c.most_common(1)[0][0]}")
-                self.send_packet(int(c.most_common(1)[0][0]))
+                self.send_packet(c.most_common(1)[0][0])
 
     def filter(self):
         num_eeg_channels = 8
