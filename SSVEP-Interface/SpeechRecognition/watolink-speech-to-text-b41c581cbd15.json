@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "watolink-speech-to-text",
+  "private_key_id": "b41c581cbd15a1a006f84349c127bfbc5943cdaa",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCr/75A4VBJdGgc\nhLWjtqyJcBi8kQH3h8M8f6WvepuVVoxCWVSVdTc/smwvQspoCOsESiYni09xVLrh\nA4b3CN0/L85VwKtCL5h0v9DS/r0iywMcdom5tU7kSTQaiNytK3sccRV1cEebfvg8\nLr4D+GDzzlzjZLPsl00FrHBS/ntD1cTiw9BBwmD4vdWoJQLxdaxSrFPs80kjL7Qj\niRJ+elALZ6ls0NukQH4bDzUTXA8iPyGVQhR1CWNY2n9GlnaV5UfNj4d9ik0qcUG0\n6CO8nc/xd1LXCHUEyyx/mxCA53z3MJ630bFVQEa3eMCX7ryQuieJ+ZRhnW47OKck\nUfzjesK9AgMBAAECggEAVSAkVbENzuT9eAvYaBfLadQgcgcknZFEN+eHJYO9h9pH\nXbkfiz7xoqVYNMXOLlInmr5mBtFEdrc0LJRV0mLBOXocGUXbnMy4nCOpIxwvmI44\nUnh6bn6E9qgiUPWmnlA0RJ3VPIPe9N8Q1Zxer9FYjqH2SBa5k+FIHgQ7rV/Euwu7\noCCuF7znJvZ5asXL7TVW8/lctorNIkB173ZW5vVdmap2P9EIGp3gXGm9a/TCv7nQ\n8zqter08cdmO2Zl8QW2f3QWBb0Ms1f+0cc9SIL90PQsFcfRrzUCNQj1nOTUZNiSm\nM6MbIi38ZvGIPX/vb0oljy7W9764gOfV7UOsNExNIwKBgQDmeAj9NMoCkj3f2inm\nDnncoWZ/kOLykYjtq27Du1guA3/A/OevJhI+rsRaKZLlnyE2QPlDnwr7i26VAiwi\n3bAQCIV95FqoAGrt8Qb5TjD1p4S5emrw4wWLexrCuUW3o+EvBlqDLqRJH+ZZGL0x\n+6HHH6A1DqcuYd3XbNStu+2gZwKBgQC/DYkgg1rmkn7+iSrutQPeTJan8eF7gHv9\n9WY8RH6iMscmg5vHm9JIk315vPdfI3JFF11PqJoPxpYnl2Y4V0KfAOnVBxbqu2Pa\n1LRXHVwb0i75N6nLg9q0vyrf8BQxuGZPbBBIUQHjHvMzk0FNqGJRy7Z96kHi1Hhy\nB+0Of6f9OwKBgQCUoGRrpleAQP9WFUNf8YX1GsEXE0DIXcKIQz4zS+YaBnek5XQk\nJ9EsS1ilLJpnKrAoZM5bJX3XqputzLDZ601XiadNAK7WGS7cM8vjiuFYCqg1VRUS\nM9WnlcQ0P3cObskRom9Mmg+oeMH8Q0//o984otSWYtS9vK9r9etR/xfHkQKBgEcT\nRQl4dI/EvkP5SaSGaQsBWSbfoG/uq7Id4kvXe3jiBR655XFL8d4YKJzqhOi66h70\nAz3ITpBB48iU1W1uYRWAJH2g5pCq6AoYCYNDI+ohtmH2qE9THUESwWOQECMzI7S2\nUhRlNpuE/xsX1DqMww8FBz4usRYuzyQ0+KblLNzTAoGAEX4ZJ7XGyLastcFgHq9Q\n6NQ3K5MQ5WTqpUVD8RnHHmw8lchU8cIQ5GJHHTrx79mzgx9UV8hF+nJvfqwTPSZ7\nPbhwckwvuA18z6tRpb8C4l4gxzFWaRLIHCk6GsykDmhZmY/BztpwpH0T3ieTzCiU\nttyTgvaIxDT5D4zbAZ+x7hw=\n-----END PRIVATE KEY-----\n",
+  "client_email": "watolinkstt@watolink-speech-to-text.iam.gserviceaccount.com",
+  "client_id": "109471733244734839630",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/watolinkstt%40watolink-speech-to-text.iam.gserviceaccount.com"
+}

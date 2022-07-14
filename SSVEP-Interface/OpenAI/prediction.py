@@ -17,13 +17,17 @@ class OpenAI():
 
     def predictWords(self, prompt, num_results=3):
         '''Generates up to #num_results predicted word for the given prompt'''
+
         res = openai.Completion.create(engine=self.engine, max_tokens=1, temperature=0.4, n = num_results, prompt = prompt)
+
         wordDict = res["choices"]
         wordList = []
         for index, key in enumerate(wordDict):
             wordList.append(wordDict[index]["text"])
+
         
         wordList = list(dict.fromkeys(wordList))
+
 
         return wordList
 
