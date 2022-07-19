@@ -11,7 +11,7 @@ Some of our models and signal processing methods were adapted from Aravind Ravi'
 
 ## Requirements
 
-To install requirements, make sure you have Python 3.8 or older installed, then run
+To install requirements, make sure you have Python 3 installed, then run
 ```python
     pip install -r requirements.txt
 ```
@@ -38,7 +38,7 @@ for openBCI
 ```
 for gTec
 ```python
-    python ODC-DEMO/4_stim_demo.py --board-id=8 --serial-port=deviceserialport
+    python ODC-DEMO/4_stim_demo.py --board-id=8 
 ```
 Note: to find your device serial port, either look in you device settings (windows) or if using a mac type this in the terminal:
 
