@@ -2,11 +2,14 @@ import socket
 import os
 import pickle
 import sys
+from turtle import clear
 import numpy as np
 import pandas as pd
 from time import time
+import time as t
 from brainflow.data_filter import DataFilter, FilterTypes
 from collections import Counter
+from numpy import savetxt
 
 path = os.getcwd()
 head, tail = os.path.split(path)
@@ -81,28 +84,46 @@ class EEGSocketListener:
         self.connection, self.address = self.pubSocket.accept()
         init_time = time()
         time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
+
+        init_slider_count = 0
+
         while time_func:
             packet = self.recieve_packet()
             if packet is None:
                 break
-            start = self.input_len * self.samples
-            end = self.input_len * (self.samples + 1)
 
-            self.data[start:end, :] = packet
-            # print(f"SUCCESS {self.samples+1}/{self.output_size} - {np.shape(packet)}")
-            # del packet
-            # print(f"samples: {self.samples}")
-            self.samples = (self.samples + 1) % self.output_size
-            if not self.samples:
-                # self.filter()
-                #sample = self.data[end - self.output_size * self.input_len:end]
-                sample = self.data[start:end]
+            # first 5 loops - build 250 sample packet from 50 sample packets
+            if init_slider_count < 5:
+                start = self.input_len * init_slider_count 
+                end = self.input_len * (init_slider_count + 1) 
+                self.data = np.empty((250,8))
+                self.data[start:end, :] = packet
+                print("Building 250 sample packet")
+
+            else:
+                # move first last 200 samples to temp
+                temp = self.data[50:250].copy()
+                # copy temp to self.data (from 0 - 200)
+                self.data[0:200] = temp[0:200]
+                # insert new packet of 50 samples in the end
+                self.data[200:250] = packet[0:50]
+
+                print(f"Built 250 sample packet - Packet size: {np.shape(self.data)}")
+                #t.sleep(0.03)
+                sample = self.data[0:250]
                 prepared = self.model.prepare(sample)
                 prediction = self.model.predict(prepared)
                 frequencies = self.model.convert_index_to_frequency(prediction)
                 c = Counter(frequencies)
                 print(f"Prediction: {c.most_common(1)[0][0]}")
                 self.send_packet(c.most_common(1)[0][0])
+
+            init_slider_count += 1
+
+            
+
+
+
 
     def filter(self):
         num_eeg_channels = 8

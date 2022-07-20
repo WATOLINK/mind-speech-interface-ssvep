@@ -113,7 +113,7 @@ def get_args(parser):
     parser.add_argument('--host', type=str, help='host name', required=False, default='127.0.0.1')
     parser.add_argument('--lisPort', type=int, help='lis port', required=False, default=65432)
     parser.add_argument('--num-channels', type=int, help='number of channels', required=False, default=8)
-    parser.add_argument('--input-len', type=int, help='input size', required=False, default=250)
+    parser.add_argument('--input-len', type=int, help='input size', required=False, default=50)
     parser.add_argument('--output-size', type=int, help='output size', required=False, default=1)
     parser.add_argument('--model-type', type=str, help='model type (CCA-KNN)', required=False, default='cca_knn')
     parser.add_argument('--model-path', type=str, help='path for saved model', required=False, default=None)

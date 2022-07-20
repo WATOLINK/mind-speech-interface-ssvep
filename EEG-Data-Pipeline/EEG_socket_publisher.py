@@ -65,7 +65,7 @@ class EEGSocketPublisher:
         return sample
 
     def send_packet(self, sample):
-        print(time())
+        #print(time())
         self.connection.sendall(pickle.dumps(sample))
         
         self.count += 1
@@ -79,9 +79,11 @@ class EEGSocketPublisher:
             init_time = time()
             time_func = (lambda: (self.count < exp_count) and (time() - init_time < run_time + 1)) if run_time else (
                 lambda: True)
+            init_time = round(init_time * 1000)
             while time_func():
                 if self.board.get_board_data_count() >= self.input_len:
                     packet = self.retrieve_sample()
+                    print("Elapsed Time: "+str(round(time() * 1000) - init_time)+"ms")
                     self.send_packet(packet)
                     
             self.connection.sendall(pickle.dumps(None))
