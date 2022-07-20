@@ -11,7 +11,7 @@ Some of our models and signal processing methods were adapted from Aravind Ravi'
 
 ## Requirements
 
-To install requirements, make sure you have Python 3 installed, then run
+To install requirements, make sure you have Python 3.10+ installed, then run
 ```python
     pip install -r requirements.txt
 ```
