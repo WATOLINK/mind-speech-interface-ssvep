@@ -1,13 +1,11 @@
 import pandas as pd
 import numpy as np
 import re
-import os
-import ssvep_CNN_utils as su
 
 # loading in data
 #data = pd.read_csv('/Users/mikashaw/code/watolink/trial1.csv')
 
-class Reformat:
+class Preprocess:
     
     def __init__(self, data, num_timesteps = 1114, num_channels = 8, sample_freq = 250):
         
@@ -20,7 +18,7 @@ class Reformat:
         #const
         self.NUM_TIMESTEPS = num_timesteps
         self.NUM_CHANNELS = num_channels
-        self.SAMPLING_FREQUENCY = sample_freq 
+        self.SAMPLING_FREQUENCY = sample_freq
 
     def _get_zero_inds_and_rename(self, data):
 
@@ -242,7 +240,7 @@ class Reformat:
         return t
     
 
-    def main(self):
+    def process(self):
 
         #load data
         #print(self.num_trials)
@@ -298,82 +296,10 @@ class Reformat:
         
         
         return done
-
-class Preprocess: 
-
-    def __init__(self, window_len = 1, shift_len = 1, CNN_PARAMS = {
-
-        'batch_size': 64,
-        'epochs': 250,
-        'droprate': 0.25,
-        'learning_rate': 0.001,
-        'lr_decay': 0.0,
-        'l2_lambda': 0.0001,
-        'momentum': 0.9,
-        'kernel_f': 10,
-        'n_ch': 8, 
-        'num_classes': 13
-
-    } , FFT_PARAMS = {
-
-        'resolution': 0.2930,
-        'start_frequency': 3.0,
-        'end_frequency': 35.0,
-        'sampling_rate': 250
-
-                    }):
-        self.window_len = window_len 
-        self.shift_len = shift_len
-        self.CNN_PARAMS = CNN_PARAMS 
-        self.FFT_PARAMS = FFT_PARAMS
-
-        self.flicker_freq = np.array([0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 14.0, 16.0, 18.0, 20.0])
-        self.sample_rate = FFT_PARAMS['sampling_rate']
-
-        self.magnitude_specturm = dict()
-        self.magnitude_spectrum_features = dict()
-        self.mcnn_training_data = {}
-    
-    def main(self, data):
-
-        all_segmented_data = dict()
-
-        for subject in range(1):
-            eeg = data 
-            self.total_trial_len = eeg.shape[2]
-            self.num_trials = eeg.shape[3]
-            sample_rate = 250 
-            filtered_data = su.get_filtered_eeg(eeg, 6, 80, 4, sample_rate)
-            all_segmented_data[f's{subject+1}'] = su.get_segmented_epochs(filtered_data, self.window_len, 
-                                                                            self.shift_len, sample_rate)
-        for subject in all_segmented_data.keys():
-            self.magnitude_spectrum_features[subject] = su.magnitude_spectrum_features(all_segmented_data[subject], 
-                                                                          self.FFT_PARAMS)
-            self.mcnn_training_data[subject] = dict()
-   
-            train_data, labels = su.get_training_data(self.magnitude_spectrum_features[subject], self.CNN_PARAMS)
-            self.mcnn_training_data[subject]['train_data'] = train_data
-            self.mcnn_training_data[subject]['label'] = labels
-
-        print(self.mcnn_training_data['s1']['train_data'][0].shape)
-
-        return self.mcnn_training_data
-
-            
         
 if __name__ == "__main__":
-    
-    #os.getcwd()
-
-    curr = os.getcwd()
-    os.chdir(curr + '/EEG-AI-Layer/data')
-    print(os.getcwd())
     data = pd.read_csv('./emily_trial1.csv')
-    preprocessor = Reformat(data)
-    d = preprocessor.main() 
+    preprocessor = Preprocess(data)
+    d = preprocessor.process() 
     print(d.shape)
-
-    p = Preprocess() 
-    new = p.main(d)
-    print('SUCCESSFULLY COMPLETED')
 
