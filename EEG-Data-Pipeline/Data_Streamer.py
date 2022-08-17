@@ -27,6 +27,7 @@ from EEG_socket_publisher import EEGSocketPublisher
 import sys
 sys.path.append("SSVEP-Interface")
 from InteractionTestDemo import mainFuncTest
+from time import time
 
 
 def Cyton_Board_Config(args):
@@ -82,6 +83,7 @@ def Streamer(publisher, synch, q, info):
         publisher.col_low_lim = 1
         publisher.col_hi_lim = 9
     synch.wait()
+    print("Elapsed Time Streamer Process: "+str(round(time() * 1000))+"ms")
     publisher.publish(99999999999)
     if q.get() is None:
         publisher.close_connections()
@@ -91,6 +93,7 @@ def Streamer(publisher, synch, q, info):
 def DSP(listener, synch, q):
     listener.open_socket_conn()
     synch.wait()
+    print("Elapsed Time DSP Process: "+str(round(time() * 1000))+"ms")
     listener.listen()
     q.put(None)
     if q.get() is None:

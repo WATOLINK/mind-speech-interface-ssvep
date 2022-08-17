@@ -82,10 +82,12 @@ class EEGSocketListener:
 
     def listen(self, run_time=None):
         self.connection, self.address = self.pubSocket.accept()
+        print("Connected by: DSP_Client : "+str(round(time() * 1000))+"ms")
         init_time = time()
         time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
 
         init_slider_count = 0
+        self.data = np.zeros((50,8))
 
         while time_func:
             packet = self.recieve_packet()
@@ -93,23 +95,15 @@ class EEGSocketListener:
                 break
 
             # first 5 loops - build 250 sample packet from 50 sample packets
-            if init_slider_count < 5:
-                start = self.input_len * init_slider_count 
-                end = self.input_len * (init_slider_count + 1) 
-                self.data = np.empty((250,8))
-                self.data[start:end, :] = packet
+            if init_slider_count < 4:
+                self.data = np.concatenate((self.data, packet), axis=0)
                 print("Building 250 sample packet")
-
             else:
-                # move first last 200 samples to temp
-                temp = self.data[50:250].copy()
-                # copy temp to self.data (from 0 - 200)
-                self.data[0:200] = temp[0:200]
-                # insert new packet of 50 samples in the end
-                self.data[200:250] = packet[0:50]
+                self.data = np.concatenate((self.data, packet), axis=0)
+                print(f"concatenated size: {np.shape(self.data)}")
+                self.data = np.delete(self.data, range(0,50), axis=0)
 
                 print(f"Built 250 sample packet - Packet size: {np.shape(self.data)}")
-                #t.sleep(0.03)
                 sample = self.data[0:250]
                 prepared = self.model.prepare(sample)
                 prediction = self.model.predict(prepared)
