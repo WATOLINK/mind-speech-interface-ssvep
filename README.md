@@ -11,7 +11,7 @@ Some of our models and signal processing methods were adapted from Aravind Ravi'
 
 ## Requirements
 
-To install requirements, make sure you have Python 3.8 or older installed, then run
+To install requirements, make sure you have Python 3.10+ installed, then run
 ```python
     pip install -r requirements.txt
 ```
@@ -38,7 +38,7 @@ for openBCI
 ```
 for gTec
 ```python
-    python ODC-DEMO/4_stim_demo.py --board-id=8 --serial-port=deviceserialport
+    python ODC-DEMO/4_stim_demo.py --board-id=8 
 ```
 Note: to find your device serial port, either look in you device settings (windows) or if using a mac type this in the terminal:
 
@@ -84,13 +84,13 @@ There are some handy flags:
 To train a CCA-KNN model, navigate to `mind-speech-interface-ssvep/` and run
 
 ```python
-python -m eeg_ai_layer.models.train.py --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --name=<YOUR_MODEL_NAME>
+python -m eeg_ai_layer.models.train.py --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --output-name=<YOUR_MODEL_NAME>
 ```
 
 If you'd like to see some metrics, pass the `--verbose` flag like so:
 
 ```python
-python -m eeg_ai_layer.models.train.py --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --name=<YOUR_MODEL_NAME> --verbose
+python -m eeg_ai_layer.models.train.py --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --output-name=<YOUR_MODEL_NAME> --verbose
 ```
 
 ## Online SSVEP Interface
