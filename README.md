@@ -84,13 +84,13 @@ There are some handy flags:
 To train a CCA-KNN model, navigate to `mind-speech-interface-ssvep/` and run
 
 ```python
-python -m eeg_ai_layer.models.train.py --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --output-name=<YOUR_MODEL_NAME>
+python -m eeg_ai_layer.models.train --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --output-name=<YOUR_MODEL_NAME>
 ```
 
 If you'd like to see some metrics, pass the `--verbose` flag like so:
 
 ```python
-python -m eeg_ai_layer.models.train.py --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --output-name=<YOUR_MODEL_NAME> --verbose
+python -m eeg_ai_layer.models.train --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --output-name=<YOUR_MODEL_NAME> --verbose
 ```
 
 ## Online SSVEP Interface
