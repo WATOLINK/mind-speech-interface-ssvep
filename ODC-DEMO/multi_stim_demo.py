@@ -1,47 +1,28 @@
 from PyQt5.QtWidgets import (
-    QApplication,
     QLabel,
     QWidget,
     QGridLayout,
     QFrame,
-    QVBoxLayout
 )
-from PyQt5.QtCore import QRect, Qt
-from PyQt5.QtGui import QPainter, QBrush, QPen
-from time import time, sleep, strftime, localtime
+from PyQt5.QtCore import QRect
+from time import time, sleep
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
-import sys
 import random
-import threading
 import datetime
 import circle_stimuli as Stim
 import numpy as np
 import pandas as pd
 import argparse
-from configs import hor, vert
+from configs import *
 
 color_code_order = []
 color_freq_order = []
 
 
-def display_procedure(stop, board, args):
+def display_procedure(stop, board, args, label, filename):
+    START_DELAY_S, NUM_TRIALS, INDICATOR_TIME_VALUE_S, TRIAL_BREAK_TIME, STIM_PERIOD_TRIALS, STIM_TIME = demo_configs()
 
-    if testing:
-        START_DELAY_S = 5
-        NUM_TRIALS = 1
-        INDICATOR_TIME_VALUE_S = 1
-        TRIAL_BREAK_TIME = 1
-        STIM_PERIOD_TRIALS = 4
-        STIM_TIME = 1
-    else:
-        START_DELAY_S = 20  # 20 Seconds
-        NUM_TRIALS = 5  # 5 Trials
-        INDICATOR_TIME_VALUE_S = 5  # 5 Seconds
-        TRIAL_BREAK_TIME = 120  # 120 second
-        STIM_PERIOD_TRIALS = 4  # number of stim it goes through
-        STIM_TIME = 5  # stim flash time
-
-    f = open("ODC-DEMO/demo_data/" + filename +
+    f = open("demo_data/" + filename +
              ".txt", 'a')  # modify depending on CWD
     f.write(f"Session at {datetime.datetime.now()} \n\n")
     start_time = time()
@@ -140,14 +121,14 @@ def display_procedure(stop, board, args):
     f.close()
 
     board.stop_stream()
-    if not testing:
+    if not TESTING:
         duration = time()-start_time
         generate_test_report(board, duration, data,
                              color_code_order, color_freq_order)
     df = post_process(data, start_time, color_code_order,
                       color_freq_order, board.board_id)
     try:
-        if testing:
+        if TESTING:
             df.to_csv("ODC-DEMO/test.csv", index=False)
         else:
             df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
@@ -363,57 +344,3 @@ def Cyton_Board_Config(purpose):
 def Cyton_Board_End(board):
     board.release_session()
     return
-
-
-if __name__ == '__main__':
-    distance = int(input("Distance between stimuli:\n"))
-    radius = input("Radius of stimuli (0.5 default):\n")
-
-    if radius == None or not radius:
-        radius = 0.5
-    else:
-        radius = float(radius)
-
-    # File and GUI config
-    x = datetime.datetime.now()
-
-    global filename
-    # day of year, year, millisecond
-    filename = f"{x.strftime('%j')}_{x.strftime('%Y')}_{x.strftime('%f')}"
-
-    file = open("ODC-DEMO/demo_data/" + filename + ".txt", "x")  # create log
-
-    app = QApplication(sys.argv)
-    window = QWidget()
-    window.setWindowTitle('Flashing Stim 1')
-    window.setStyleSheet("background-color: black;")
-
-    layout = QVBoxLayout()
-
-    # global label
-    label = QLabel(labelTxt("ODC-DEMO"))
-    label.setFixedHeight(100)
-    layout.addWidget(label)
-    grid = Stimuli(distance, radius)  # stimuli grid widget
-
-    layout.addWidget(grid)
-    window.setLayout(layout)
-
-    # BCI Config
-    board_details = Cyton_Board_Config(False)
-
-    global testing
-    testing = False
-    stopThread = False
-    x = threading.Thread(target=display_procedure, args=(
-        lambda: stopThread, board_details[0], board_details[1]))
-    x.start()
-
-    window.setFixedSize(hor, vert)  # initial window size
-    window.show()
-
-    try:
-        sys.exit(app.exec_())
-    except SystemExit:
-        file.close()
-        print('Closing Window...')

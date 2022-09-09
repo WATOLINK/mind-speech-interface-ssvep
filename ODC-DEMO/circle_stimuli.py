@@ -1,5 +1,5 @@
 import sys
-from configs import vert, hor
+from configs import HOR, VERT
 from math import cos, sin, pi
 
 # https://doc.qt.io/qt-6/qopenglwidget.html
@@ -72,7 +72,7 @@ class CircleFlash (QOpenGLWidget):
                 self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
                 for i in range(sides):
                     # inverse of window size
-                    x = self.radius * cos(i * 2 * pi / sides)*(vert/hor)
+                    x = self.radius * cos(i * 2 * pi / sides)*(VERT/HOR)
                     y = self.radius * sin(i * 2 * pi / sides)
                     self.gl.glVertex2f(x, y)
                 self.gl.glEnd()
@@ -90,7 +90,7 @@ class CircleFlash (QOpenGLWidget):
                 self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
                 for i in range(sides):
                     # inverse of window size
-                    x = self.radius * cos(i * 2 * pi / sides)*(vert/hor)
+                    x = self.radius * cos(i * 2 * pi / sides)*(VERT/HOR)
                     y = self.radius * sin(i * 2 * pi / sides)
                     self.gl.glVertex2f(x, y)
                 self.gl.glEnd()
