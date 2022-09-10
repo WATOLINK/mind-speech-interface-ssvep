@@ -7,18 +7,12 @@ from PyQt5.QtWidgets import (
 import sys
 import threading
 import datetime
-from configs import HOR, VERT
+from configs import HOR, VERT, FREQS, RADII
 from multi_stim_demo import *
 
 
 if __name__ == '__main__':
     distance = int(input("Distance between stimuli:\n"))
-    radius = input("Radius of stimuli (0.5 default):\n")
-
-    if radius == None or not radius:
-        radius = 0.5
-    else:
-        radius = float(radius)
 
     # File and GUI config
     x = datetime.datetime.now()
@@ -39,7 +33,7 @@ if __name__ == '__main__':
     label = QLabel(labelTxt("ODC-DEMO"))
     label.setFixedHeight(100)
     layout.addWidget(label)
-    grid = Stimuli(distance, radius)  # stimuli grid widget
+    grid = Stimuli(NUM_STIMS, FREQS, RADII, distance)  # stimuli grid widget
 
     layout.addWidget(grid)
     window.setLayout(layout)

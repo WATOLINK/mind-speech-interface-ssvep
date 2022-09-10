@@ -2,9 +2,10 @@ from PyQt5.QtWidgets import (
     QLabel,
     QWidget,
     QGridLayout,
+    QHBoxLayout,
     QFrame,
 )
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, Qt
 from time import time, sleep
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
 import random
@@ -18,9 +19,8 @@ from configs import *
 color_code_order = []
 color_freq_order = []
 
-
 def display_procedure(stop, board, args, label, filename):
-    START_DELAY_S, NUM_TRIALS, INDICATOR_TIME_VALUE_S, TRIAL_BREAK_TIME, STIM_PERIOD_TRIALS, STIM_TIME = demo_configs()
+    START_DELAY_S, NUM_TRIALS, INDICATOR_TIME_VALUE_S, TRIAL_BREAK_TIME, STIM_TIME = demo_configs()
 
     f = open("demo_data/" + filename +
              ".txt", 'a')  # modify depending on CWD
@@ -32,7 +32,9 @@ def display_procedure(stop, board, args, label, filename):
     for x in range(startDelay):
         label.setText(labelTxt(f"Starting in {str(startDelay-x)}"))
         sleep(1)
-    order = [0, 1, 2, 3]
+
+    # NUM_STIMS == STIM_PERIOD_TRAILS are the same
+    order = list(range(NUM_STIMS))
 
     for trial in range(NUM_TRIALS):  # number of trials (5 times)
         print("=====Trial "+str(trial+1)+"=====")
@@ -47,7 +49,7 @@ def display_procedure(stop, board, args, label, filename):
         # insert marker for start AS WELL AS BETWEEN TRIALS
         board.insert_marker(0.666)
 
-        for stimPeriod in range(STIM_PERIOD_TRIALS):
+        for stimPeriod in range(NUM_STIMS):
             color_code_order.append(0)
             color_freq_order.append(0)
             # just for testing otherwise the thread keeps running if you close the window
@@ -57,8 +59,8 @@ def display_procedure(stop, board, args, label, filename):
             stimLabel = preStimIndicators[order[stimPeriod]]
 
             # log color and hz to terminal
-            color = str(currentStim.rValue)+"," + \
-                str(currentStim.gValue)+","+str(currentStim.bValue)
+            color = str(currentStim.rValue) + "," + \
+                str(currentStim.gValue) + "," + str(currentStim.bValue)
             colorCode = ""
             if color == "255,255,255":
                 color = "white"
@@ -90,14 +92,14 @@ def display_procedure(stop, board, args, label, filename):
             # insert marker for in between flashes (null)
             board.insert_marker(0.666)
 
-            for x in range(STIM_PERIOD_TRIALS):
+            for x in range(NUM_STIMS):
                 stim[x].toggleOn()
             sleep(STIM_TIME)  # set length of simulation period (5s)
             # insert marker for stimuli flash (individual)
             board.insert_marker(0.666)
 
             # turn off all stimuli and prepare for next trial
-            for x in range(STIM_PERIOD_TRIALS):
+            for x in range(NUM_STIMS):
                 stim[x].toggleOff()
 
         # just for testing otherwise the thread keeps running if you close the window
@@ -137,10 +139,8 @@ def display_procedure(stop, board, args, label, filename):
     finally:
         Cyton_Board_End(board)
 
-
 def labelTxt(text):
     return f'<h1 style="text-align:center; color: white">{text}</h1>'
-
 
 def post_process(data, start_time, color_code, color_freq, boardId):
     split_indices = np.where(data == 0.666)[0]
@@ -160,6 +160,7 @@ def post_process(data, start_time, color_code, color_freq, boardId):
         unix_timestamp = data[:, 17:18]
         data = np.delete(data, range(8, 19), 1)
     main_timestamp = []
+    
     for i in range(len(unix_timestamp)):
         main_timestamp.append(
             datetime.datetime.fromtimestamp(unix_timestamp[i][0]))
@@ -195,7 +196,6 @@ def post_process(data, start_time, color_code, color_freq, boardId):
     header.append('Frequency')
     df_all = pd.DataFrame(df_data, columns=header)
     return df_all
-
 
 def generate_test_report(board, duration, data, color_code_order, color_freq_order):
     tf = open("ODC-DEMO/test_report.txt", 'w')
@@ -234,56 +234,6 @@ def generate_test_report(board, duration, data, color_code_order, color_freq_ord
     tf.write(str(np.shape(data)[0]))
     tf.write("\n")
     tf.close()
-
-
-class Stimuli(QWidget):
-    def __init__(self, distance=1, radius=0.5):
-        super().__init__()
-        self.resize(1800, 1300)
-
-        # ensures correct aspect ratio of grid
-        self.frame = QFrame(self, objectName="frame")
-        global stim
-        stim = []  # number of stimulus
-
-        # white stims
-        stim.append(Stim.CircleFlash(10.25, 255, 255, 255, 1, radius))
-        stim.append(Stim.CircleFlash(11.75, 255, 255, 255, 2, radius))
-        stim.append(Stim.CircleFlash(12.75, 255, 255, 255, 3, radius))
-        stim.append(Stim.CircleFlash(14.75, 255, 255, 255, 4, radius))
-
-        # append stimulis to grid in random order
-        random.shuffle(stim)
-
-        # create array of indicators
-        global preStimIndicators
-        preStimIndicators = []
-
-        # labels above stimulus before
-        for _ in range(len(stim)):
-            preStim = QLabel(labelTxt(""))
-            preStimIndicators.append(preStim)
-        self.gridLayout = QGridLayout(self.frame)
-
-        for row in range(2):
-            for col in range(2):
-                stimNum = row*2 + col
-                stim[stimNum].toggleOff()
-                self.gridLayout.addWidget(stim[stimNum], row, col)
-
-        self.gridLayout.setSpacing(distance)
-
-    # resizes grid during window resize
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-
-        l = min(self.width(), self.height())
-        center = self.rect().center()
-
-        rect = QRect(0, 0, int(l*(14/9)), l)  # 5 x 3 ratio
-        rect.moveCenter(center)
-        self.frame.setGeometry(rect)
-
 
 def Cyton_Board_Config(purpose):
 
@@ -340,7 +290,76 @@ def Cyton_Board_Config(purpose):
     else:
         return [board, args.streamer_params]
 
-
 def Cyton_Board_End(board):
     board.release_session()
     return
+
+class Stimuli(QWidget):
+    def __init__(self, numOStims, arrOFreq, arrORad, distance=1):
+        super().__init__()
+        self.resize(1800, 1300)
+
+        # ensures correct aspect ratio of grid
+        self.frame = QFrame(self, objectName="frame")
+        global stim
+        stim = []  # number of stimulus
+
+        # stimuli expectations
+        assert numOStims % 2 == 0, "number of stimuli should be 4, 6, or 8"
+        assert 4 <= numOStims and numOStims <= 8, "number of stimuli should be 4, 6, or 8"
+        assert numOStims == len(arrOFreq), "frequencies given should match number of stimuli"
+        assert numOStims == len(arrORad), "radii given should match number of stimuli"
+
+        # white stims
+        for i in range(numOStims):
+            stim.append(Stim.CircleFlash(arrOFreq[i], 255, 255, 255, i+1, arrORad[i]))
+
+        # append stimulis to grid in random order
+        random.shuffle(stim)
+
+        # create array of indicators
+        global preStimIndicators
+        preStimIndicators = []
+
+        # labels above stimulus before
+        for _ in range(len(stim)):
+            preStim = QLabel(labelTxt(""))
+            preStimIndicators.append(preStim)
+        self.gridLayout = QGridLayout(self.frame)
+
+        # this iteration will be performed for 4, 6 stimuli
+        if numOStims == 4 or numOStims == 6:
+            stimNum = 0
+            for row in range(2): # numOStims / (numOStims//2)
+                for col in range(numOStims//2):
+                    stim[stimNum].toggleOff()
+                    self.gridLayout.addWidget(stim[stimNum], row, col)
+                    stimNum += 1
+        else: # 8 stimuli : we want different format
+            for stimNum in range(numOStims):
+                stim[stimNum].toggleOff()
+
+            self.gridLayout.addWidget(stim[0], 0, 3)
+            self.gridLayout.addWidget(stim[1], 1, 0)
+            self.gridLayout.addWidget(stim[2], 1, 1)
+            self.gridLayout.addWidget(stim[3], 1, 2)
+            self.gridLayout.addWidget(stim[4], 1, 3)
+
+            bottomGrid = QHBoxLayout()
+            bottomGrid.addWidget(stim[5])
+            bottomGrid.addWidget(stim[6])
+            bottomGrid.addWidget(stim[7])
+            self.gridLayout.addLayout(bottomGrid, 2, 0, 1, 4)
+
+        self.gridLayout.setSpacing(distance)
+
+    # resizes grid during window resize
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+
+        l = min(self.width(), self.height())
+        center = self.rect().center()
+
+        rect = QRect(0, 0, int(l*(14/9)), l)  # 5 x 3 ratio
+        rect.moveCenter(center)
+        self.frame.setGeometry(rect)
