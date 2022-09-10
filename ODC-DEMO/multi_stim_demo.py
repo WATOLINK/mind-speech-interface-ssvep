@@ -328,7 +328,7 @@ class Stimuli(QWidget):
         self.gridLayout = QGridLayout(self.frame)
 
         # this iteration will be performed for 4, 6 stimuli
-        if numOStims == 4 or numOStims == 6:
+        if numOStims != 8:
             stimNum = 0
             for row in range(2): # numOStims / (numOStims//2)
                 for col in range(numOStims//2):

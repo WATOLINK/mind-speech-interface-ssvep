@@ -13,7 +13,6 @@ from PyQt5.QtWidgets import (
     QSizePolicy
 )
 from PyQt5.QtCore import QTimer
-
 from PyQt5.QtGui import QOpenGLVersionProfile
 
 
@@ -24,7 +23,7 @@ class CircleFlash (QOpenGLWidget):
     on = True
     solidColor = False  # for displaying as indicator
 
-    def __init__(self, freqHz, r, g, b, stimuliNumber, radius=0.8):
+    def __init__(self, freqHz, r, g, b, stimuliNumber, radius=0.5):
         super() . __init__()
         self.flag = True
 
@@ -73,7 +72,7 @@ class CircleFlash (QOpenGLWidget):
                 for i in range(sides):
                     # inverse of window size
                     x = self.radius * cos(i * 2 * pi / sides)*(VERT/HOR)
-                    y = self.radius * sin(i * 2 * pi / sides)
+                    y = self.radius * sin(i * 2 * pi / sides)*(VERT/HOR)
                     self.gl.glVertex2f(x, y)
                 self.gl.glEnd()
 
@@ -91,7 +90,7 @@ class CircleFlash (QOpenGLWidget):
                 for i in range(sides):
                     # inverse of window size
                     x = self.radius * cos(i * 2 * pi / sides)*(VERT/HOR)
-                    y = self.radius * sin(i * 2 * pi / sides)
+                    y = self.radius * sin(i * 2 * pi / sides)*(VERT/HOR)
                     self.gl.glVertex2f(x, y)
                 self.gl.glEnd()
             else:

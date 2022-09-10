@@ -12,7 +12,10 @@ from multi_stim_demo import *
 
 
 if __name__ == '__main__':
-    distance = int(input("Distance between stimuli:\n"))
+    # NOTE: doesn't seem to affect spacing
+    # TODO: fix spacing to allow distance change
+    # distance = int(input("Distance between stimuli:\n"))
+    distance = 10
 
     # File and GUI config
     x = datetime.datetime.now()
