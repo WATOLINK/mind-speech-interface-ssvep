@@ -42,17 +42,27 @@ class Preprocess:
         return data
 
     def _trim_zero_cases(self, data):
+
         """
     
         Ensures that the amount of null cases in the dataset is equal to the number of trials
-        * Assumes temp start freq = 50
+        * Assumes temp start freq = 50 
+
+        dataframe['FrequencyTemp'] vals should range from 0-start + num_same_freq, 
+        if there are 5 same freq, thats how many null cases we want to keep so we make that the upper bound, every higher frequencytemp val
+        is dropped 
     
         """
     
         START = 50
+
+
     
         condition_one = data['FrequencyTemp'] < START + self.num_same_freq
-        data.where(condition_one, inplace = True)
+        #print('FREQ TEMP')
+        #print(data['FrequencyTemp'])
+       # data.where(condition_one, inplace = True)
+        data = data.where(condition_one, other = None)
         data = data.dropna().reset_index(drop = True)
         return data
         
@@ -82,6 +92,11 @@ class Preprocess:
                 count_index = 0
                 
            
+            # df[df['A'] > 2]['B'] = new_val 
+            # df.loc[df['A'] > 2, 'B'] = new_val 
+
+            #data.loc[i, data['Trial']] = count_index
+
             data['Trial'][i] = count_index
             count_index += 1
             #print(count_index)
@@ -107,7 +122,7 @@ class Preprocess:
    
         condition_one = data['Trial'] >= 0
         condition_two = data['Trial'] < self.NUM_TIMESTEPS
-        data.where(condition_one & condition_two, inplace = True)
+        data = data.where(condition_one & condition_two, other = None)
         #data = data.dropna(subset = ['CH1']).reset_index(drop = True)
         data = data.dropna().reset_index(drop = True)
 
@@ -140,7 +155,7 @@ class Preprocess:
         """
         
         condition = data['Frequency'] != 0
-        data.where(condition, inplace = True)
+        data = data.where(condition, other = None)
         data = data.dropna().reset_index(drop = True)
         
         return data
@@ -156,7 +171,7 @@ class Preprocess:
     
         for i in data['Frequency'].value_counts().keys():
             freqs[i] = 0
-            print(i)
+            #print(i)
     
         for i in range(0, len(data), 1114):
             data['test'][i] = freqs[data['Frequency'][i]]
@@ -210,8 +225,8 @@ class Preprocess:
         #print(d.head())
     
         condition_one = d['test'] == condition
-        print(condition_one)
-        d.where(condition_one, inplace = True)
+        #print(condition_one)
+        d = d.where(condition_one, other = None)
         d['Frequency'].value_counts()
         #data = data.dropna(subset = ['CH1']).reset_index(drop = True)
         d = d.dropna().reset_index(drop = True)
@@ -223,7 +238,7 @@ class Preprocess:
         for df in all_data:
             
             df = df.to_numpy() 
-            print('SHAPE OF DATA=====')
+            print('SHAPE OF DATA')
             print(df.shape)
             
 
@@ -259,6 +274,8 @@ class Preprocess:
 
         #forward fill
         new_df = self.get_data_arr(new_df)
+        #print('NEW DATAFRAME')
+        #print(new_df)
 
         # ensures same amount of null cases as other freqs
         new_df = self._trim_zero_cases(new_df)
@@ -306,7 +323,7 @@ class Preprocess:
         return done
         
 if __name__ == "__main__":
-    data = pd.read_csv('./chris_2_4_freq.csv')
+    data = pd.read_csv('./trial1.csv')
     preprocessor = Preprocess(data, num_frequencies=5)
     d = preprocessor.main() 
     print(d.shape)
