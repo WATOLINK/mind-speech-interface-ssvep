@@ -4,9 +4,10 @@ from server.twitterAPI import tweet
 
 from Pages.HomePage.mainWidgetIndexes import getMainWidgetIndex
 from Pages.sidebar.sidebarIndexes import getSidebarIndex
-from TTS.watolink_TTS import *
+from _TTS.watolink_TTS import *
 
 outputMode = ""
+TTS = TTS_synthesizer(model_name = "tts_models/en/ljspeech/tacotron2-DDC")
 
 class EnterButton(ButtonContainer):
     def __init__(self,parent):
@@ -28,10 +29,7 @@ def submitAndReturn(parent):
         elif getOutputMode() == "voice":
                 print("voice not yet implemented. Input field text:", inputField.text())
                 # Convert input text to speech (TTS)
-                path = os.path.dirname(os.path.abspath(__file__))
-                newest_model_path = TTS_synthesizer.get_newest_model(path)
-                jj = TTS_synthesizer(config_path = newest_model_path + "config.json", model_path = newest_model_path + "best_model.pth")
-                jj.synthesize(text = inputField.text())
+                TTS.synthesize(text = inputField.text())
         elif getOutputMode() == "server":
                 print("server not yet implemented")
         elif getOutputMode() == "visual":
