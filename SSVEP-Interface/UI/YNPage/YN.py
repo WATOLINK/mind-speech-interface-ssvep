@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLineEdit
 from PyQt5 import QtCore
 
-from Pages.button_container import ButtonContainer
+from UI.Components.button_container import ButtonContainer
 
 
 class YesNoWidget(QWidget):

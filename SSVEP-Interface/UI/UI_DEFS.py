@@ -1,7 +1,6 @@
 MainWidgetIndexes = [
-    "output mode",
+    "output menu",
     "home",
-    "mc",
     "yn",
     "keyboard",
     "help"

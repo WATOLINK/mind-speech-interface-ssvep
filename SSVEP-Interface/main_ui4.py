@@ -6,9 +6,9 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QApplication, QStackedWidget, QVBoxLayout, QWidget, QPushButton
 from PyQt5.QtWidgets import QMainWindow
 
-from Pages.HomePage.homepage import HomePageWidget
+from UI.MainWidget.mainWidget import HomePageWidget
 
-from Pages.styles import windowStyle, navigationButtonStyle
+from UI.styles import windowStyle, navigationButtonStyle
 
 class Home(QMainWindow):
     def __init__(self, parent=None):

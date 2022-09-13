@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QLabel,QWidget,QLineEdit, QButtonGroup, QGridLayout
-from Pages.button_container import ButtonContainer
+from PyQt5.QtWidgets import QLabel,QWidget,QLineEdit, QButtonGroup, QGridLayout, QHBoxLayout
+from UI.Components.button_container import ButtonContainer
 
 groupedChars = ['a | b | c | d | e | f',
                    'g | h | i | j | k | l',
@@ -18,22 +18,22 @@ class KeyboardWidget(QWidget):
 
 
     def createLayout(self,parent):
-        layout = QGridLayout()
+        layout = QHBoxLayout()
 
 
 
         buttons = []
-        for x in range(6):
+        for x in range(4):
             button = ButtonContainer(groupedChars[x], checkable=False)
             buttons.append(button)
-            layout.addWidget(button, int(x/3), x % 3)
+            layout.addWidget(button)
 
         buttons[0].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[0]))
         buttons[1].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[1]))
         buttons[2].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[2]))
         buttons[3].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[3], prediction=True))
-        buttons[4].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[4], prediction=True))
-        buttons[5].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[5], prediction=True))
+        # buttons[4].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[4], prediction=True))
+        # buttons[5].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[5], prediction=True))
 
 
         return layout

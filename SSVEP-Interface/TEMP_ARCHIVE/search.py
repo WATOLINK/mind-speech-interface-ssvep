@@ -1,12 +1,13 @@
 import string
-import Pages.QAPage.keyboard
+# import UI.KeyboardPage.keyboard
+import TEMP_ARCHIVE.keyboard
 
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTextEdit
 from PyQt5.QtGui import QTextCursor, QKeySequence, QFont
 
-from Pages.QAPage.completer import AutoCompleter
+from UI.KeyboardPage.completer import AutoCompleter
 
 
 class SearchWidget(QTextEdit):
@@ -35,7 +36,7 @@ class SearchWidget(QTextEdit):
         '''  text change button update function '''
 
         # do not modify original
-        suggestions = Pages.QAPage.keyboard.DEFAULT_WORDLIST[:]
+        suggestions = UI.KeyboardPage.keyboard.DEFAULT_WORDLIST[:]
         # first 3 suggestions are from autocomplete
         i = 0
         while i < 3 and self.completer.setCurrentRow(i):
@@ -44,7 +45,7 @@ class SearchWidget(QTextEdit):
 
         print(suggestions)
 
-        Pages.QAPage.keyboard.KeyboardInput.changeWordSuggestion(
+        UI.KeyboardPage.keyboard.KeyboardInput.changeWordSuggestion(
             self.parent_module, suggestions)
 
     def _search(self, completion):
@@ -66,8 +67,8 @@ class SearchWidget(QTextEdit):
     def completerReset(self):
         self.completer.reset()
         # clear buttons
-        Pages.QAPage.keyboard.KeyboardInput.changeWordSuggestion(
-            self.parent_module, Pages.QAPage.keyboard.DEFAULT_WORDLIST)
+        UI.KeyboardPage.keyboard.KeyboardInput.changeWordSuggestion(
+            self.parent_module, UI.KeyboardPage.keyboard.DEFAULT_WORDLIST)
 
     def useAutoText(self, text):
         self._search(text)

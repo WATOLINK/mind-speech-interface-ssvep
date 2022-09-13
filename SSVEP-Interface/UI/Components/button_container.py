@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
-from Pages.styles import toggleButtonStyle, yesLabelStyle, toggleButtonStyleNoBorder
-from Pages.circle_stimuli import CircleFlash
+from UI.styles import toggleButtonStyle, yesLabelStyle, toggleButtonStyleNoBorder
+from UI.Components.circle_stimuli import CircleFlash
 
 class ButtonContainer(QtWidgets.QPushButton):
     def __init__(self, labelText="", freq=60, red=255, green=255, blue=255, horizontal=False, parent=None, checkable=True, border=True):
@@ -33,8 +33,8 @@ class ButtonContainer(QtWidgets.QPushButton):
 
         # Configure stimuli
         self.stimuli = CircleFlash(freq, red, green, blue)
-        self.stimuli.setMinimumHeight(200)
-        self.stimuli.setMinimumWidth(200)
+        self.stimuli.setMinimumHeight(100)
+        self.stimuli.setMinimumWidth(100)
         self.stimuli.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         # Add stimuli
