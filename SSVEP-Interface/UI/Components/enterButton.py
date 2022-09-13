@@ -3,15 +3,16 @@ from UI.Components.button_container import ButtonContainer
 from server.twitterAPI import tweet
 
 from UI.UI_DEFS import getMainWidgetIndex, MainWidgetIndexes
-from UI.BottomWidget.bottomWidgetIndexes import getBottomIndex
 
-from UI.status import setCurrentPage, setOutputMode, printStatus, getPreviousPage
+from UI.status import setOutputMode, getPreviousPage
+
+from UI.helperFunctions import disableOtherButtons, changeStacks\
 
 outputMode = ""
 
 class EnterButton(ButtonContainer):
     def __init__(self,parent):
-        super().__init__(labelText="Confirm",red=0,blue=0,checkable=False)
+        super().__init__(labelText="Confirm",freqName="Enter",checkable=False)
         self.clicked.connect(lambda: submitAndReturn(self,parent))
 
 def submitAndReturn(self,parent):
@@ -20,16 +21,17 @@ def submitAndReturn(self,parent):
     currWidget = mainStack.currentWidget()
     inputField = parent.findChild(QLineEdit,"Input")
 
-    if currWidget.objectName() == "Output Menu Widget":
+    if currWidget.objectName() == "Output Menu Page":
         navigateFromOutputMode(parent)
         return
     
-    elif currWidget.objectName() == "Selection Menu Widget":
+    elif currWidget.objectName() == "Keyboard YN Menu Page":
         navigateFromHome(self,parent)
         return
 
-    elif currWidget.objectName() == "Help Widget":
-        changeStacks(parent, getMainWidgetIndex(getPreviousPage()), getBottomIndex(getPreviousPage()))
+    elif currWidget.objectName() == "Help Page":
+        changeStacks(parent, getMainWidgetIndex(getPreviousPage()))
+        return
 
     if inputField.text():
         temp = messageBox.text() + f"[{inputField.text()}]"
@@ -50,7 +52,7 @@ def submitAndReturn(self,parent):
             button.setChecked(False)
 
     # Go back to main page
-    changeStacks(parent,getMainWidgetIndex("home"),getBottomIndex("home"))
+    changeStacks(parent,getMainWidgetIndex("Keyboard YN Menu Page"))
     self.label.setText("Confirm")
 
 
@@ -65,17 +67,17 @@ def navigateFromOutputMode(parent):
             print("going to Twitter")
             setOutputMode("Twitter")
             button.setChecked(False)
-            changeStacks(parent,getMainWidgetIndex("home"),getBottomIndex("home"))
+            changeStacks(parent,getMainWidgetIndex("Keyboard YN Menu Page"))
         elif button.label.text() == labels[1] and button.isChecked():
             print("going to Voice")
             setOutputMode("Voice")
             button.setChecked(False)
-            changeStacks(parent,getMainWidgetIndex("home"),getBottomIndex("home"))
+            changeStacks(parent,getMainWidgetIndex("Keyboard YN Menu Page"))
         elif button.label.text() == labels[2] and button.isChecked():
             print("going to Visual Communication")
             setOutputMode("Visual")
             button.setChecked(False)
-            changeStacks(parent,getMainWidgetIndex("home"),getBottomIndex("home"))
+            changeStacks(parent,getMainWidgetIndex("Keyboard YN Menu Page"))
 
 def navigateFromHome(self,parent):
     
@@ -86,25 +88,15 @@ def navigateFromHome(self,parent):
         if button.label.text() == labels[0] and button.isChecked():
             print("going to Keyboard")
             button.setChecked(False)
-            changeStacks(parent,getMainWidgetIndex("keyboard"),getBottomIndex("character only"))
+            changeStacks(parent,getMainWidgetIndex("Keyboard Page"))
             self.label.setText("Send message")
 
         elif button.label.text() == labels[1] and button.isChecked():
             print("going to YN")
             button.setChecked(False)
-            changeStacks(parent,getMainWidgetIndex("yn"),getBottomIndex("enter only"))
+            changeStacks(parent,getMainWidgetIndex("YN Page"))
             self.label.setText("Send message")
 
-
-def changeStacks(parent,mainIndex,bottomIndex):
-    mainWidget = parent.findChild(QStackedWidget,"Main Widget")
-    bottomWidget = parent.findChild(QStackedWidget,"Bottom Widget")
-
-    mainWidget.setCurrentIndex(mainIndex)
-    bottomWidget.setCurrentIndex(bottomIndex)
-    setCurrentPage(MainWidgetIndexes[mainIndex])
-
-    printStatus()
 
 
 def getOutputMode():

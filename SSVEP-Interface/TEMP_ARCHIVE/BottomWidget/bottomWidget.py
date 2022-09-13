@@ -9,7 +9,6 @@ from UI.KeyboardPage.keyboard2 import groupedChars
 from UI.Components.enterButton import EnterButton
 
 from UI.UI_DEFS import getMainWidgetIndex, MainWidgetIndexes
-from UI.BottomWidget.bottomWidgetIndexes import getBottomIndex
 
 from UI.status import setOutputMode, setCurrentPage, printStatus
 
@@ -46,40 +45,10 @@ def helpBottomWidget(parent):
     sidebar.setLayout(layout)
     return sidebar
     
-    
-def homeBottomWidget(parent):
-    sidebar = QWidget()
-    layout = QHBoxLayout()
-
-    buttons = []
-
-    # buttons.append(EnterButton(parent))
-    buttons.append(ButtonContainer("Help",checkable=False))
-    buttons.append(ButtonContainer("Back to Menu",checkable=False))
-    
-    for button in buttons:
-        layout.addWidget(button)
-
-    # buttons[0].clicked.connect(lambda: navigateFromHome(parent))
-    buttons[0].clicked.connect(lambda: changeStacks(parent,getMainWidgetIndex("help"),getBottomIndex("enter only")))
-    buttons[1].clicked.connect(lambda: outputMenu(parent))
 
 
-    sidebar.setLayout(layout)
-    return sidebar
 
-def outputMenu(parent):
-    mainStack = parent.findChild(QStackedWidget,"Main Widget")
-    setOutputMode("")
-    currWidget = mainStack.currentWidget()
 
-    if currWidget.objectName() == "Keyboard YN Selection Widget":
-    # uncheck any checked boxes on submission
-        for button in currWidget.findChildren(ButtonContainer):
-            if button.isChecked():
-                button.setChecked(False)
-
-    changeStacks(parent,getMainWidgetIndex("output menu"),getBottomIndex("output menu"))
 
 
 
@@ -140,7 +109,7 @@ def changeStacks(parent,mainIndex,sidebarIndex):
     bottomStack.setCurrentIndex(sidebarIndex)
     setCurrentPage(MainWidgetIndexes[mainIndex])
 
-    printStatus()
+    # printStatus()
 
 
 def backspace(parent):

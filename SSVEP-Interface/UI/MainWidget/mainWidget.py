@@ -7,22 +7,19 @@ from UI.styles import textBoxStyle, sideBarStyle, mainButtonStyle, promptBoxStyl
 from UI.Components.button_container import ButtonContainer
 
 
-from UI.OutputMenuPage.outputMenu import OutputModeWidget
-
+from UI.OutputMenuPage.outputMenu import OutputMenuWidget
+from UI.KeyboardYNMenuPage.KeyboardYN import KeyboardYNMenuWidget
 
 from UI.YNPage.YN import YesNoWidget
 
-from UI.KeyboardPage.keyboard2 import KeyboardWidget
+from UI.KeyboardPage.KeyboardWidget import KeyboardWidget
 from UI.HelpPage.help import HelpWidget
-from UI.BottomWidget.bottomWidget import BottomWidget
 from UI.KeyboardPage.completer2 import suggestWords
 
 from UI.Components.enterButton import EnterButton
 
 from UI.UI_DEFS import getMainWidgetIndex, MainWidgetIndexes
-from UI.BottomWidget.bottomWidgetIndexes import getBottomIndex
 
-from UI.status import setOutputMode, setCurrentPage, printStatus
 
 from UI.helperFunctions import disableOtherButtons
 
@@ -40,7 +37,7 @@ class HomePageWidget(QWidget):
         textFieldWidth = 3
         # height = 6
         mainWidget = mainStack(self)
-        bottomWidget = BottomWidget(self)
+        # bottomWidget = BottomWidget(self)
         
         #UPPER SECTION
         layout.addWidget(title(), 0, 0, 1, 1)
@@ -83,7 +80,7 @@ def inputBox(parent):
     textbox = QLineEdit()
     textbox.setStyleSheet(textBoxStyle)
     textbox.setObjectName("Input")
-    textbox.textChanged.connect(lambda: suggestWords(parent))
+    # textbox.textChanged.connect(lambda: suggestWords(parent))
     return textbox
 
 
@@ -92,36 +89,13 @@ def mainStack(parent):
     stack.setObjectName("Main Widget")
     # stack.setStyleSheet(mainButtonStyle)
 
-    stack.addWidget(OutputModeWidget(parent))  # 0
+    stack.addWidget(OutputMenuWidget(parent))  # 0
+    stack.addWidget(KeyboardYNMenuWidget(parent))  # 1
     
-    stack.addWidget(homeWidget(parent))  # 1
     stack.addWidget(YesNoWidget(parent))  # 2
     stack.addWidget(KeyboardWidget(parent))  # 3
     stack.addWidget(HelpWidget(parent))  # 4
 
     return stack
 
-
-
-def homeWidget(parent):
-    home = QWidget()
-    layout = QHBoxLayout()
-    home.setObjectName("Selection Menu Widget")
-
-    labels = ['Keyboard', 'Yes/No']
-    buttons = []
-
-    for label in labels:
-        button = ButtonContainer(label) 
-        button.setObjectName(label)
-        buttons.append(button)
-        layout.addWidget(button)
-
-    buttons[0].clicked.connect(
-        lambda: disableOtherButtons(buttons, buttons[0]))
-    buttons[1].clicked.connect(
-        lambda: disableOtherButtons(buttons, buttons[1]))
-
-    home.setLayout(layout)
-    return home
 

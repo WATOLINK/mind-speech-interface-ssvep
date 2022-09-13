@@ -1,24 +1,25 @@
 import os
 clear = lambda: os.system('cls')
+from PyQt5.QtWidgets import QStackedWidget
 
 
-previousPage = ""
-currentPage = "output menu"
 outputMode = "" 
+previousPage = ""
+currentPage = "Output Menu Page"
+
 
 def getPreviousPage():
     return previousPage
 
-def getCurrentPage():
-    return currentPage
+def setPreviousPage(newPreviousPage):
+    global previousPage
+    previousPage = newPreviousPage
 
 def setCurrentPage(newCurrentPage):
-    global previousPage 
     global currentPage
 
-    previousPage = currentPage
+    setPreviousPage(currentPage)
     currentPage = newCurrentPage
-    
     
 def getOutputMode():
     return outputMode
@@ -27,10 +28,11 @@ def setOutputMode(newOutputMode):
     global outputMode
     outputMode = newOutputMode
 
-def printStatus():
+def printStatus(parent):
     # clear()
     print(" ### PAGE STATUS ###")
-    print(f" Previous Page: {previousPage}")
-    print(f" Current Page: {currentPage}")
-    print(f" Output Mode: {outputMode}")
+    print(f" Output Mode:    {outputMode}")
+    print(f" Previous Page:  {previousPage}")
+    mainStack = parent.findChild(QStackedWidget,"Main Widget")
+    print(f" Current Page:   {mainStack.currentWidget().objectName()}")
     print(" ###################")
