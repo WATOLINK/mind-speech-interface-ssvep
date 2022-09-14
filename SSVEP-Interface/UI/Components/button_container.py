@@ -38,8 +38,9 @@ class ButtonContainer(QtWidgets.QPushButton):
 
         # Configure stimuli
         self.stimuli = CircleFlash(freq, red, green, blue)
-        self.stimuli.setMinimumHeight(100)
-        self.stimuli.setMinimumWidth(100)
+        boundingBox = 130
+        self.stimuli.setMinimumHeight(boundingBox)
+        self.stimuli.setMinimumWidth(boundingBox)
         self.stimuli.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         # Add stimuli

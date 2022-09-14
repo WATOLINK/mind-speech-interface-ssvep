@@ -1,5 +1,6 @@
-from PyQt5.QtWidgets import QLabel,QWidget,QLineEdit, QButtonGroup, QGridLayout, QHBoxLayout, QVBoxLayout
+from PyQt5.QtWidgets import QWidget,QLineEdit,QHBoxLayout, QVBoxLayout
 from UI.Components.button_container import ButtonContainer
+from UI.KeyboardPage.completer import suggestWords
 
 # groupedChars = ['a | b | c | d | e | f',
 #                    'g | h | i | j | k | l',
@@ -35,6 +36,7 @@ class KeyboardWidget(QWidget):
     def keyboardWidgetUpper(self,parent):
         keyboardKeys = QWidget()
         layout = QHBoxLayout()
+        keyboardKeys.setObjectName("Keyboard Widget")
 
         buttons = []
         for x in range(4):
@@ -44,7 +46,7 @@ class KeyboardWidget(QWidget):
 
         buttons[0].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[0]))
         buttons[1].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[1]))
-        buttons[2].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[2]))
+        buttons[2].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[2], prediction=True))
         buttons[3].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[3], prediction=True))
         # buttons[4].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[4], prediction=True))
         # buttons[5].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[5], prediction=True))
@@ -67,7 +69,7 @@ class KeyboardWidget(QWidget):
         for button in buttons:
             layout.addWidget(button)
 
-        buttons[0].clicked.connect(lambda:  toggle(parent))
+        buttons[0].clicked.connect(lambda: toggle(parent))
         buttons[1].clicked.connect(lambda: space(parent))
         buttons[2].clicked.connect(lambda: backspace(parent))
 
@@ -194,14 +196,17 @@ def space(parent):
 
 def toggle(parent):
     toggleBtn = parent.findChild(ButtonContainer,"Toggle")
+    keyboardWidget = parent.findChild(QWidget,"Keyboard Widget")
+    keyboardBtns = keyboardWidget.findChildren(ButtonContainer)
     
     if toggleBtn.label.text() == "Toggle Words":
         toggleBtn.label.setText("Toggle Characters")
-        # suggestWords(parent)
+
+        keyLabels = ['word','word','this is a phrase','this is a phrase']
+        #suggestion = suggestWords(parent)
     else:
         toggleBtn.label.setText("Toggle Words")
-        keyboardWidget = parent.findChild(QWidget,"Keyboard Widget")
-        keyboardBtns = keyboardWidget.findChildren(ButtonContainer)
+        keyLabels = groupedChars
         
-        for x in range(len(keyboardBtns)):
-            keyboardBtns[x].label.setText(groupedChars[x])
+    for x in range(len(keyboardBtns)):
+        keyboardBtns[x].label.setText(keyLabels[x])

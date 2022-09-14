@@ -1,21 +1,8 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QButtonGroup, QWidget, QGridLayout, QLineEdit, QLabel, QPushButton, QStackedWidget, QHBoxLayout, QVBoxLayout
-from PyQt5.QtGui import QIcon
-from PyQt5 import QtCore
+from PyQt5.QtWidgets import QWidget, QStackedWidget, QHBoxLayout, QVBoxLayout
 
-from UI.styles import textBoxStyle, sideBarStyle, mainButtonStyle, promptBoxStyle, instructionsStyle
 from UI.Components.button_container import ButtonContainer
 
-
-from UI.YNPage.YN import YesNoWidget
-
-from UI.HelpPage.help import HelpWidget
-from UI.KeyboardPage.completer2 import suggestWords
-
-from UI.Components.enterButton import EnterButton
-
-from UI.UI_DEFS import getMainWidgetIndex, MainWidgetIndexes
-
+from UI.UI_DEFS import getMainWidgetIndex
 
 from UI.helperFunctions import disableOtherButtons, changeStacks
 

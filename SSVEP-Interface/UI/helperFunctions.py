@@ -1,7 +1,5 @@
 from PyQt5.QtWidgets import QStackedWidget
 
-from UI.UI_DEFS import MainWidgetIndexes
-
 from UI.status import setCurrentPage, printStatus
 
 def disableOtherButtons(buttons, selected):

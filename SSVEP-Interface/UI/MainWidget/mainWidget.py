@@ -1,27 +1,20 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QButtonGroup, QWidget, QGridLayout, QLineEdit, QLabel, QPushButton, QStackedWidget, QHBoxLayout, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QGridLayout, QLineEdit, QLabel, QStackedWidget
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtCore
 
-from UI.styles import textBoxStyle, sideBarStyle, mainButtonStyle, promptBoxStyle, instructionsStyle
-from UI.Components.button_container import ButtonContainer
+from UI.styles import textBoxStyle, promptBoxStyle
 
 
 from UI.OutputMenuPage.outputMenu import OutputMenuWidget
 from UI.KeyboardYNMenuPage.KeyboardYN import KeyboardYNMenuWidget
-
 from UI.YNPage.YN import YesNoWidget
-
 from UI.KeyboardPage.KeyboardWidget import KeyboardWidget
 from UI.HelpPage.help import HelpWidget
-from UI.KeyboardPage.completer2 import suggestWords
+
+from UI.KeyboardPage.completer import suggestWords
 
 from UI.Components.enterButton import EnterButton
-
-from UI.UI_DEFS import getMainWidgetIndex, MainWidgetIndexes
-
-
-from UI.helperFunctions import disableOtherButtons
 
 class HomePageWidget(QWidget):
     def __init__(self, parent):
@@ -37,7 +30,6 @@ class HomePageWidget(QWidget):
         textFieldWidth = 3
         # height = 6
         mainWidget = mainStack(self)
-        # bottomWidget = BottomWidget(self)
         
         #UPPER SECTION
         layout.addWidget(title(), 0, 0, 1, 1)
@@ -47,9 +39,6 @@ class HomePageWidget(QWidget):
         layout.addWidget(EnterButton(self), 0, 3, 3, width-textFieldWidth)
         #MIDDLE SECTION
         layout.addWidget(mainWidget, 3, 0, 2, width)
-        # layout.addWidget(inputBox(self), 3, 0, 2, width)
-        #BOTTOM SECTION
-        # layout.addWidget(bottomWidget, 5, 0, 2, width)
 
         self.initUI()
 
