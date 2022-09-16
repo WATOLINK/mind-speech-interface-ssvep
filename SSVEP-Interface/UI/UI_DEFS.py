@@ -12,6 +12,9 @@ def getMainWidgetIndex(name):
     else:
         print("invalid sidebar name")
 
+WINDOW_WIDTH = 2400
+WINDOW_HEIGHT = 1360
+
 STIMULI_SIZE = 120
 
 # Set stimuli frequencies for the main UI

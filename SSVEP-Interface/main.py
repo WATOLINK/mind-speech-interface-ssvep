@@ -1,6 +1,6 @@
 import sys
 import socketio
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import center, Qt
 
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QStackedWidget
 
@@ -40,7 +40,7 @@ class Window(QMainWindow):
 
         self.setWindowTitle('Main Window')  # Sets name of window
         # Adds central widget where we are going to do most of our work
-        self.setCentralWidget(self.mainWidget)
+        self.setCentralWidget(self.homePage)
         self.setGeometry(0, 0, 1600, 900)
 
     #TODO: fix server comm integration
@@ -50,11 +50,35 @@ class Window(QMainWindow):
     #     else:
     #         print('Not connected to server')
 
+
+
+def stimOnsetOffset():
+    mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
+    
+    while True:
+        if stopThread:
+            print("exiting stim controller thread")
+            break
+        
+        time.sleep(2)
+        print("ding")
+
 if __name__ == '__main__':
+    buttonClickNoise()
     app = QApplication(sys.argv)
+    global window
     window = Window()
     window.setStyleSheet(windowStyle)
+
+    global stopThread
+    stopThread = False
+    x = threading.Thread(target=stimOnsetOffset)
+    x.start()
+
     window.show()
 
-
-    sys.exit(app.exec_())
+    try:
+        sys.exit(app.exec_())
+    except SystemExit:
+        stopThread = True
+        print('Closing Window...')
