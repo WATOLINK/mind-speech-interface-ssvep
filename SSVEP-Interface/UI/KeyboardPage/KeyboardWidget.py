@@ -48,8 +48,6 @@ class KeyboardWidget(QWidget):
         buttons[1].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[1]))
         buttons[2].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[2], prediction=True))
         buttons[3].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[3], prediction=True))
-        # buttons[4].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[4], prediction=True))
-        # buttons[5].clicked.connect(lambda: keyboardClick(parent,buttons, buttons[5], prediction=True))
 
         keyboardKeys.setLayout(layout)
         return keyboardKeys

@@ -23,7 +23,8 @@ def KeyboardYNMenuUpper(parent):
     layout = QHBoxLayout()
     menu.setObjectName("Keyboard YN Menu")
 
-    labels = ['Keyboard', 'Yes/No']
+    # DO NOT CHANGE RIGHT NOW
+    labels = ['Use Keyboard', 'Use Yes/No']
     buttons = []
 
     for x in range(len(labels)):
@@ -47,14 +48,12 @@ def KeyboardYNMenuLower(parent):
 
     buttons = []
 
-    # buttons.append(EnterButton(parent))
     buttons.append(ButtonContainer("Help",freqName="Keyboard YN Menu Help",checkable=False))
     buttons.append(ButtonContainer("Back to Menu",freqName="Back to Output Menu",checkable=False))
     
     for button in buttons:
         layout.addWidget(button)
 
-    # buttons[0].clicked.connect(lambda: navigateFromHome(parent))
     buttons[0].clicked.connect(lambda: changeStacks(parent,getMainWidgetIndex("Help Page")))
     buttons[1].clicked.connect(lambda: outputMenu(parent))
 
@@ -68,7 +67,6 @@ def outputMenu(parent):
     currWidget = mainStack.currentWidget()
 
     if currWidget.objectName() == "Keyboard YN Selection Widget":
-    # uncheck any checked boxes on submission
         for button in currWidget.findChildren(ButtonContainer):
             if button.isChecked():
                 button.setChecked(False)

@@ -24,7 +24,8 @@ def OutputMenuUpper(parent):
     layout = QHBoxLayout()
     outputMode.setObjectName("Output Menu")
 
-    labels = ['Twitter','Voice','Visual Communication']
+    # DO NOT CHANGE RIGHT NOW
+    labels = ['Use Twitter','Use Voice','Use Visual Communication']
     buttons = []
 
     for x in range(len(labels)):
@@ -52,8 +53,6 @@ def OutputMenuLower(parent):
     layout.addWidget(button)
 
     button.clicked.connect(lambda: changeStacks(parent,getMainWidgetIndex("Help Page")))
-
-    # button.stimuli.toggleOff()
 
     sidebar.setLayout(layout)
     return sidebar

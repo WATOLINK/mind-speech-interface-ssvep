@@ -1,8 +1,11 @@
 from PyQt5.QtWidgets import QLabel,QStackedWidget,QLineEdit
-from UI.Components.button_container import ButtonContainer
+from UI.Components.button_container import ButtonContainer, buttonClickNoise
 from server.twitterAPI import tweet
 
-from UI.UI_DEFS import getMainWidgetIndex, MainWidgetIndexes
+from playsound import playsound
+
+
+from UI.UI_DEFS import getMainWidgetIndex
 
 from UI.status import setOutputMode, getPreviousPage
 
@@ -59,29 +62,31 @@ def submitAndReturn(self,parent):
 
 def navigateFromOutputMode(parent):
     
-    labels = ['Twitter','Voice', 'Visual Communication']
+    labels = ['Use Twitter','Use Voice','Use Visual Communication']
     mainButtons = [parent.findChild(ButtonContainer,label) for label in labels]
 
+    print("clicked")
+
     for button in mainButtons:
-        if button.label.text() == labels[0] and button.isChecked():
-            print("going to Twitter")
-            setOutputMode("Twitter")
+        if button.isChecked():
+            buttonClickNoise()
+            if button.label.text() == labels[0]:
+                print("going to Twitter")
+                setOutputMode("Twitter")
+            elif button.label.text() == labels[1]:
+                print("going to Voice")
+                setOutputMode("Voice")
+            elif button.label.text() == labels[2]:
+                print("going to Visual Communication")
+                setOutputMode("Visual")
+
             button.setChecked(False)
             changeStacks(parent,getMainWidgetIndex("Keyboard YN Menu Page"))
-        elif button.label.text() == labels[1] and button.isChecked():
-            print("going to Voice")
-            setOutputMode("Voice")
-            button.setChecked(False)
-            changeStacks(parent,getMainWidgetIndex("Keyboard YN Menu Page"))
-        elif button.label.text() == labels[2] and button.isChecked():
-            print("going to Visual Communication")
-            setOutputMode("Visual")
-            button.setChecked(False)
-            changeStacks(parent,getMainWidgetIndex("Keyboard YN Menu Page"))
+        
 
 def navigateFromHome(self,parent):
     
-    labels = ['Keyboard', 'Yes/No']
+    labels = ['Use Keyboard', 'Use Yes/No']
     mainButtons = [parent.findChild(ButtonContainer,label) for label in labels]
 
     for button in mainButtons:
