@@ -4,7 +4,7 @@ toggleButtonStyle = """
         border: 6px solid #FFFFFF;
         border-radius: 30px;
 
-        margin: 10% 50%;
+        margin: 10%;
         width: 349px;
     }
 
@@ -18,7 +18,7 @@ toggleButtonStyleNoBorder = """
         background-color: #2C2C2C;
         border-radius: 30px;
 
-        margin: 10% 50%;
+        margin: 10%;
         width: 349px;
     }
 
@@ -66,7 +66,7 @@ promptStyle = """
 
 instructionsStyle = """
     margin: 50px 0px;
-    font-size: 30px;
+    font-size: 20px;
 """
 
 promptBoxStyle = """
@@ -82,21 +82,6 @@ textBoxStyle = """
     font-size: 40px;
     margin: 10%;
     border: 5px solid white;
-"""
-
-sideBarStyle = """
-    QPushButton {
-        background-color: #2C2C2C;
-        border: 5px solid white;
-        border-radius: 20px;
-        font-size: 40px;
-        height: 100%;
-        margin: 10%;
-    }
-
-    QPushButton:checked {
-        background-color: #454545;
-    }
 """
 
 mainButtonStyle = """

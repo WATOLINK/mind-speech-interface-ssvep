@@ -1,5 +1,5 @@
 from numpy import promote_types
-from Pages.button_container import ButtonContainer
+from UI.Components.button_container import ButtonContainer
 from PyQt5.QtWidgets import QWidget, QLineEdit, QCompleter
 # from PyQt5.QtGui import QTextCursor, QKeySequence, QFont
 from PyQt5 import QtCore

@@ -8,10 +8,10 @@ from PyQt5.QtCore import QCoreApplication, QThread, pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5 import QtCore
 
-from Pages.styles import windowStyle,textBoxStyle
-from Pages.button_container import ButtonContainer
+from UI.styles import windowStyle,textBoxStyle
+from UI.Components.button_container import ButtonContainer
 
-from Pages.HomePage.homepage import promptBox
+from UI.MainWidget.mainWidget import promptBox
 
 from InteractionTest.yesno import YesNoWidget
 import random as r

@@ -1,10 +1,12 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
-from Pages.styles import toggleButtonStyle, yesLabelStyle, toggleButtonStyleNoBorder
-from Pages.circle_stimuli import CircleFlash
+from UI.styles import toggleButtonStyle, yesLabelStyle, toggleButtonStyleNoBorder
+from UI.Components.circle_stimuli import CircleFlash
+from UI.UI_DEFS import MAIN_STIM_FREQUENCIES, STIMULI_SIZE
+from playsound import playsound
 
 class ButtonContainer(QtWidgets.QPushButton):
-    def __init__(self, labelText="", freq=60, red=255, green=255, blue=255, horizontal=False, parent=None, checkable=True, border=True):
+    def __init__(self, labelText="", freqName="", red=255, green=255, blue=255, horizontal=False, parent=None, checkable=True, border=True):
         super(ButtonContainer, self).__init__(parent)
         self.setMinimumHeight(150)
         if border:
@@ -31,10 +33,14 @@ class ButtonContainer(QtWidgets.QPushButton):
         # Add label
         self.layout.addWidget(self.label)
 
+
+        # Find stim freq value from dictionary
+        freq = MAIN_STIM_FREQUENCIES.get(freqName, 1)
+
         # Configure stimuli
         self.stimuli = CircleFlash(freq, red, green, blue)
-        self.stimuli.setMinimumHeight(400)
-        self.stimuli.setMinimumWidth(400)
+        self.stimuli.setMinimumHeight(STIMULI_SIZE)
+        self.stimuli.setMinimumWidth(STIMULI_SIZE)
         self.stimuli.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         # Add stimuli
@@ -50,7 +56,8 @@ class ButtonContainer(QtWidgets.QPushButton):
     def labelText(self):
         return self.label.text()
 
-    
+def buttonClickNoise():
+    playsound("SSVEP-interface/UI/Components/click.wav",block=False)
 
 
 

@@ -1,14 +1,13 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLineEdit
-from PyQt5 import QtCore
 
-from Pages.button_container import ButtonContainer
+from UI.Components.button_container import ButtonContainer
 
 
 class YesNoWidget(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
         layout = self.createLayout(parent)
-        self.setObjectName("YN Widget")
+        self.setObjectName("YN Page")
         self.setLayout(layout)
 
 
@@ -18,7 +17,7 @@ class YesNoWidget(QWidget):
         buttons = []
 
         for i in range(len(labels)):
-            button = ButtonContainer(labels[i])
+            button = ButtonContainer(labels[i], freqName=f"YN {i+1}")
             button.setObjectName(labels[i])
             layout.addWidget(button)
             buttons.append(button)
