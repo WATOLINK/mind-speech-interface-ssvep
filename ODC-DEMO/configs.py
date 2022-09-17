@@ -2,8 +2,8 @@ TESTING = True
 
 # HOR = 1080
 # VERT = 1360
-HOR = 1280
-VERT = 720
+HOR = 2400
+VERT = 1360
 
 # Configurable settings
 NUM_STIMS = 8 # same length as below arrs
@@ -17,8 +17,8 @@ RADII = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 # RADII = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 
 # ---- 4 stims ---- #
-# FREQS = [10.25, 11.75, 12.75, 14.75]
-# RADII = [0.5, 0.5, 0.5, 0.5]
+#FREQS = [10.25, 11.75, 12.75, 14.75]
+#RADII = [0.5, 0.5, 0.5, 0.5]
 
 def demo_configs():
     if TESTING:

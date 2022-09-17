@@ -127,15 +127,17 @@ def display_procedure(stop, board, args, label, filename):
         duration = time()-start_time
         generate_test_report(board, duration, data,
                              color_code_order, color_freq_order)
+
+    #EEG data formatting for CSV                
     df = post_process(data, start_time, color_code_order,
                       color_freq_order, board.board_id)
     try:
         if TESTING:
-            df.to_csv("ODC-DEMO/test.csv", index=False)
+            df.to_csv("demo_data/test.csv", index=False)
         else:
-            df.to_csv("ODC-DEMO/demo_data/" + filename + ".csv", index=False)
+            df.to_csv("demo_data/" + filename + ".csv", index=False)
     except:
-        print('Post data processing and CSV Export failed')
+       print('Post data processing and CSV Export failed')
     finally:
         Cyton_Board_End(board)
 
@@ -198,7 +200,7 @@ def post_process(data, start_time, color_code, color_freq, boardId):
     return df_all
 
 def generate_test_report(board, duration, data, color_code_order, color_freq_order):
-    tf = open("ODC-DEMO/test_report.txt", 'w')
+    tf = open("test_report.txt", 'w')
     tf.write("Size of Data List: ")
     tf.write(str(np.shape(data)))
     tf.write("\n")
@@ -295,9 +297,9 @@ def Cyton_Board_End(board):
     return
 
 class Stimuli(QWidget):
-    def __init__(self, numOStims, arrOFreq, arrORad, distance=1):
+    def __init__(self, numOStims, arrOFreq, arrORad, distance=1.6):
         super().__init__()
-        self.resize(1800, 1300)
+        self.resize(2400, 1300)
 
         # ensures correct aspect ratio of grid
         self.frame = QFrame(self, objectName="frame")
