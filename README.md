@@ -30,11 +30,13 @@ When setting up the device please make sure the channel numbers correspond to th
 
 To run the offline data-collection demo, copy and paste the following commands:
 ```python
-    cd mind-speech-interface-ssvep
+    cd mind-speech-interface-ssvep/ODC-DEMO
 ```
-for openBCI
+ODC-DEMO/configs.py --> open this file in a text editor and ensure the NUM_STIMS value is set to your desired # of stimuli (4 or 6 or 8)
+
+for openBCI 
 ```python
-    python ODC-DEMO/4_stim_demo.py --board-id=0 --serial-port=deviceserialport
+    python run_demo.py --board-id=0 --serial-port=deviceserialport
 ```
 for gTec
 ```python
