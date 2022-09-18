@@ -30,8 +30,46 @@ When setting up the device please make sure the channel numbers correspond to th
 
 To run the offline data-collection demo, copy and paste the following commands:
 ```python
-    cd mind-speech-interface-ssvep/ODC-DEMO
+    cd mind-speech-interface-ssvep
 ```
+
+If you are using the OpenBCI with active electrodes you need to set the gain of the amplifier to work with them. To do this, enter these two commands:
+```python
+    cd eeg-setup
+    
+    python users.py -p deviceserialport
+```
+
+You should be greeted with a message that looks like this:
+<img width="262" alt="image" src="https://user-images.githubusercontent.com/34819737/190931079-2078cc60-2b34-4bfd-a49e-09e8a2fb86d6.png">
+
+Now enter the following codes into the console:
+```python
+    x1040010X
+    x2040010X
+    x3040010X
+    x4040010X
+    x5040010X
+    x6040010X
+    x7040010X
+    x8040010X
+```
+
+Gain will now be changed, leave the setup tool:
+```python
+   /exit
+```
+
+Return to root folder of repo:
+```python
+   cd ..
+```
+
+If you are not using active electrodes, continue here:
+```python
+   cd ODC-DEMO
+```
+
 ODC-DEMO/configs.py --> open this file in a text editor and ensure the NUM_STIMS value is set to your desired # of stimuli (4 or 6 or 8)
 
 for openBCI 
