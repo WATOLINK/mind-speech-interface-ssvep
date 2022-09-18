@@ -7,15 +7,11 @@ from PyQt5.QtWidgets import (
 import sys
 import threading
 import datetime
-from configs import HOR, VERT, FREQS, RADII
+from configs import HOR, VERT, FREQS, RADII, DIST
 from multi_stim_demo import *
 
 
 if __name__ == '__main__':
-    # NOTE: doesn't seem to affect spacing
-    # TODO: fix spacing to allow distance change
-    # distance = int(input("Distance between stimuli:\n"))
-    distance = 10
 
     # File and GUI config
     x = datetime.datetime.now()
@@ -36,7 +32,7 @@ if __name__ == '__main__':
     label = QLabel(labelTxt("ODC-DEMO"))
     label.setFixedHeight(100)
     layout.addWidget(label)
-    grid = Stimuli(NUM_STIMS, FREQS, RADII, distance)  # stimuli grid widget
+    grid = Stimuli(NUM_STIMS, FREQS, RADII, DIST)  # stimuli grid widget
 
     layout.addWidget(grid)
     window.setLayout(layout)

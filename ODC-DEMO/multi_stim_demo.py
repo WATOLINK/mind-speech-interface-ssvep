@@ -312,12 +312,20 @@ class Stimuli(QWidget):
         assert numOStims == len(arrOFreq), "frequencies given should match number of stimuli"
         assert numOStims == len(arrORad), "radii given should match number of stimuli"
 
-        # white stims
-        for i in range(numOStims):
-            stim.append(Stim.CircleFlash(arrOFreq[i], 255, 255, 255, i+1, arrORad[i]))
 
         # append stimulis to grid in random order
-        random.shuffle(stim)
+        random.shuffle(arrOFreq)
+
+        # white stims
+        for i in range(numOStims):
+            
+            if numOStims == 8 and i < 5:
+                stim.append(Stim.CircleFlash(arrOFreq[i], 255, 255, 255, i+1, arrORad[i], SCALE, SCALE_2))
+            elif numOStims == 8 and i >= 5:
+                stim.append(Stim.CircleFlash(arrOFreq[i], 255, 255, 255, i+1, arrORad[i], SCALEBOTX, SCALEBOTY))
+            else:
+                stim.append(Stim.CircleFlash(arrOFreq[i], 255, 255, 255, i+1, arrORad[i]))
+
 
         # create array of indicators
         global preStimIndicators
@@ -348,9 +356,9 @@ class Stimuli(QWidget):
             self.gridLayout.addWidget(stim[4], 1, 3)
 
             bottomGrid = QHBoxLayout()
-            bottomGrid.addWidget(stim[5])
-            bottomGrid.addWidget(stim[6])
-            bottomGrid.addWidget(stim[7])
+            bottomGrid.addWidget(stim[5], 0.1)
+            bottomGrid.addWidget(stim[6], 0.1)
+            bottomGrid.addWidget(stim[7], 0.1)
             self.gridLayout.addLayout(bottomGrid, 2, 0, 1, 4)
 
         self.gridLayout.setSpacing(distance)

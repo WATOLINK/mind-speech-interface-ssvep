@@ -1,26 +1,37 @@
+#configure these params 
 TESTING = True
+NUM_STIMS = 4
 
-# HOR = 1080
-# VERT = 1360
+#do not change these
 HOR = 2400
-VERT = 1360
+VERT = 1340
 
-# Configurable settings
-NUM_STIMS = 8 # same length as below arrs
+if NUM_STIMS == 4:
+    # ---- 4 stims ---- #
+    FREQS = [10.25, 11.75, 12.75, 14.75]
+    RADII = [1, 1, 1, 1]
+    DIST = 400
+    SCALE = 1 
 
-# ---- 8 stims ---- #
-FREQS = [10.25, 11.75, 12.75, 14.75, 11.25, 9.25, 10.75, 13.25]
-RADII = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+elif NUM_STIMS == 6:
+    # ---- 6 stims ---- #
+    FREQS = [10.25, 11.75, 12.75, 14.75, 11.25, 9.25]
+    RADII = [1.4, 1.4, 1.4, 1.4, 1.4, 1.4]
+    DIST = 400
+    SCALE = 0.5
 
-# ---- 6 stims ---- #
-# FREQS = [10.25, 11.75, 12.75, 14.75, 11.25, 9.25]
-# RADII = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-
-# ---- 4 stims ---- #
-#FREQS = [10.25, 11.75, 12.75, 14.75]
-#RADII = [0.5, 0.5, 0.5, 0.5]
+elif NUM_STIMS == 8:
+    # ---- 8 stims ---- #
+    FREQS = [10.25, 11.75, 12.75, 14.75, 11.25, 9.25, 10.75, 13.25]
+    RADII = [1, 1, 1, 1, 1, 1, 1, 1]
+    DIST = 200
+    SCALEBOTX = 0.95
+    SCALEBOTY = 0.55
+    SCALE = 1
+    SCALE_2 = 0.85
 
 def demo_configs():
+
     if TESTING:
         START_DELAY_S = 5
         NUM_TRIALS = 1
