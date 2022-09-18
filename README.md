@@ -66,7 +66,7 @@ Return to root folder of repo:
    cd ..
 ```
 
-If you are not using active electrodes, continue here:
+Regardless of if you are or are not using active electrodes, continue here:
 ```python
    cd ODC-DEMO
 ```
