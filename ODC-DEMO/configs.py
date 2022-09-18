@@ -1,5 +1,5 @@
 #configure these params 
-TESTING = True
+TESTING = False
 NUM_STIMS = 4
 
 #do not change these
@@ -39,10 +39,10 @@ def demo_configs():
         TRIAL_BREAK_TIME = 1
         STIM_TIME = 1
     else:
-        START_DELAY_S = 20  # 20 Seconds
+        START_DELAY_S = 2  # 20 Seconds
         NUM_TRIALS = 5  # 5 Trials
-        INDICATOR_TIME_VALUE_S = 5  # 5 Seconds
-        TRIAL_BREAK_TIME = 120  # 120 second
-        STIM_TIME = 5  # stim flash time
+        INDICATOR_TIME_VALUE_S = 2  # 5 Seconds
+        TRIAL_BREAK_TIME = 12  # 120 second
+        STIM_TIME = 2 # stim flash time 5 Seconds
 
     return START_DELAY_S, NUM_TRIALS, INDICATOR_TIME_VALUE_S, TRIAL_BREAK_TIME, STIM_TIME
