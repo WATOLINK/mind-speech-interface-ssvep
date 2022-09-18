@@ -71,7 +71,9 @@ If you are not using active electrodes, continue here:
    cd ODC-DEMO
 ```
 
-ODC-DEMO/configs.py --> open this file in a text editor and ensure the NUM_STIMS value is set to your desired # of stimuli (4 or 6 or 8)
+NOTE: ODC-DEMO/configs.py --> open this file in a text editor and ensure the NUM_STIMS value is set to your desired # of stimuli (4 or 6 or 8), then save and exit.
+
+Now you should be able to run the data collection tool!
 
 for openBCI 
 ```python
@@ -79,7 +81,7 @@ for openBCI
 ```
 for gTec
 ```python
-    python ODC-DEMO/4_stim_demo.py --board-id=8 
+    python run_demo.py --board-id=8 
 ```
 Note for MACOS: to find your device serial port, either look in you device settings (windows) or if using a mac type this in the terminal:
 
