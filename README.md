@@ -41,6 +41,7 @@ If you are using the OpenBCI with active electrodes you need to set the gain of 
 ```
 
 You should be greeted with a message that looks like this:
+
 <img width="262" alt="image" src="https://user-images.githubusercontent.com/34819737/190931079-2078cc60-2b34-4bfd-a49e-09e8a2fb86d6.png">
 
 Now enter the following codes into the console:
@@ -80,7 +81,7 @@ for gTec
 ```python
     python ODC-DEMO/4_stim_demo.py --board-id=8 
 ```
-Note: to find your device serial port, either look in you device settings (windows) or if using a mac type this in the terminal:
+Note for MACOS: to find your device serial port, either look in you device settings (windows) or if using a mac type this in the terminal:
 
     ls /dev/cu.*
 
