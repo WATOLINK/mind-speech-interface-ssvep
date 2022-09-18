@@ -152,3 +152,5 @@ for non synthetic board:
 ```
 
 After following this readme you should be all set to use our repository to communicate with your brain ;)
+
+Note: If you are using the OpenBCI with active electrodes with the online interface, please follow the steps to change the gain mentioned in the offline setup earlier before running the online interface.
