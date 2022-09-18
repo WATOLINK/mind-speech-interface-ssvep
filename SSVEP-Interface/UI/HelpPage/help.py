@@ -1,9 +1,10 @@
 from PyQt5.QtWidgets import QLabel,QWidget,QHBoxLayout
-from Pages.styles import instructionsStyle
+from UI.styles import instructionsStyle
 
 class HelpWidget(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
+        self.setObjectName("Help Page")
         layout = self.createLayout(parent)
         self.setLayout(layout)
 

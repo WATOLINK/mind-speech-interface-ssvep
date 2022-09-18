@@ -27,6 +27,7 @@ from EEG_socket_publisher import EEGSocketPublisher
 import sys
 sys.path.append("SSVEP-Interface")
 from InteractionTestDemo import mainFuncTest
+from time import time
 
 
 def Cyton_Board_Config(args):
@@ -82,6 +83,7 @@ def Streamer(publisher, synch, q, info):
         publisher.col_low_lim = 1
         publisher.col_hi_lim = 9
     synch.wait()
+    print("Elapsed Time Streamer Process: "+str(round(time() * 1000))+"ms")
     publisher.publish(99999999999)
     if q.get() is None:
         publisher.close_connections()
@@ -91,6 +93,7 @@ def Streamer(publisher, synch, q, info):
 def DSP(listener, synch, q):
     listener.open_socket_conn()
     synch.wait()
+    print("Elapsed Time DSP Process: "+str(round(time() * 1000))+"ms")
     listener.listen()
     q.put(None)
     if q.get() is None:
@@ -113,7 +116,7 @@ def get_args(parser):
     parser.add_argument('--host', type=str, help='host name', required=False, default='127.0.0.1')
     parser.add_argument('--lisPort', type=int, help='lis port', required=False, default=65432)
     parser.add_argument('--num-channels', type=int, help='number of channels', required=False, default=8)
-    parser.add_argument('--input-len', type=int, help='input size', required=False, default=250)
+    parser.add_argument('--input-len', type=int, help='input size', required=False, default=50)
     parser.add_argument('--output-size', type=int, help='output size', required=False, default=1)
     parser.add_argument('--model-type', type=str, help='model type (CCA-KNN)', required=False, default='cca_knn')
     parser.add_argument('--model-path', type=str, help='path for saved model', required=False, default=None)
