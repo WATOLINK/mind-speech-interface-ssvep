@@ -1,5 +1,6 @@
 import sys
 from math import cos, sin, pi
+import time
 
 # https://doc.qt.io/qt-6/qopenglwidget.html 
 
@@ -50,8 +51,6 @@ class CircleFlash (QOpenGLWidget):
 
         # depth testing 
         self.gl.glEnable(self.gl.GL_DEPTH_TEST)
-
-
 
     def paintGL(self):
         if self.on:

@@ -8,7 +8,7 @@ from UI.MainWidget.mainWidget import MainWidget
 
 from UI.styles import windowStyle
 
-from UI.Components.button_container import buttonClickNoise
+from UI.Components.button_container import buttonClickNoise, ButtonContainer
 
 import threading
 import time
@@ -40,7 +40,7 @@ class Window(QMainWindow):
 
         self.setWindowTitle('Main Window')  # Sets name of window
         # Adds central widget where we are going to do most of our work
-        self.setCentralWidget(self.homePage)
+        self.setCentralWidget(self.mainWidget)
         self.setGeometry(0, 0, 1600, 900)
 
     #TODO: fix server comm integration
@@ -54,17 +54,38 @@ class Window(QMainWindow):
 
 def stimOnsetOffset():
     mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
+    enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
     
     while True:
         if stopThread:
-            print("exiting stim controller thread")
+            print("Exiting Stim Controller ...")
             break
+
+        #ONSET
+        currWidget = mainStack.currentWidget()
+        enterButton.stimuli.toggleOn()
+        for button in currWidget.findChildren(ButtonContainer):
+            button.stimuli.toggleOn()
+
+        print(f"Stim on, Page: {currWidget.objectName()}")
         
         time.sleep(2)
-        print("ding")
+
+        if stopThread:
+            print("exiting stim controller thread")
+            break
+
+        currWidget = mainStack.currentWidget()
+        enterButton.stimuli.toggleOff()
+        for button in currWidget.findChildren(ButtonContainer):
+            button.stimuli.toggleOff()
+        print(f"Stim off")
+
+        time.sleep(2)
+
+
 
 if __name__ == '__main__':
-    buttonClickNoise()
     app = QApplication(sys.argv)
     global window
     window = Window()
@@ -81,4 +102,4 @@ if __name__ == '__main__':
         sys.exit(app.exec_())
     except SystemExit:
         stopThread = True
-        print('Closing Window...')
+        print('Closing Window ...')

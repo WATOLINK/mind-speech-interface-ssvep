@@ -16,6 +16,7 @@ outputMode = ""
 class EnterButton(ButtonContainer):
     def __init__(self,parent):
         super().__init__(labelText="Confirm",freqName="Enter",checkable=False)
+        self.setObjectName("Enter Button")
         self.clicked.connect(lambda: submitAndReturn(self,parent))
 
 def submitAndReturn(self,parent):
@@ -69,7 +70,6 @@ def navigateFromOutputMode(parent):
 
     for button in mainButtons:
         if button.isChecked():
-            buttonClickNoise()
             if button.label.text() == labels[0]:
                 print("going to Twitter")
                 setOutputMode("Twitter")

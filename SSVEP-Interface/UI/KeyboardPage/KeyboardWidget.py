@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget,QLineEdit,QHBoxLayout, QVBoxLayout
-from UI.Components.button_container import ButtonContainer
+from UI.Components.button_container import ButtonContainer, buttonClickNoise
 from UI.KeyboardPage.completer import suggestWords
 
 # groupedChars = ['a | b | c | d | e | f',
@@ -112,6 +112,7 @@ def clickedBack(parent, buttons, text, level):
 
 
 def keyboardClick(parent,buttons,selected,prediction=False):
+    buttonClickNoise()
 
     toggleBtn = parent.findChild(ButtonContainer,"Toggle")
 
@@ -173,6 +174,8 @@ def writePredictionToInput(parent, buttons, text, charMode):
     inputField.setText(temp)
 
 def backspace(parent):
+    buttonClickNoise()
+
     inputField = parent.findChild(QLineEdit,"Input")
 
     temp = inputField.text()
@@ -184,6 +187,8 @@ def backspace(parent):
         #parent.parent.emit_message('client_message', {'message': temp[:-1]})
 
 def space(parent):
+    buttonClickNoise()
+
     inputField = parent.findChild(QLineEdit,"Input")
 
     temp = inputField.text() + " "
@@ -193,6 +198,8 @@ def space(parent):
     #parent.parent.emit_message('client_message', {'message': temp})
 
 def toggle(parent):
+    buttonClickNoise()
+
     toggleBtn = parent.findChild(ButtonContainer,"Toggle")
     keyboardWidget = parent.findChild(QWidget,"Keyboard Widget")
     keyboardBtns = keyboardWidget.findChildren(ButtonContainer)
