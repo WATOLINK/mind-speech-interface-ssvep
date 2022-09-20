@@ -1,6 +1,6 @@
 import sys
 import socketio
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import center, Qt
 
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QStackedWidget
 
@@ -8,7 +8,7 @@ from UI.MainWidget.mainWidget import MainWidget
 
 from UI.styles import windowStyle
 
-from UI.Components.button_container import buttonClickNoise
+from UI.Components.button_container import buttonClickNoise, ButtonContainer
 
 import threading
 import time
@@ -50,11 +50,56 @@ class Window(QMainWindow):
     #     else:
     #         print('Not connected to server')
 
+
+
+def stimOnsetOffset():
+    mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
+    enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
+    
+    while True:
+        if stopThread:
+            print("Exiting Stim Controller ...")
+            break
+
+        #ONSET
+        currWidget = mainStack.currentWidget()
+        enterButton.stimuli.toggleOn()
+        for button in currWidget.findChildren(ButtonContainer):
+            button.stimuli.toggleOn()
+
+        print(f"Stim on, Page: {currWidget.objectName()}")
+        
+        time.sleep(2)
+
+        if stopThread:
+            print("exiting stim controller thread")
+            break
+
+        currWidget = mainStack.currentWidget()
+        enterButton.stimuli.toggleOff()
+        for button in currWidget.findChildren(ButtonContainer):
+            button.stimuli.toggleOff()
+        print(f"Stim off")
+
+        time.sleep(2)
+
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    global window
     window = Window()
     window.setStyleSheet(windowStyle)
+
+    global stopThread
+    stopThread = False
+    x = threading.Thread(target=stimOnsetOffset)
+    x.start()
+
     window.show()
 
-
-    sys.exit(app.exec_())
+    try:
+        sys.exit(app.exec_())
+    except SystemExit:
+        stopThread = True
+        print('Closing Window ...')
