@@ -41,7 +41,7 @@ class Window(QMainWindow):
         self.setWindowTitle('Main Window')  # Sets name of window
         # Adds central widget where we are going to do most of our work
         self.setCentralWidget(self.mainWidget)
-        self.setGeometry(0, 0, 1600, 900)
+        self.setGeometry(0, 0, 2400, 1340)
 
     #TODO: fix server comm integration
     # def emit_message(self, message, data):

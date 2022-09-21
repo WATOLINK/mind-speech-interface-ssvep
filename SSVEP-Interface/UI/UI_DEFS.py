@@ -20,26 +20,26 @@ STIMULI_SIZE = 120
 # Set stimuli frequencies for the main UI
 # Note that the key must match the value of the "freqName" passed when creating ButtonContainer object 
 MAIN_STIM_FREQUENCIES = { 
-    'Enter': 10,
+    'Enter': 13.25,
 
-    'Output Menu 1': 10,
-    'Output Menu 2': 10,
-    'Output Menu 3': 10,
-    'Output Menu Help': 10,
+    'Output Menu 1': 11.75,
+    'Output Menu 2': 10.25,
+    'Output Menu 3': 9.25,
+    'Output Menu Help': 12.75,
 
-    'Keyboard YN Menu 1': 10,
-    'Keyboard YN Menu 2': 10,
-    'Keyboard YN Menu Help': 10,
-    'Back to Output Menu': 10,
+    'Keyboard YN Menu 1': 12.75,
+    'Keyboard YN Menu 2': 14.75,
+    'Keyboard YN Menu Help': 9.25,
+    'Back to Output Menu': 10.75,
     
-    'YN 1': 10,
-    'YN 2': 10,
+    'YN 1': 10.25,
+    'YN 2': 14.75,
 
-    'Keyboard 1': 10,
-    'Keyboard 2': 10,
-    'Keyboard 3': 10,
-    'Keyboard 4': 10,
-    'Space': 10,
-    'Backspace': 10,
-    'Word Toggle': 10,
+    'Keyboard 1': 12.75,
+    'Keyboard 2': 11.75,
+    'Keyboard 3': 9.25,
+    'Keyboard 4': 10.75,
+    'Space': 11.25,
+    'Backspace': 10.25,
+    'Word Toggle': 14.75,
     }
