@@ -16,7 +16,7 @@ from UI.KeyboardPage.completer import suggestWords
 
 from UI.Components.enterButton import EnterButton
 
-class MainWidgetContainer(QWidget):
+class MainContainer(QWidget):
     def __init__(self, parent):
         super().__init__()
 
