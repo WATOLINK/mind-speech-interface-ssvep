@@ -4,7 +4,7 @@ from PyQt5.QtCore import center, Qt
 
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QStackedWidget
 
-from UI.MainWidget.mainWidget import MainWidget
+from UI.MainWidget.mainWidget import MainWidgetContainer
 
 from UI.styles import windowStyle
 
@@ -36,7 +36,7 @@ class Window(QMainWindow):
         self._centralWidget.setLayout(self.generalLayout)
 
          # Make sure to pass in 'self' to the child widget for it to access parent to for methods and children
-        self.mainWidget = MainWidget(self)
+        self.mainWidget = MainWidgetContainer(self)
 
         self.setWindowTitle('Main Window')  # Sets name of window
         # Adds central widget where we are going to do most of our work
