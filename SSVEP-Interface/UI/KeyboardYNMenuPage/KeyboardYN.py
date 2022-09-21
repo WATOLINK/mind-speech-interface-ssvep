@@ -21,7 +21,6 @@ def KeyboardYNMenuWidget(parent):
 def KeyboardYNMenuUpper(parent):
     menu = QWidget()
     layout = QHBoxLayout()
-    menu.setObjectName("Keyboard YN Menu")
 
     # DO NOT CHANGE RIGHT NOW
     labels = ['Use Keyboard', 'Use Yes/No']
@@ -55,18 +54,18 @@ def KeyboardYNMenuLower(parent):
         layout.addWidget(button)
 
     buttons[0].clicked.connect(lambda: changeStacks(parent,getMainWidgetIndex("Help Page")))
-    buttons[1].clicked.connect(lambda: outputMenu(parent))
+    buttons[1].clicked.connect(lambda: returnToOutputMenu(parent))
 
 
     sidebar.setLayout(layout)
     return sidebar
 
-def outputMenu(parent):
+def returnToOutputMenu(parent):
     mainStack = parent.findChild(QStackedWidget,"Main Widget")
     setOutputMode("")
     currWidget = mainStack.currentWidget()
 
-    if currWidget.objectName() == "Keyboard YN Selection Widget":
+    if currWidget.objectName() == "Keyboard YN Menu Page":
         for button in currWidget.findChildren(ButtonContainer):
             if button.isChecked():
                 button.setChecked(False)

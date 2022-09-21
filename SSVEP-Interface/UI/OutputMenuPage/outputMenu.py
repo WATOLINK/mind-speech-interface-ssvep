@@ -22,7 +22,6 @@ def OutputMenuWidget(parent):
 def OutputMenuUpper(parent):
     outputMode = QWidget()
     layout = QHBoxLayout()
-    outputMode.setObjectName("Output Menu")
 
     # DO NOT CHANGE RIGHT NOW
     labels = ['Use Twitter','Use Voice','Use Visual Communication']
