@@ -1,6 +1,0 @@
-Session at 2022-05-22 14:58:08.383640 
-
-
-=====Trial 1=====
-Session finished.
-

@@ -1,5 +1,5 @@
 import sys
-from configs import vert, hor
+from configs import HOR, VERT, SCALE
 from math import cos, sin, pi
 
 # https://doc.qt.io/qt-6/qopenglwidget.html
@@ -13,7 +13,6 @@ from PyQt5.QtWidgets import (
     QSizePolicy
 )
 from PyQt5.QtCore import QTimer
-
 from PyQt5.QtGui import QOpenGLVersionProfile
 
 
@@ -24,7 +23,7 @@ class CircleFlash (QOpenGLWidget):
     on = True
     solidColor = False  # for displaying as indicator
 
-    def __init__(self, freqHz, r, g, b, stimuliNumber, radius=0.8):
+    def __init__(self, freqHz, r, g, b, stimuliNumber, radius=0.5, scale=None, scale2=None):
         super() . __init__()
         self.flag = True
 
@@ -33,6 +32,18 @@ class CircleFlash (QOpenGLWidget):
         self.bValue = b
         self.freqHertz = freqHz
         self.id = stimuliNumber
+
+        #accounts for custom scaling with 8 stim in else statement
+        if not scale:
+            self.scale = SCALE
+        else:
+            self.scale = scale
+
+        if not scale2:
+            self.scale2 = VERT/HOR
+        else:
+            self.scale2 = scale2
+
 
         policy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         policy.setHeightForWidth(True)
@@ -72,8 +83,8 @@ class CircleFlash (QOpenGLWidget):
                 self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
                 for i in range(sides):
                     # inverse of window size
-                    x = self.radius * cos(i * 2 * pi / sides)*(vert/hor)
-                    y = self.radius * sin(i * 2 * pi / sides)
+                    x = self.radius * cos(i * 2 * pi / sides)*(self.scale2)
+                    y = self.radius * sin(i * 2 * pi / sides)*(self.scale)
                     self.gl.glVertex2f(x, y)
                 self.gl.glEnd()
 
@@ -90,8 +101,8 @@ class CircleFlash (QOpenGLWidget):
                 self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
                 for i in range(sides):
                     # inverse of window size
-                    x = self.radius * cos(i * 2 * pi / sides)*(vert/hor)
-                    y = self.radius * sin(i * 2 * pi / sides)
+                    x = self.radius * cos(i * 2 * pi / sides)*(self.scale2)
+                    y = self.radius * sin(i * 2 * pi / sides)*(self.scale)
                     self.gl.glVertex2f(x, y)
                 self.gl.glEnd()
             else:

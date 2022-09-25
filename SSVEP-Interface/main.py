@@ -1,72 +1,105 @@
 import sys
+import socketio
 from PyQt5.QtCore import center, Qt
-from PyQt5.QtGui import QFont
 
-from PyQt5.QtWidgets import QApplication, QStackedWidget
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QStackedWidget
 
-from Pages.QAPage.qa import QuestionAndAnswerWidget
-from Pages.MCPage.mc import MultipleChoiceWidget
-from Pages.YNPage.absolute import TrueAndFalseWidget
+from UI.MainWidget.mainWidget import MainContainer
 
-from Pages.styles import windowStyle
+from UI.styles import windowStyle
 
+from UI.Components.button_container import buttonClickNoise, ButtonContainer
+
+import threading
+import time
 
 class Window(QMainWindow):
-    """Main Window."""
-
     def __init__(self, parent=None):
-        """Initializer."""
         super().__init__(parent)
-        # Make sure to pass in 'self' to the child widget for it to access parent methods
-        self.multiplePage = MultipleChoiceWidget(self)
-        self.questionPage = QuestionAndAnswerWidget(self)
-        self.trueFalsePage = TrueAndFalseWidget(self)
-        # We use the Stack Widget to navigate between different pages
-        # If new pages need to be added, import it to this file and add it to the stack
-        self.stacked = QStackedWidget()
-        self.stacked.addWidget(self.questionPage)
-        self.stacked.addWidget(self.multiplePage)
-        self.stacked.addWidget(self.trueFalsePage)
+
+        #TODO: fix server comm integration
+        # SocketIO connection
+        # self.connected = False
+        # self.sio = socketio.Client()
+        # try:
+        #     self.sio.connect('http://127.0.0.1:5000')
+        #     print("Connected")
+        #     self.connected = True
+        # except socketio.exceptions.ConnectionError as err:
+        #     print("ConnectionError:", err)
+
+        self.generalLayout = QVBoxLayout()
+        self.generalLayout.setAlignment(Qt.AlignCenter)
+
+        self._centralWidget = QWidget(self)
+        self.setCentralWidget(self._centralWidget)
+        self._centralWidget.setLayout(self.generalLayout)
+
+         # Make sure to pass in 'self' to the child widget for it to access parent to for methods and children
+        self.mainWidget = MainContainer(self)
+
         self.setWindowTitle('Main Window')  # Sets name of window
         # Adds central widget where we are going to do most of our work
-        self.setCentralWidget(self.stacked)
-        # Sets location (x, y) and size (width, height) of current window
-        self.setGeometry(0, 0, 1600, 900)
+        self.setCentralWidget(self.mainWidget)
+        self.setGeometry(0, 0, 2400, 1340)
+
+    #TODO: fix server comm integration
+    # def emit_message(self, message, data):
+    #     if self.connected:
+    #         self.sio.emit(message, data)
+    #     else:
+    #         print('Not connected to server')
 
 
 
-    # To navigate to different pages, we set the current widget of the stack
-    # These function below are called to nagivate between different pages
-    def showQA(self):
-        self.stacked.setCurrentWidget(self.questionPage)
+def stimOnsetOffset():
+    mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
+    enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
+    
+    while True:
+        if stopThread:
+            print("Exiting Stim Controller ...")
+            break
 
-    def showMC(self):
-        self.stacked.setCurrentWidget(self.multiplePage)
+        #ONSET
+        currWidget = mainStack.currentWidget()
+        enterButton.stimuli.toggleOn()
+        for button in currWidget.findChildren(ButtonContainer):
+            button.stimuli.toggleOn()
 
-    def showTF(self):
-        self.stacked.setCurrentWidget(self.trueFalsePage)
+        print(f"Stim on, Page: {currWidget.objectName()}")
+        
+        time.sleep(2)
 
-    # Functions below may be useful in the future
-    # def _createMenu(self):
-    #     self.menu = self.menuBar().addMenu("&Menu")
-    #     self.menu.addAction('&Exit', self.close)
+        if stopThread:
+            print("exiting stim controller thread")
+            break
 
-    # def _createToolBar(self):
-    #     tools = QToolBar()
-    #     self.addToolBar(tools)
-    #     tools.addAction('Exit', self.close)
+        currWidget = mainStack.currentWidget()
+        enterButton.stimuli.toggleOff()
+        for button in currWidget.findChildren(ButtonContainer):
+            button.stimuli.toggleOff()
+        print(f"Stim off")
 
-    # def _createStatusBar(self):
-    #     status = QStatusBar()
-    #     status.showMessage("I'm the Status Bar")
-    #     self.setStatusBar(status)
+        time.sleep(2)
+
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    
-    win = Window()
-    win.setStyleSheet(windowStyle)
-    win.show()
-    sys.exit(app.exec_())
+    global window
+    window = Window()
+    window.setStyleSheet(windowStyle)
+
+    global stopThread
+    stopThread = False
+    x = threading.Thread(target=stimOnsetOffset)
+    x.start()
+
+    window.show()
+
+    try:
+        sys.exit(app.exec_())
+    except SystemExit:
+        stopThread = True
+        print('Closing Window ...')
