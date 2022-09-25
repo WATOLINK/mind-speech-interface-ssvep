@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QLabel,QStackedWidget,QLineEdit
 from UI.Components.button_container import ButtonContainer, buttonClickNoise
 from server.twitterAPI import tweet
+from _TTS.watolink_TTS import *
 
 from playsound import playsound
 
@@ -12,6 +13,8 @@ from UI.status import setOutputMode, getPreviousPage
 from UI.helperFunctions import disableOtherButtons, changeStacks\
 
 outputMode = ""
+
+TTS = TTS_synthesizer(model_name = "tts_models/en/ljspeech/tacotron2-DDC")
 
 class EnterButton(ButtonContainer):
     def __init__(self,parent):
@@ -40,11 +43,14 @@ def submitAndReturn(self,parent):
     if inputField.text():
         temp = messageBox.text() + f"[{inputField.text()}]"
         messageBox.setText(temp)
+        print("reached")
+        print (getOutputMode())
         if getOutputMode() == "twitter":
                 print("tweeting")
                 tweet(inputField.text())
         elif getOutputMode() == "voice":
                 print("voice not yet implemented")
+                TTS.synthesize(text = inputField.text())
         elif getOutputMode() == "visual":
                 print("visual not yet implemented")
 
