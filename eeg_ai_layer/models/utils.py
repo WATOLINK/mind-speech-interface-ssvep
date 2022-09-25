@@ -5,6 +5,8 @@ import pandas as pd
 from sklearn.metrics import confusion_matrix
 from typing import List
 from eeg_ai_layer.models.ssvep_utils import butter_bandpass_filter
+import scipy
+from scipy.signal import iirnotch, filtfilt
 
 
 def make_confusion_matrix(y_true, y_pred, classes=None, figsize=(10, 10), text_size=15, norm=False, savefig=False):
@@ -96,6 +98,23 @@ def split_trials(data) -> List[pd.DataFrame]:
         segmented_data.append(data_slice)
     return segmented_data
 
+def build_dataset_from_channel_data(channel_data: np.array, data:pd.DataFrame) -> pd.DataFrame:
+    """
+    Build a dataset from channel data. Useful when the channel data is filtered and you want to put the dataset
+    back together.
+
+    Args:
+        channel_data: Channel data as ndarray
+        data: The original data source
+
+    Returns:
+        A new dataframe that contains the new channel data.
+    """
+    df = pd.DataFrame(channel_data)
+    df.columns = [f'CH{i + 1}' for i in range(df.shape[1])]
+    df['Frequency'] = data['Frequency']
+    df.index = np.arange(df.shape[0])
+    return df
 
 def parse_and_filter_eeg_data(data: pd.DataFrame, sample_rate: int, lowcut: float, highcut: float) -> pd.DataFrame:
     """
@@ -110,13 +129,54 @@ def parse_and_filter_eeg_data(data: pd.DataFrame, sample_rate: int, lowcut: floa
     Returns:
         Parsed + filtered EEG data
     """
-    channel_data = data.drop(columns=['time', 'Frequency', 'Color Code'])
+    channel_data = data.drop(columns=['Frequency'])
     channel_data = channel_data.to_numpy().T
     filtered_data = butter_bandpass_filter(channel_data, lowcut, highcut, sample_rate, 4).T
-    df = pd.DataFrame(filtered_data)
-    df.columns = [f'CH{i + 1}' for i in range(df.shape[1])]
-    df['time'] = data['time']
-    df['Frequency'] = data['Frequency']
-    df['Color Code'] = data['Color Code']
-    df.index = np.arange(df.shape[0])
-    return df
+    return build_dataset_from_channel_data(filtered_data, data)
+
+def iir_notch_filter(data, f0, quality_factor, sample_rate):
+    '''
+    Returns notch filtered data for frequencies specified in the input.
+    Args:
+        data (numpy.ndarray): array of samples.
+        fi (float): frequency to eliminate (Hz).
+        quality_factor (float): quality factor.
+        sample_rate (float): sampling rate (Hz).
+    Returns:
+        (numpy.ndarray): data with powerline interference removed
+    '''
+    b, a = iirnotch(f0, quality_factor, sample_rate)
+    #still need to filter harmonics
+    return filtfilt(b, a, data)
+
+
+def filterbank(eeg, sample_rate, idx_fb = 0):
+    if len(eeg.shape) == 2:
+        num_chans = eeg.shape[0]
+        num_trials = 1
+    else:
+        num_chans, _, num_trials = eeg.shape
+
+    # Nyquist Frequency = Fs/2N
+    Nq = sample_rate / 2
+
+    passband = [6, 14, 22, 30, 38, 46, 54, 62, 70, 78]
+    stopband = [4, 10, 16, 24, 32, 40, 48, 56, 64, 72]
+    Wp = [passband[idx_fb] / Nq, 90 / Nq]
+    Ws = [stopband[idx_fb] / Nq, 100 / Nq]
+    N, Wn = scipy.signal.cheb1ord(Wp, Ws, 3, 40)  # band pass filter StopBand=[Ws(1)~Ws(2)] PassBand=[Wp(1)~Wp(2)]
+    B, A = scipy.signal.cheby1(N, 0.5, Wn, 'bandpass')  # Wn passband edge frequency
+
+    y = np.zeros(eeg.shape)
+    if num_trials == 1:
+        for ch_i in range(num_chans):
+            # apply filter, zero phass filtering by applying a linear filter twice, once forward and once backwards.
+            # to match matlab result we need to change padding length
+            y[ch_i, :] = scipy.signal.filtfilt(B, A, eeg[ch_i, :], padtype='odd', padlen=3 * (max(len(B), len(A)) - 1))
+
+    else:
+        for trial_i in range(num_trials):
+            for ch_i in range(num_chans):
+                y[ch_i, :, trial_i] = scipy.signal.filtfilt(B, A, eeg[ch_i, :, trial_i], padtype='odd',
+                                                            padlen=3 * (max(len(B), len(A)) - 1))
+    return y
