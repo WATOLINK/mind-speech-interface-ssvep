@@ -24,4 +24,4 @@ def changeStacks(parent,mainIndex):
     # bottomStack.setCurrentIndex(sidebarIndex)
     setCurrentPage(mainStack.currentWidget().objectName())
 
-    printStatus(parent)
+    # printStatus(parent)
