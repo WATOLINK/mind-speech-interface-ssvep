@@ -94,8 +94,6 @@ def clickedBack(parent, buttons, text, level):
             buttons[x].label.setText(groupedChars[x])
 
     elif level == 3:
-        
-        
         currentCharGroup = ""
         for x in range(len(buttons) - 2):
             currentCharGroup +=  buttons[x].label.text()
