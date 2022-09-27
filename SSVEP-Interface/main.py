@@ -1,5 +1,5 @@
 import sys
-import socketio
+# import socketio
 from PyQt5.QtCore import center, Qt
 
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QStackedWidget
@@ -12,6 +12,7 @@ from UI.Components.button_container import buttonClickNoise, ButtonContainer
 
 import threading
 import time
+
 
 class Window(QMainWindow):
     def __init__(self, parent=None):
@@ -56,6 +57,7 @@ def stimOnsetOffset():
     mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
     enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
     
+    
     while True:
         if stopThread:
             print("Exiting Stim Controller ...")
@@ -85,7 +87,7 @@ def stimOnsetOffset():
 
 
 
-if __name__ == '__main__':
+def mainGUIFunc():
     app = QApplication(sys.argv)
     global window
     window = Window()

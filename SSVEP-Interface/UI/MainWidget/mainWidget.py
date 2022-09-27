@@ -1,7 +1,10 @@
+import imp
 import sys
 from PyQt5.QtWidgets import QWidget, QGridLayout, QLineEdit, QLabel, QStackedWidget
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtCore
+from UI.OutputMenuPage.outputMenu import OutputMenuUpper
+from UI.UI_DEFS import getMainWidgetIndex
 
 from UI.styles import textBoxStyle, promptBoxStyle
 
@@ -14,7 +17,14 @@ from UI.HelpPage.help import HelpWidget
 
 from UI.KeyboardPage.completer import suggestWords
 
-from UI.Components.enterButton import EnterButton
+from UI.Components.enterButton import EnterButton, submitAndReturn
+
+from UI.homeBase import AThread
+from PyQt5.QtWidgets import QWidget
+from UI.Components.button_container import ButtonContainer
+from UI.helperFunctions import disableOtherButtons, changeStacks
+
+
 
 class MainContainer(QWidget):
     def __init__(self, parent):
@@ -23,6 +33,9 @@ class MainContainer(QWidget):
         layout = QGridLayout()
         self.setLayout(layout)
         
+        self.myThread = AThread()
+        self.myThread.start()
+
         #TODO: fix server comm integration
         #self.parent = parent
 
@@ -42,6 +55,20 @@ class MainContainer(QWidget):
 
         self.initUI()
 
+        self.myThread.enterButtonSig.connect(self.onEnterButton)
+        #self.myThread.mainWidgetSig.connect(self.onMainWidget)
+        self.myThread.helpPageSig.connect(self.onHelpPage)
+
+
+    def onEnterButton(self):
+        enterButton(self)
+
+    def onKeyboardPage(self):
+        keyboardPage(self)
+
+    def onHelpPage(self):
+        helpPage(self)
+
     def initUI(self):
         self.setGeometry(100, 100, 900, 900)
         self.setWindowTitle('Icon')
@@ -49,7 +76,23 @@ class MainContainer(QWidget):
 
         self.show()
 
+def enterButton(self):
+    enter = self.findChild(ButtonContainer, "Enter Button")
+    print(enter)
+    submitAndReturn(enter, self)
+    
+def keyboardPage(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    keyboard = main.findChild(QWidget,"Keyboard Page")
+    
 
+def helpPage(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    OutputMenuUpper
+    print("helped")
+    changeStacks(self ,getMainWidgetIndex("Help Page"))
+
+    
 def title():
     title = QLabel("test")
     title.setObjectName("Title")

@@ -47,6 +47,8 @@ def OutputMenuLower(parent):
     sidebar = QWidget()
     layout = QHBoxLayout()
 
+    layout.setObjectName("Help Button")
+
     button = ButtonContainer("Help",freqName="Output Menu Help",checkable=False)
     
     layout.addWidget(button)
