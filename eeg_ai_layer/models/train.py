@@ -106,7 +106,7 @@ def segment_data_from_trials(trials: List):
             segment_labels.append(label)
     if args.no_zero:
         segments = [segment for idx, segment in enumerate(segments) if segment_labels[idx] != 0]
-        segment_labels = [segment_label for idx, segment_label in enumerate(seggies) if segment_labels[idx] != 0]
+        segment_labels = [segment_label for idx, segment_label in enumerate(segment_labels) if segment_labels[idx] != 0]
     return segments, segment_labels
 
 
@@ -160,7 +160,11 @@ if __name__ == "__main__":
         test_metrics.update(train_metrics)
 
     if args.verbose:
-        print(*[f"{key}:\n{test_metrics[key]}" for key in test_metrics], sep='\n')
+        for key in test_metrics:
+            message = f"{key}: {test_metrics[key]}"
+            if "confusion_matrix" in key:
+                message = f"{key}:\n{test_metrics[key]}"
+            print(message)
 
     if args.output_path and args.output_name:
         path = os.path.join(args.output_path, args.output_name)
