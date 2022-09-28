@@ -1,5 +1,5 @@
 import sys
-import socketio
+# import socketio
 from PyQt5.QtCore import center, Qt
 
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QStackedWidget
@@ -8,7 +8,7 @@ from UI.MainWidget.mainWidget import MainContainer
 
 from UI.styles import windowStyle
 
-from UI.Components.button_container import buttonClickNoise, ButtonContainer
+from UI.Components.button_container import  ButtonContainer
 
 import threading
 import time

@@ -1,10 +1,10 @@
 from PyQt5.QtWidgets import QStackedWidget
-from UI.Components.button_container import buttonClickNoise
+# from UI.Components.button_container import buttonClickNoise
 
 from UI.status import setCurrentPage, printStatus
 
 def disableOtherButtons(buttons, selected):
-    buttonClickNoise()
+    # buttonClickNoise()
     
     if selected.isChecked():
         # title.setText(selected.label.text())
@@ -15,7 +15,7 @@ def disableOtherButtons(buttons, selected):
         # title.setText("")
 
 def changeStacks(parent,mainIndex):
-    buttonClickNoise()
+    # buttonClickNoise()
 
     mainStack = parent.findChild(QStackedWidget,"Main Widget")
     # bottomStack = parent.findChild(QStackedWidget,"Bottom Widget")
