@@ -47,7 +47,7 @@ def submitAndReturn(self,parent):
         elif getOutputMode() == "Voice":
                 print("voice not yet implemented")
                 TTS.synthesize(text = inputField.text())
-        elif getOutputMode() == "visual":
+        elif getOutputMode() == "Visual":
                 print("visual not yet implemented")
 
         inputField.clear()
