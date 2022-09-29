@@ -27,7 +27,7 @@ class FBCCA:
         self.fb_coefs = np.power(np.arange(1, self.frequency_bands + 1), -1.25) + 0.25
         self.verbose = args.verbose
         # TODO: Rewrite this later
-        self.cca_frequencies = None
+        # self.cca_frequencies = None
         self.reference_templates = self.create_reference_templates(frequencies=self.frequencies)
         self.freq2label = {freq: idx for idx, freq in enumerate(self.frequencies)}
 

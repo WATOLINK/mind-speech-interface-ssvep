@@ -68,7 +68,7 @@ def get_filtered_eeg(eeg, lowcut, highcut, order, sample_rate):
                                                                                   highcut, sample_rate, order)
     return filtered_data
 
-def buffer(data, duration, data_overlap, no_pad=False):
+def buffer(data, duration, data_overlap):
     '''
     Returns segmented data based on the provided input window duration and overlap.
 
