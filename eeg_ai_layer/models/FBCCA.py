@@ -18,7 +18,7 @@ class FBCCA:
         print(self.cca_frequencies)
         self.components = args.components
         self.cca = CCA(n_components=self.components)
-        self.duration = args.window_length * args.sample_rate
+        self.duration = int(args.window_length * args.sample_rate)
         self.sample_rate = args.sample_rate
         self.quality_factors = 30.0
         self.power_line_frequency = 60

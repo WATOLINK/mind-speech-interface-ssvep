@@ -68,7 +68,7 @@ def get_filtered_eeg(eeg, lowcut, highcut, order, sample_rate):
                                                                                   highcut, sample_rate, order)
     return filtered_data
 
-def buffer(data, duration, data_overlap):
+def buffer(data, duration, data_overlap, no_pad=False):
     '''
     Returns segmented data based on the provided input window duration and overlap.
 
@@ -83,9 +83,12 @@ def buffer(data, duration, data_overlap):
 
     number_segments = int(math.ceil((len(data) - data_overlap)/(duration - data_overlap)))
     temp_buf = [data[i:i+duration] for i in range(0, len(data), (duration - int(data_overlap)))]
-    temp_buf[number_segments-1] = np.pad(temp_buf[number_segments-1],
-                                         ((0, duration - temp_buf[number_segments - 1].shape[0]), (0, 0)),
-                                         'constant')
+    
+    # if the last segment is smaller than the window length, remove the last segment 
+    # (we used to pad this but it was useless)
+    if duration - temp_buf[number_segments - 1].shape[0] != 0:
+        temp_buf = temp_buf[:number_segments-1]
+   
     segmented_data = np.array(temp_buf[0:number_segments])
 
     return segmented_data

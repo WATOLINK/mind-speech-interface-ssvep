@@ -33,8 +33,8 @@ def get_args(parser: ArgumentParser):
     parser.add_argument('--output-name', type=str, default=None, help="Name to save the model")
     parser.add_argument('--data', type=str, help="Filepath for a dataset. Will perform a train/test split.")
     parser.add_argument('--sample-rate', type=int, default=250, help="Sampling rate (hz)")
-    parser.add_argument('--window-length', type=int, default=1, help="Window length for data processing")
-    parser.add_argument('--shift-length', type=int, default=1/250, help="Shift length for data processing")
+    parser.add_argument('--window-length', type=float, default=1, help="Window length for data processing")
+    parser.add_argument('--shift-length', type=float, default=1/250, help="Shift length for data processing")
     parser.add_argument('--lower-freq', type=float, default=5, help="Lower frequency bound for a bandpass filter")
     parser.add_argument('--upper-freq', type=float, default=5, help="Upper frequency bound for a bandpass filter")
     parser.add_argument('--random-state', type=int, default=42, help="Random State")
@@ -98,7 +98,7 @@ def segment_data_from_trials(trials: List):
     for trial in trials:
         label = trial.iloc[0]['Frequency']
         trial.drop(columns=['Frequency'], inplace=True)
-        duration = args.window_length * args.sample_rate
+        duration = int(args.window_length * args.sample_rate)
         data_overlap = (args.window_length - args.shift_length) * args.sample_rate
         segs = buffer(trial, duration, data_overlap)
         for seg in segs:
