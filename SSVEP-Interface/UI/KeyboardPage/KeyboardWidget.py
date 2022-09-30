@@ -211,8 +211,8 @@ def toggle(parent):
     
     if toggleBtn.label.text() == "Toggle Words":
         toggleBtn.label.setText("Toggle Characters")
+        # Request API call for GPT-3
         suggestWords(parent)
-
         keyLabels = ['word','word','this is a phrase','this is a phrase']
         
     else:
@@ -220,10 +220,7 @@ def toggle(parent):
         keyLabels = groupedChars
         for x in range(len(keyboardBtns)):
             keyboardBtns[x].label.setText(keyLabels[x])
-        
-    # for x in range(len(keyboardBtns)):
-    #     keyboardBtns[x].label.setText(keyLabels[x])
-    #     print(f"This ran")
+    
 
 
     
