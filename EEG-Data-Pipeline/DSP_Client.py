@@ -2,14 +2,10 @@ import socket
 import os
 import pickle
 import sys
-from turtle import clear
 import numpy as np
 import pandas as pd
 from time import time
-import time as t
-from brainflow.data_filter import DataFilter, FilterTypes
 from collections import Counter
-from numpy import savetxt
 
 path = os.getcwd()
 head, tail = os.path.split(path)
@@ -87,7 +83,7 @@ class EEGSocketListener:
         time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
 
         init_slider_count = 0
-        self.data = np.zeros((50,8))
+        self.data = np.zeros((50, 8))
 
         while time_func:
             packet = self.recieve_packet()
@@ -105,32 +101,19 @@ class EEGSocketListener:
 
                 print(f"Built 250 sample packet - Packet size: {np.shape(self.data)}")
                 sample = self.data[0:250]
+                sample = np.expand_dims(sample, axis=0)
                 prepared = self.model.prepare(sample)
                 prediction = self.model.predict(prepared)
+                prediction = [int(pred) for pred in list(prediction)]
                 frequencies = self.model.convert_index_to_frequency(prediction)
                 c = Counter(frequencies)
                 print(f"Prediction: {c.most_common(1)[0][0]}")
                 self.send_packet(c.most_common(1)[0][0])
 
             init_slider_count += 1
-
-            
-
-
-
-
-    def filter(self):
-        num_eeg_channels = 8
-        sampling_rate = 250
-        mid_freq = 12
-        band_width = 4
-        for channel in range(num_eeg_channels):
-            DataFilter.perform_bandpass(self.data[channel], sampling_rate, mid_freq, band_width, 2,
-                                        FilterTypes.BUTTERWORTH, 0)
+        self.close_socket_conn()
 
     def generate_csv(self, name="fullOBCI"):
         df = pd.DataFrame(data=self.data, columns=list(range(1, 9)))
         print(f'{name}.csv Generated')
         df.to_csv(f'{name}.csv')
-        return
-

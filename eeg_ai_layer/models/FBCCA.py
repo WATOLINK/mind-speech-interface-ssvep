@@ -11,24 +11,29 @@ class FBCCA:
     """An FBCCA model."""
 
     def __init__(self, args):
-        self.frequencies = args.frequencies  # [0.0, 12.75, 14.75, 11.75, 10.25]
-        self.cca_frequencies = sorted(args.frequencies)
+        self.frequencies = [0.0, 12.75, 14.75, 11.75, 10.25]
+        if hasattr(args, "frequencies"):
+            self.frequencies = args.frequencies  # [0.0, 12.75, 14.75, 11.75, 10.25]
+        self.cca_frequencies = sorted(self.frequencies)
         if self.cca_frequencies[0] == 0.0:
             self.cca_frequencies = self.cca_frequencies[1:]
-        print(self.cca_frequencies)
-        self.components = args.components
-        self.cca = CCA(n_components=self.components)
         self.duration = int(args.window_length * args.sample_rate)
         self.sample_rate = args.sample_rate
+        # CCA Initialization
+        self.components = args.components
+        self.cca = CCA(n_components=self.components)
+        # Notch filter Initialization
         self.quality_factors = 30.0
         self.power_line_frequency = 60
+        # Filter bank Initialization
         self.frequency_bands = args.frequency_bands if "frequency_bands" in args else 10
         self.harmonics = args.harmonics if "harmonics" in args else 3
         self.fb_coefs = np.power(np.arange(1, self.frequency_bands + 1), -1.25) + 0.25
-        self.verbose = args.verbose
-        # TODO: Rewrite this later
-        # self.cca_frequencies = None
-        self.reference_templates = self.create_reference_templates(frequencies=self.frequencies)
+        self.reference_templates = self.create_reference_templates(frequencies=self.cca_frequencies)
+        self.verbose = False
+        if hasattr(args, "verbose"):
+            self.verbose = args.verbose
+
         self.freq2label = {freq: idx for idx, freq in enumerate(self.frequencies)}
 
     def create_reference_templates(self, frequencies: List):
@@ -41,18 +46,16 @@ class FBCCA:
         Returns:
             An array of reference signals
         """
-        self.frequencies = sorted(frequencies)
-        self.cca_frequencies = [freq for freq in sorted(frequencies) if freq != 0]
-        reference_templates = np.zeros((len(self.cca_frequencies), 2 * self.harmonics, self.duration))
-        for freq_idx in range(len(self.cca_frequencies)):
-            freq = self.cca_frequencies[freq_idx]
+        reference_templates = np.zeros((len(frequencies), 2 * self.harmonics, self.duration))
+        for freq_idx in range(len(frequencies)):
+            freq = frequencies[freq_idx]
             reference_template = []
             for harmonic in range(1, self.harmonics + 1):
-                reference_template.extend(self.get_reference_signals(self.duration, harmonic * freq, self.sample_rate))
+                reference_template.extend(self._get_reference_signals(self.duration, harmonic * freq, self.sample_rate))
             reference_templates[freq_idx] = np.array(reference_template)
         return np.array(reference_templates, dtype='float64')
 
-    def get_reference_signals(self, data_len, target_freq, sampling_rate):
+    def _get_reference_signals(self, data_len, target_freq, sampling_rate):
         reference_signals = []
         t = np.arange(0, (data_len / sampling_rate), step=1.0 / sampling_rate)
         reference_signals.append(np.sin(np.pi * 2 * target_freq * t))
@@ -88,9 +91,6 @@ class FBCCA:
         Returns:
             Correlations to each of the reference signals
         """
-
-        cca = CCA(n_components=1)  # initilize CCA
-
         # result matrix
         r = np.zeros((self.frequency_bands, len(self.cca_frequencies)))
         results = np.zeros(data.shape[0])
@@ -102,7 +102,7 @@ class FBCCA:
                 segment_frequency_bank = filterbank(data[segment].T, self.sample_rate, frequency_band)
                 for frequ in range(len(self.cca_frequencies)):
                     refdata = np.squeeze(self.reference_templates[frequ, :, :])  # pick corresponding freq target reference signal
-                    test_C, ref_C = cca.fit_transform(segment_frequency_bank.T, refdata.T)
+                    test_C, ref_C = self.cca.fit_transform(segment_frequency_bank.T, refdata.T)
                     r_tmp, _ = pearsonr(np.squeeze(test_C), np.squeeze(ref_C))
                     r[frequency_band, frequ] = r_tmp
             rho = np.dot(self.fb_coefs, r)  # weighted sum of r from all different filter banks' result
@@ -126,7 +126,7 @@ class FBCCA:
             Accuracy metrics. If the verbose param is specified, a confusion matrix is returned as well.
         """
         test_data = np.array(test_data)
-        test_data = self.prepare(data=test_data.T).T
+        test_data = self.prepare(data=test_data)
         idx_labels = [self.freq2label[label] for label in test_labels]
         predictions = self.predict(data=test_data)
         if self.frequencies[0] == 0:

@@ -98,6 +98,7 @@ def split_trials(data) -> List[pd.DataFrame]:
         segmented_data.append(data_slice)
     return segmented_data
 
+
 def build_dataset_from_channel_data(channel_data: np.array, data:pd.DataFrame) -> pd.DataFrame:
     """
     Build a dataset from channel data. Useful when the channel data is filtered and you want to put the dataset
@@ -115,6 +116,7 @@ def build_dataset_from_channel_data(channel_data: np.array, data:pd.DataFrame) -
     df['Frequency'] = data['Frequency']
     df.index = np.arange(df.shape[0])
     return df
+
 
 def parse_and_filter_eeg_data(data: pd.DataFrame, sample_rate: int, lowcut: float, highcut: float) -> pd.DataFrame:
     """
@@ -134,23 +136,24 @@ def parse_and_filter_eeg_data(data: pd.DataFrame, sample_rate: int, lowcut: floa
     filtered_data = butter_bandpass_filter(channel_data, lowcut, highcut, sample_rate, 4).T
     return build_dataset_from_channel_data(filtered_data, data)
 
+
 def iir_notch_filter(data, f0, quality_factor, sample_rate):
-    '''
+    """
     Returns notch filtered data for frequencies specified in the input.
     Args:
         data (numpy.ndarray): array of samples.
-        fi (float): frequency to eliminate (Hz).
+        f0 (float): frequency to eliminate (Hz).
         quality_factor (float): quality factor.
         sample_rate (float): sampling rate (Hz).
     Returns:
         (numpy.ndarray): data with powerline interference removed
-    '''
+    """
     b, a = iirnotch(f0, quality_factor, sample_rate)
-    #still need to filter harmonics
-    return filtfilt(b, a, data)
+    # still need to filter harmonics
+    return filtfilt(b, a, data, axis=1)
 
 
-def filterbank(eeg, sample_rate, idx_fb = 0):
+def filterbank(eeg, sample_rate, idx_fb=0):
     if len(eeg.shape) == 2:
         num_chans = eeg.shape[0]
         num_trials = 1
