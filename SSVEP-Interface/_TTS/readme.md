@@ -8,17 +8,21 @@ Watolink_TTS is a class that provides methods to train and use a coqui AI TTS mo
 5. install pytorch with cuda if training is not using GPU
 
 # Installation
-1. install Visual Studio C++ build tools, select "Desktop development with C++"
-2. pip install TTS
-3. pip install simpleaudio
+1. Install Visual Studio C++ build tools, select "Desktop development with C++"
+2. `pip install TTS`
+3. `pip install simpleaudio`
 4. Download prebuilt TTS model for coqui AI in the CLI
+```
+tts --text "Text for TTS" --model_name "tts_models/en/ljspeech/tacotron2-DDC"]
+```
 
-    tts --text "Text for TTS" --model_name "tts_models/en/ljspeech/tacotron2-DDC"
-5. if encountering install errors, such as "ERROR: Invalid requirement: 'simpleaudio\x83", try the following:
-
-    pip install -U pip
-    pip uninstall setuptools
-    pip install 'setuptools<20.2'
+**Errors:**
+If encountering any install errors, such as "ERROR: Invalid requirement: 'simpleaudio\x83", try the following:
+```
+pip install -U pip
+pip uninstall setuptools
+pip install 'setuptools<20.2'
+```
 
 
 # Example usage:
