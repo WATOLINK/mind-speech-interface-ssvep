@@ -8,7 +8,7 @@ Watolink_TTS is a class that provides methods to train and use a coqui AI TTS mo
 5. install pytorch with cuda if training is not using GPU
 
 # Installation
-1. Install Visual Studio C++ build tools, select "Desktop development with C++"
+1. Install Visual Studio C++ build tools, select **Desktop development with C++**
 2. `pip install TTS`
 3. `pip install simpleaudio`
 4. Download prebuilt TTS model for coqui AI in the CLI
