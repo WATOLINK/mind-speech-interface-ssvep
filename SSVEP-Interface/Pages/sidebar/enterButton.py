@@ -2,10 +2,34 @@ from PyQt5.QtWidgets import QLabel,QStackedWidget,QLineEdit
 from Pages.button_container import ButtonContainer
 from server.twitterAPI import tweet
 
+from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtCore import QUrl
+# from Pages.BrowserPage.browser import Browser
+import sys
+from PyQt5.QtWidgets import QApplication
+
 from Pages.HomePage.mainWidgetIndexes import getMainWidgetIndex
 from Pages.sidebar.sidebarIndexes import getSidebarIndex
 
 outputMode = ""
+
+
+class Browser(QWebEngineView):
+    def __init__(self, url):
+        print("1")
+        super().__init__()
+        self.loadProgress.connect(print)
+        self.load(QUrl(url))
+        self.loadFinished.connect(self.pageReady)
+        print("2")
+
+    def pageReady(self, success):
+        if success:
+            self.resize(1600, 900)
+            self.show()
+        else:
+            print('page failed to load')
+        print("3")
 
 class EnterButton(ButtonContainer):
     def __init__(self,parent):
@@ -29,7 +53,12 @@ def submitAndReturn(parent):
         elif getOutputMode() == "server":
                 print("server not yet implemented")
         elif getOutputMode() == "visual":
-                print("visual not yet implemented")
+                print("displaying visuals...")
+                browser = Browser("https://www.craiyon.com/")
+                print("visuals displayed")
+
+                # QWebEnginePage.load('http://www.www.pythoncentral.io')
+                # QWebEngineView.load('http://www.www.pythoncentral.io')
 
         inputField.clear()
 
@@ -51,3 +80,10 @@ def changeStacks(parent,mainIndex,sidebarIndex):
 
 def getOutputMode():
     return outputMode
+
+def pageReady(browser, success):
+    if success:
+        browser.show()
+        print("visuals displayed")
+    else:
+        print("page failed to load")
