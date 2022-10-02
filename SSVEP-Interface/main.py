@@ -1,5 +1,5 @@
 import sys
-# import socketio
+import socketio
 from PyQt5.QtCore import center, Qt
 
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QStackedWidget
