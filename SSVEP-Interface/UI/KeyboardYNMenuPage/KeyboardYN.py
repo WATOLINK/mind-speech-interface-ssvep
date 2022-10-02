@@ -22,6 +22,7 @@ def KeyboardYNMenuUpper(parent):
     menu = QWidget()
     layout = QHBoxLayout()
 
+    menu.setObjectName("upper menu")
     # DO NOT CHANGE RIGHT NOW
     labels = ['Use Keyboard', 'Use Yes/No']
     buttons = []

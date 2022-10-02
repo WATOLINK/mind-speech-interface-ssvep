@@ -1,7 +1,10 @@
+import imp
 import sys
 from PyQt5.QtWidgets import QWidget, QGridLayout, QLineEdit, QLabel, QStackedWidget
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtCore
+from UI.OutputMenuPage.outputMenu import OutputMenuUpper
+from UI.UI_DEFS import getMainWidgetIndex
 
 from UI.styles import textBoxStyle, promptBoxStyle
 
@@ -14,7 +17,15 @@ from UI.HelpPage.help import HelpWidget
 
 from UI.KeyboardPage.completer import suggestWords
 
-from UI.Components.enterButton import EnterButton
+from UI.Components.enterButton import EnterButton, submitAndReturn
+
+from UI.homeBase import AThread
+from PyQt5.QtWidgets import QWidget, QHBoxLayout
+from UI.Components.button_container import ButtonContainer
+from UI.helperFunctions import disableOtherButtons, changeStacks
+# from symbol import or_test
+
+
 
 class MainContainer(QWidget):
     def __init__(self, parent):
@@ -23,6 +34,9 @@ class MainContainer(QWidget):
         layout = QGridLayout()
         self.setLayout(layout)
         
+        self.myThread = AThread()
+        self.myThread.start()
+
         #TODO: fix server comm integration
         #self.parent = parent
 
@@ -42,6 +56,54 @@ class MainContainer(QWidget):
 
         self.initUI()
 
+        self.myThread.enterButtonSig.connect(self.onEnterButton)
+
+        self.myThread.helpPageSig.connect(self.onHelpPage)
+        self.myThread.voicePageSig.connect(self.onVoice)
+        self.myThread.twitterPageSig.connect(self.onTwitter)
+        self.myThread.visCommPageSig.connect(self.onVisComm)
+
+        self.myThread.keyboardPageSig.connect(self.onOutputKeyboard)
+        self.myThread.ynPageSig.connect(self.onOutputYN)
+
+        # self.myThread.yesNoPageSig.connect(self.onYesNoPage)
+        self.myThread.returnHomeSig.connect(self.onReturnHome)
+
+        self.myThread.yesSig.connect(self.onYes)
+        self.myThread.noSig.connect(self.onNo)
+
+    def onVoice(self):
+        outputVoice(self)
+
+    def onEnterButton(self):
+        enterButton(self)
+
+    def onOutputKeyboard(self):
+        outputKeyboard(self)
+
+    def onHelpPage(self):
+        helpPage(self)
+
+
+    def onTwitter(self):
+        outputTwitter(self)
+
+    def onVisComm(self):
+        outputVisComm(self)
+
+    def onOutputYN(self):
+        outputYN(self)
+
+    def onReturnHome(self):
+        returnHome(self)
+
+    def onYes(self):
+        yes(self)
+    
+    def onNo(self):
+        no(self)
+
+
     def initUI(self):
         self.setGeometry(100, 100, 900, 900)
         self.setWindowTitle('Icon')
@@ -49,7 +111,23 @@ class MainContainer(QWidget):
 
         self.show()
 
+def enterButton(self):
+    enter = self.findChild(ButtonContainer, "Enter Button")
+    print(enter)
+    submitAndReturn(enter, self)
+    
+def keyboardPage(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    keyboard = main.findChild(QWidget,"Keyboard Page")
+    
 
+def helpPage(self):
+    # main = self.findChild(QStackedWidget, "Main Widget")
+    # OutputMenuUpper
+    print("helped")
+    changeStacks(self ,getMainWidgetIndex("Help Page"))
+
+    
 def title():
     title = QLabel("test")
     title.setObjectName("Title")
@@ -87,4 +165,80 @@ def mainStack(parent):
 
     return stack
 
+def outputVoice(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    outputMenu = main.findChild(QWidget, "Output Menu Page")
+    upperMenu = outputMenu.findChild(QWidget, "Upper Menu")
+    layout = outputMenu.findChild(QHBoxLayout, "layout")
 
+    buttons = upperMenu.findChildren(ButtonContainer)
+    for button in buttons:
+        print(button.label.text())
+    print(upperMenu)
+    buttons[1].setChecked(True)
+    disableOtherButtons(buttons, buttons[1])
+    print(buttons[1])
+    
+
+def outputVisComm(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    outputMenu = main.findChild(QWidget, "Output Menu Page")
+    upperMenu = outputMenu.findChild(QWidget, "Upper Menu")
+
+    buttons = upperMenu.findChildren(ButtonContainer)
+
+    buttons[2].setChecked(True)
+    disableOtherButtons(buttons, buttons[2])
+
+def outputTwitter(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    outputMenu = main.findChild(QWidget, "Output Menu Page")
+    upperMenu = outputMenu.findChild(QWidget, "Upper Menu")
+
+    buttons = upperMenu.findChildren(ButtonContainer)
+
+    buttons[0].setChecked(True)
+    disableOtherButtons(buttons, buttons[0])
+    print(buttons[0])
+
+
+def outputKeyboard(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    menuWidget = main.findChild(QWidget, "Keyboard YN Menu Page")
+    upperMenu = menuWidget.findChild(QWidget, "upper menu")
+
+    buttons = upperMenu.findChildren(ButtonContainer)
+
+    buttons[0].setChecked(True)
+    disableOtherButtons(buttons, buttons[0])
+
+def outputYN(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    menuWidget = main.findChild(QWidget, "Keyboard YN Menu Page")
+    upperMenu = menuWidget.findChild(QWidget, "upper menu")
+
+    buttons = upperMenu.findChildren(ButtonContainer)
+
+    buttons[1].setChecked(True)
+    disableOtherButtons(buttons, buttons[1])
+
+def returnHome(self):
+    changeStacks(self, getMainWidgetIndex("Output Menu Page"))
+
+def yes(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    YNpage = main.findChild(QWidget, "YN Page")
+
+    buttons = YNpage.findChildren(ButtonContainer)
+
+    buttons[0].setChecked(True)
+    disableOtherButtons(buttons, buttons[0])
+
+def no(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    YNpage = main.findChild(QWidget, "YN Page")
+
+    buttons = YNpage.findChildren(ButtonContainer)
+
+    buttons[1].setChecked(True)
+    disableOtherButtons(buttons, buttons[1])
