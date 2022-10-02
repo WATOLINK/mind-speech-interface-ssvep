@@ -1,3 +1,4 @@
+from logging.config import dictConfig
 import socket
 import os
 import pickle
@@ -17,6 +18,8 @@ if tail != 'mind-speech-interface-ssvep':
     path = head
 sys.path.append(path)
 from eeg_ai_layer.models.Model import load_model
+
+dictionary = {'freq': 0.0, 'page': "Output Menu Page"}
 
 
 class EEGSocketListener:
@@ -65,12 +68,15 @@ class EEGSocketListener:
 
     def recieve_packet(self):
         # the size of the input data = num elements * 8 bytes + 500 for leeway
+        
         try:
             sample = self.lisSocket.recv(1000000000)
                 # self.input_len * self.num_channels * 8 + 50000)
             sample = pickle.loads(sample)
         except EOFError as e:
             print(e)
+
+
 
         if sample is None:
             print("COLLECTION COMPLETE")
@@ -110,14 +116,15 @@ class EEGSocketListener:
                 frequencies = self.model.convert_index_to_frequency(prediction)
                 c = Counter(frequencies)
                 print(f"Prediction: {c.most_common(1)[0][0]}")
-                self.send_packet(c.most_common(1)[0][0])
+                
+                # self.send_packet(c.most_common(1)[0][0])
+                dictionary["freq"] = c.most_common(1)[0][0]
+                
+                self.send_packet(dictionary)
 
             init_slider_count += 1
 
             
-
-
-
 
     def filter(self):
         num_eeg_channels = 8

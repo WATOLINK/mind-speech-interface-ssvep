@@ -26,9 +26,9 @@ from DSP_Client import EEGSocketListener
 from EEG_socket_publisher import EEGSocketPublisher
 import sys
 sys.path.append("SSVEP-Interface")
-from InteractionTestDemo import mainFuncTest
+# from InteractionTestDemo import mainFuncTest
 from time import time
-
+from main import mainGUIFunc
 
 def Cyton_Board_Config(args):
     ports = p.comports()
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     synch = Barrier(2)
     sys_processes = [Process(target=Streamer, args=(publisher, synch, q, info), name="Streamer"),
                      Process(target=DSP, args=(listener, synch, q,), name="Dsp Client"),
-                     Process(target=mainFuncTest, name="App")
+                     Process(target=mainGUIFunc, name="App")
                      ]
 
     for process in sys_processes:

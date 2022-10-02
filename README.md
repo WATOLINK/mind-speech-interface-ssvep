@@ -165,3 +165,10 @@ To run our latest non-integrated SSVEP GUI, copy and paste the following command
 ```python
      python SSVEP-Interface/main.py
 ```
+
+## GPT-3 Integration
+In order to use GPT-3, create a ```.env``` file within the mind-speech-interface-ssvep folder. 
+
+Within this document create a variable called ```OPENAI_KEY```, and set it to your OpenAI API key. Ensure that the key is in quotation marks.
+
+Now, GPT-3 should work with the SSVEP GUI!

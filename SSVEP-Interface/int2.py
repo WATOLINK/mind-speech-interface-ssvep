@@ -8,10 +8,10 @@ from PyQt5.QtCore import QCoreApplication, QThread, pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5 import QtCore
 
-from UI.styles import windowStyle,textBoxStyle
-from UI.Components.button_container import ButtonContainer
+from Pages.styles import windowStyle,textBoxStyle
+from Pages.button_container import ButtonContainer
 
-from UI.MainWidget.mainWidget import promptBox
+from Pages.HomePage.homepage import promptBox
 
 from InteractionTest.yesno import YesNoWidget
 import random as r
@@ -19,6 +19,8 @@ import threading
 import time
 import socket
 import pickle
+from homeBase import AThread
+
 
 class Window(QMainWindow):
     """Main Window."""
@@ -27,7 +29,7 @@ class Window(QMainWindow):
         """Initializer."""
         super().__init__(parent)
 
-
+        
         self.setWindowTitle('Main Window')  # Sets name of window
         # Adds central widget where we are going to do most of our work
 
@@ -166,6 +168,7 @@ def confirm(parent, sig):
 
 
 def mainFuncTest():
+    
     app = QApplication(sys.argv)
     win = Window()
     win.setStyleSheet(windowStyle)
@@ -174,32 +177,31 @@ def mainFuncTest():
     sys.exit(app.exec_())
 
 
-class AThread(QThread):
+# class AThread(QThread):
     
-    yesSig = pyqtSignal(float)
-    noSig = pyqtSignal(float)
-    badSig = pyqtSignal(float)
+#     yesSig = pyqtSignal(float)
+#     noSig = pyqtSignal(float)
+#     badSig = pyqtSignal(float)
     
-    
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def run(self):
-        self.s.connect(('127.0.0.1', 55432))
-        while True:
-            try:
-                msg = self.s.recv(10000000)
-                message = pickle.loads(msg)
-                if float(message) == 14.75:
-                    self.yesSig.emit(message)
-                elif float(message) == 11.75:
-                    self.noSig.emit(message)
-                else:
-                    self.badSig.emit(message)
+#     def run(self):
+#         self.s.connect(('127.0.0.1', 55432))
+#         while True:
+#             try:
+#                 msg = self.s.recv(10000000)
+#                 message = pickle.loads(msg)
+#                 if float(message) == 14.75:
+#                     self.yesSig.emit(message)
+#                 elif float(message) == 11.75:
+#                     self.noSig.emit(message)
+#                 else:
+#                     self.badSig.emit(message)
 
-                print(message)
+#                 print(message)
                     
-            except EOFError:
-                    continue
+#             except EOFError:
+#                     continue
         
             
             
