@@ -25,6 +25,7 @@ When setting up the device please make sure the channel numbers correspond to th
 
 ![image](https://user-images.githubusercontent.com/34819737/178824314-7b1296b8-cdd2-424b-86ef-b65fec7e2d6e.png)
 
+# OFFLINE SSVEP BCI 
 
 ## Offline SSVEP Data Collection 
 
@@ -136,7 +137,7 @@ If you'd like to see some metrics, pass the `--verbose` flag like so:
 python -m eeg_ai_layer.models.train --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --output-name=<YOUR_MODEL_NAME> --verbose
 ```
 
-# ONLINE BCI SETUP (make sure these features are setup before using the interface)
+# ONLINE SSVEP BCI 
 
 ## GPT-3 API Key Setup
 In order to use GPT-3, create a ```.env``` file within the mind-speech-interface-ssvep folder. 
