@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QSt
 
 from UI.MainWidget.mainWidget import MainContainer
 from UI.styles import windowStyle
+
 from UI.Components.button_container import buttonClickNoise, ButtonContainer
 from UI.status import printStatus, setStimuliStatus
 

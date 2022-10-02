@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget,QLineEdit,QHBoxLayout, QVBoxLayout
-from UI.Components.button_container import ButtonContainer, buttonClickNoise
-from UI.KeyboardPage.completer import suggestWords
+from UI.Components.button_container import ButtonContainer
+from UI.KeyboardPage.completer import AutoCompleter, suggestWords
 
 # groupedChars = ['a | b | c | d | e | f',
 #                    'g | h | i | j | k | l',
@@ -32,6 +32,10 @@ class KeyboardWidget(QWidget):
         layout.addWidget(self.keyboardWidgetLower(parent))
 
         self.setLayout(layout) 
+
+        # #create auto completer
+        # self.completer = AutoCompleter()
+        # self.completer.setWidget(self)
 
     def keyboardWidgetUpper(self,parent):
         keyboardKeys = QWidget()
@@ -110,7 +114,7 @@ def clickedBack(parent, buttons, text, level):
 
 
 def keyboardClick(parent,buttons,selected,prediction=False):
-    buttonClickNoise()
+    # buttonClickNoise()
 
     toggleBtn = parent.findChild(ButtonContainer,"Toggle")
 
@@ -128,6 +132,7 @@ def keyboardClick(parent,buttons,selected,prediction=False):
 
     elif prediction == True: # Different button functionality when using GTP3 for prediction
         writePredictionToInput(parent, buttons, btnText, charMode=toggleBtn.label.text() == "Toggle Words")
+        suggestWords(parent)
     else:
         writeToInput(parent, buttons, btnText)
 
@@ -172,7 +177,7 @@ def writePredictionToInput(parent, buttons, text, charMode):
     inputField.setText(temp)
 
 def backspace(parent):
-    buttonClickNoise()
+    # buttonClickNoise()
 
     inputField = parent.findChild(QLineEdit,"Input")
 
@@ -185,7 +190,7 @@ def backspace(parent):
         #parent.parent.emit_message('client_message', {'message': temp[:-1]})
 
 def space(parent):
-    buttonClickNoise()
+    # buttonClickNoise()
 
     inputField = parent.findChild(QLineEdit,"Input")
 
@@ -196,7 +201,7 @@ def space(parent):
     #parent.parent.emit_message('client_message', {'message': temp})
 
 def toggle(parent):
-    buttonClickNoise()
+    # buttonClickNoise()
 
     toggleBtn = parent.findChild(ButtonContainer,"Toggle")
     keyboardWidget = parent.findChild(QWidget,"Keyboard Widget")
@@ -204,12 +209,17 @@ def toggle(parent):
     
     if toggleBtn.label.text() == "Toggle Words":
         toggleBtn.label.setText("Toggle Characters")
-
+        # Request API call for GPT-3
+        suggestWords(parent)
         keyLabels = ['word','word','this is a phrase','this is a phrase']
-        #suggestion = suggestWords(parent)
+        
     else:
         toggleBtn.label.setText("Toggle Words")
         keyLabels = groupedChars
-        
-    for x in range(len(keyboardBtns)):
-        keyboardBtns[x].label.setText(keyLabels[x])
+        for x in range(len(keyboardBtns)):
+            keyboardBtns[x].label.setText(keyLabels[x])
+    
+
+
+    
+
