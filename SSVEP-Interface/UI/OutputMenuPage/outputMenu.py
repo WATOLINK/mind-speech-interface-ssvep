@@ -23,6 +23,9 @@ def OutputMenuUpper(parent):
     outputMode = QWidget()
     layout = QHBoxLayout()
 
+    outputMode.setObjectName("Upper Menu")
+    layout.setObjectName("layout")
+
     # DO NOT CHANGE RIGHT NOW
     labels = ['Use Twitter','Use Voice','Use Visual Communication']
     buttons = []
@@ -39,6 +42,9 @@ def OutputMenuUpper(parent):
         lambda: disableOtherButtons(buttons, buttons[1]))
     buttons[2].clicked.connect(
         lambda: disableOtherButtons(buttons, buttons[2]))
+    print("")
+    print("ahhh")
+    print("")
 
     outputMode.setLayout(layout)
     return outputMode
