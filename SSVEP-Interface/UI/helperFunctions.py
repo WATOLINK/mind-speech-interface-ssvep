@@ -1,13 +1,15 @@
 from PyQt5.QtWidgets import QStackedWidget
-from UI.Components.button_container import buttonClickNoise
+# from UI.Components.button_container import buttonClickNoise
 
 from UI.status import setCurrentPage, printStatus
 
 def disableOtherButtons(buttons, selected):
     # buttonClickNoise()
+
     print(selected)
     print("")
     print("")
+
     if selected.isChecked():
         # title.setText(selected.label.text())
         for button in buttons:

@@ -1,9 +1,9 @@
 from PyQt5.QtWidgets import QLabel,QStackedWidget,QLineEdit
-from UI.Components.button_container import ButtonContainer, buttonClickNoise
+from UI.Components.button_container import ButtonContainer
 from server.twitterAPI import tweet
 # from _TTS.watolink_TTS import *
 
-from playsound import playsound
+# from playsound import playsound
 
 
 from UI.UI_DEFS import getMainWidgetIndex

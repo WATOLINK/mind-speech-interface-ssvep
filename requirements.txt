@@ -18,3 +18,4 @@ pylsl
 python-osc
 xmltodict
 playsound
+python-dotenv
