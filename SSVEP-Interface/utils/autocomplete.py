@@ -1,4 +1,4 @@
-CORPUS_PATH = 'utils/corpus-v2.txt'
+CORPUS_PATH = 'SSVEP-Interface/utils/corpus-v2.txt'
 
 
 def process_corpus():
