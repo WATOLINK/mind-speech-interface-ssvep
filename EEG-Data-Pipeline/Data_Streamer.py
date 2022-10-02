@@ -17,6 +17,7 @@
         TEST_DATA.csv in /EEG-Streamer/ directory is the output CSV from DSP_Client.py
 """
 import argparse
+#from test_onoff_mechanism import testOnsetOffset
 import pandas as pd
 from brainflow.board_shim import BrainFlowInputParams
 from multiprocessing import Process, Queue, Barrier
@@ -115,6 +116,7 @@ def get_args(parser):
     parser.add_argument('--file', type=str, help='file', required=False, default='')
     parser.add_argument('--host', type=str, help='host name', required=False, default='127.0.0.1')
     parser.add_argument('--lisPort', type=int, help='lis port', required=False, default=65432)
+    parser.add_argument('--lisPortUI', type=int, help='lis port UI', required=False, default=32111)
     parser.add_argument('--num-channels', type=int, help='number of channels', required=False, default=8)
     parser.add_argument('--input-len', type=int, help='input size', required=False, default=50)
     parser.add_argument('--output-size', type=int, help='output size', required=False, default=1)

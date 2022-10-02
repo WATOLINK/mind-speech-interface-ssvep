@@ -11,6 +11,7 @@ import time as t
 from brainflow.data_filter import DataFilter, FilterTypes
 from collections import Counter
 from numpy import savetxt
+import threading
 
 path = os.getcwd()
 head, tail = os.path.split(path)
@@ -26,6 +27,7 @@ class EEGSocketListener:
     # Socket Object and Params
     lisSocket = None
     pubSocket = None
+    listSockerUI = None
     host = ''  # Server hostname or IP
     lisPort = None  # Port used by server
     pubPort = None  # Port used to publish to UI
@@ -41,9 +43,12 @@ class EEGSocketListener:
     data = None         # data buffer array to be sent to AI
     samples = None      # number of samples currently in buffer
 
+    UIDict = None       # Dict from UI with onset offset mechanism info
+
     def __init__(self, args):
         self.host = args.host
         self.lisPort = args.lisPort
+        self.lisPortUI = args.lisPortUI
         self.pubPort = args.pubPort
 
         self.input_len = args.input_len
@@ -57,6 +62,10 @@ class EEGSocketListener:
     def open_socket_conn(self):
         self.lisSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.lisSocket.connect((self.host, self.lisPort))
+
+        self.lisSocketUI = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.lisSocketUI.connect((self.host, self.lisPortUI))
+
         self.pubSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.pubSocket.bind((self.host, self.pubPort))
         self.pubSocket.listen(1)
@@ -65,6 +74,7 @@ class EEGSocketListener:
     def close_socket_conn(self):
         self.lisSocket.close()
         self.pubSocket.close()
+        self.lisSocketUI.close()
 
     def recieve_packet(self):
         # the size of the input data = num elements * 8 bytes + 500 for leeway
@@ -82,6 +92,20 @@ class EEGSocketListener:
             print("COLLECTION COMPLETE")
         return sample
 
+    def recieve_packet_UI(self):
+        while True:
+            try:
+                UIDictSerial = self.lisSocketUI.recv(1024)
+                self.UIDict = pickle.loads(UIDictSerial)
+                print(f"PRINTING UIDict FROM FUNC: {self.UIDict}")
+            except EOFError as e:
+                print("No dict received from UI")
+                print(e)
+
+            if self.UIDict is None:
+                print("no dict received from UI")
+
+
     def send_packet(self, sample):
         self.connection.sendall(pickle.dumps(sample))
         print(f'Sent {sample}')
@@ -95,8 +119,16 @@ class EEGSocketListener:
         init_slider_count = 0
         self.data = np.zeros((50,8))
 
+        # Create and start thread
+        self.UIDict = {"onOff":1}
+        UIthreadRecv = threading.Thread(target=self.recieve_packet_UI)
+        UIthreadRecv.start()
+        # Initializing it on 1, but it is passed onto the thread, which toggles it every 2 seconds
+        
         while time_func:
             packet = self.recieve_packet()
+            print(f"Dict: {self.UIDict}")
+
             if packet is None:
                 break
 
@@ -111,20 +143,20 @@ class EEGSocketListener:
 
                 print(f"Built 250 sample packet - Packet size: {np.shape(self.data)}")
                 sample = self.data[0:250]
-                prepared = self.model.prepare(sample)
-                prediction = self.model.predict(prepared)
-                frequencies = self.model.convert_index_to_frequency(prediction)
-                c = Counter(frequencies)
-                print(f"Prediction: {c.most_common(1)[0][0]}")
-                
-                # self.send_packet(c.most_common(1)[0][0])
-                dictionary["freq"] = c.most_common(1)[0][0]
-                
-                self.send_packet(dictionary)
+
+                if (self.UIDict["onOff"] == 1):
+                    prepared = self.model.prepare(sample)
+                    prediction = self.model.predict(prepared)
+                    frequencies = self.model.convert_index_to_frequency(prediction)
+                    c = Counter(frequencies)
+                    print(f"Prediction: {c.most_common(1)[0][0]}")
+                    
+                    dictionary["freq"] = c.most_common(1)[0][0]
+                    self.send_packet(dictionary)
+                else:
+                    print(f"Prediction not sent")
 
             init_slider_count += 1
-
-            
 
     def filter(self):
         num_eeg_channels = 8

@@ -1,6 +1,6 @@
 from concurrent.futures import thread
 from http.client import ImproperConnectionState
-import imp
+# import imp
 import sys
 
 from PyQt5.QtWidgets import QApplication,QVBoxLayout,QWidget,QHBoxLayout,QSizePolicy,QLineEdit,QLabel
