@@ -30,6 +30,9 @@ def getOutputMode():
 def setOutputMode(newOutputMode):
     status['output mode'] = newOutputMode
 
+def getStatus():
+    return status
+
 def printStatus():
     clear()
     print(' ### PAGE STATUS ###')
