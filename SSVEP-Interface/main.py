@@ -5,10 +5,9 @@ from PyQt5.QtCore import center, Qt
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QStackedWidget
 
 from UI.MainWidget.mainWidget import MainContainer
-
 from UI.styles import windowStyle
-
 from UI.Components.button_container import buttonClickNoise, ButtonContainer
+from UI.status import printStatus, setStimuliStatus
 
 import threading
 import time
@@ -68,21 +67,23 @@ def stimOnsetOffset():
         enterButton.stimuli.toggleOn()
         for button in currWidget.findChildren(ButtonContainer):
             button.stimuli.toggleOn()
-
-        print(f"Stim on, Page: {currWidget.objectName()}")
+        setStimuliStatus('on')
         
+        printStatus()
         time.sleep(2)
 
         if stopThread:
             print("exiting stim controller thread")
             break
 
+        # OFFSET
         currWidget = mainStack.currentWidget()
         enterButton.stimuli.toggleOff()
         for button in currWidget.findChildren(ButtonContainer):
             button.stimuli.toggleOff()
-        print(f"Stim off")
+        setStimuliStatus('off')
 
+        printStatus()
         time.sleep(2)
 
 
