@@ -20,7 +20,6 @@ import time
 import socket
 import pickle
 
-
 class Window(QMainWindow):
     """Main Window."""
 
@@ -180,6 +179,7 @@ class AThread(QThread):
     yesSig = pyqtSignal(float)
     noSig = pyqtSignal(float)
     badSig = pyqtSignal(float)
+    
     
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

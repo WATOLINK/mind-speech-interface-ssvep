@@ -5,13 +5,14 @@ from PyQt5.QtCore import center, Qt
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QStackedWidget
 
 from UI.MainWidget.mainWidget import MainContainer
-
 from UI.styles import windowStyle
 
-from UI.Components.button_container import  ButtonContainer
+from UI.Components.button_container import buttonClickNoise, ButtonContainer
+from UI.status import printStatus, setStimuliStatus
 
 import threading
 import time
+
 
 class Window(QMainWindow):
     def __init__(self, parent=None):
@@ -56,6 +57,7 @@ def stimOnsetOffset():
     mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
     enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
     
+    
     while True:
         if stopThread:
             print("Exiting Stim Controller ...")
@@ -66,26 +68,28 @@ def stimOnsetOffset():
         enterButton.stimuli.toggleOn()
         for button in currWidget.findChildren(ButtonContainer):
             button.stimuli.toggleOn()
-
-        print(f"Stim on, Page: {currWidget.objectName()}")
+        setStimuliStatus('on')
         
+        printStatus()
         time.sleep(2)
 
         if stopThread:
             print("exiting stim controller thread")
             break
 
+        # OFFSET
         currWidget = mainStack.currentWidget()
         enterButton.stimuli.toggleOff()
         for button in currWidget.findChildren(ButtonContainer):
             button.stimuli.toggleOff()
-        print(f"Stim off")
+        setStimuliStatus('off')
 
+        printStatus()
         time.sleep(2)
 
 
 
-if __name__ == '__main__':
+def mainGUIFunc():
     app = QApplication(sys.argv)
     global window
     window = Window()

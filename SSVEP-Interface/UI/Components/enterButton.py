@@ -1,17 +1,18 @@
 from PyQt5.QtWidgets import QLabel,QStackedWidget,QLineEdit
 from UI.Components.button_container import ButtonContainer
 from server.twitterAPI import tweet
+# from _TTS.watolink_TTS import *
 
 # from playsound import playsound
 
 
 from UI.UI_DEFS import getMainWidgetIndex
 
-from UI.status import setOutputMode, getPreviousPage
+from UI.status import setOutputMode, getPreviousPage, getOutputMode
 
-from UI.helperFunctions import disableOtherButtons, changeStacks\
+from UI.helperFunctions import disableOtherButtons, changeStacks
 
-outputMode = ""
+# TTS = TTS_synthesizer(model_name = "tts_models/en/ljspeech/tacotron2-DDC")
 
 class EnterButton(ButtonContainer):
     def __init__(self,parent):
@@ -40,12 +41,13 @@ def submitAndReturn(self,parent):
     if inputField.text():
         temp = messageBox.text() + f"[{inputField.text()}]"
         messageBox.setText(temp)
-        if getOutputMode() == "twitter":
+        if getOutputMode() == "Twitter":
                 print("tweeting")
                 tweet(inputField.text())
-        elif getOutputMode() == "voice":
+        elif getOutputMode() == "Voice":
                 print("voice not yet implemented")
-        elif getOutputMode() == "visual":
+                # TTS.synthesize(text = inputField.text())
+        elif getOutputMode() == "Visual":
                 print("visual not yet implemented")
 
         inputField.clear()
@@ -71,13 +73,13 @@ def navigateFromOutputMode(parent):
     for button in mainButtons:
         if button.isChecked():
             if button.label.text() == labels[0]:
-                print("going to Twitter")
+                # print("going to Twitter")
                 setOutputMode("Twitter")
             elif button.label.text() == labels[1]:
-                print("going to Voice")
+                # print("going to Voice")
                 setOutputMode("Voice")
             elif button.label.text() == labels[2]:
-                print("going to Visual Communication")
+                # print("going to Visual Communication")
                 setOutputMode("Visual")
 
             button.setChecked(False)
@@ -91,18 +93,13 @@ def navigateFromHome(self,parent):
 
     for button in mainButtons:
         if button.label.text() == labels[0] and button.isChecked():
-            print("going to Keyboard")
+            # print("going to Keyboard")
             button.setChecked(False)
             changeStacks(parent,getMainWidgetIndex("Keyboard Page"))
             self.label.setText("Send message")
 
         elif button.label.text() == labels[1] and button.isChecked():
-            print("going to YN")
+            # print("going to YN")
             button.setChecked(False)
             changeStacks(parent,getMainWidgetIndex("YN Page"))
             self.label.setText("Send message")
-
-
-
-def getOutputMode():
-    return outputMode

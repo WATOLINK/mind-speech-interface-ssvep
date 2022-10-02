@@ -5,7 +5,11 @@ from UI.status import setCurrentPage, printStatus
 
 def disableOtherButtons(buttons, selected):
     # buttonClickNoise()
-    
+
+    print(selected)
+    print("")
+    print("")
+
     if selected.isChecked():
         # title.setText(selected.label.text())
         for button in buttons:
@@ -24,4 +28,4 @@ def changeStacks(parent,mainIndex):
     # bottomStack.setCurrentIndex(sidebarIndex)
     setCurrentPage(mainStack.currentWidget().objectName())
 
-    printStatus(parent)
+    # printStatus(parent)
