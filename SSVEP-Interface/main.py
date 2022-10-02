@@ -1,8 +1,11 @@
 import sys
-import socketio
+# import socketio
+import asyncio
+import socket
+import websockets
 from PyQt5.QtCore import center, Qt
 
-from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QStackedWidget
+from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QStackedWidget, QLabel
 from UI.status import getStatus
 
 from UI.MainWidget.mainWidget import MainContainer
@@ -68,11 +71,11 @@ def stimOnsetOffset():
 
     time.sleep(2)
     clientsocket, address = s.accept()
-    print("")
-    print("")
-    print("accepted")
-    print("")
-    print("")
+    #print("")
+    #print("")
+    #print("accepted")
+    #print("")
+    #print("")
     mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
     enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
     while True:
@@ -117,6 +120,29 @@ def stimOnsetOffset():
 
 
 
+def webAppSocket():
+    async def server(websocket):
+        print("Client Connected")
+        while True:
+            text = await websocket.recv()
+            if text.startswith("prompt: "):
+                promptBox = window.mainWidget.findChild(QLabel, "Prompt")
+                promptBox.setText(text[8:])
+            elif text.startswith("disconnect"):
+                print("Client Disconnected")
+                break
+
+    async def startServer():
+        ip = socket.gethostbyname(socket.gethostname())
+        port = 8765
+        print(f"Starting ws server on {ip}:{port}")
+        async with websockets.serve(server, ip, port):
+            await asyncio.Future()
+
+    asyncio.run(startServer())
+
+
+
 def mainGUIFunc():
 
 
@@ -125,13 +151,15 @@ def mainGUIFunc():
     x = threading.Thread(target=stimOnsetOffset)
     x.start()
 
+    threading.Thread(target=webAppSocket).start()
+
     app = QApplication(sys.argv)
     global window
     window = Window()
     window.setStyleSheet(windowStyle)
 
 
-    
+
     window.show()
 
     try:
