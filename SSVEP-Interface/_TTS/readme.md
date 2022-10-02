@@ -1,14 +1,14 @@
 # Watolink_TTS
 Watolink_TTS is a class that provides methods to train and use a coqui AI TTS model
 # Notes:
-1. !!! run with python38 since coqui is only installed in python 3.8
+1. run with python3.8 or greater since coqui is only installed in python 3.8
 2. relevant doc info: https://tts.readthedocs.io/en/latest/inference.html
 3. adapted from synthesize.py: https://github.com/coqui-ai/TTS/blob/dev/TTS/bin/synthesize.py
 4. a simpler implementation: https://github.com/coqui-ai/TTS/discussions/864
 5. install pytorch with cuda if training is not using GPU
 
 # Installation
-1. Install Visual Studio C++ build tools, select **Desktop development with C++**
+1. Install Visual Studio C++ build tools, select **Desktop development with C++** (note: on mac you need to install c++ build tools with xcode)
 2. `pip install TTS`
 3. `pip install simpleaudio`
 4. Download prebuilt TTS model for coqui AI in the CLI
@@ -55,5 +55,4 @@ Lastly, you generate speech from text by simply calling the synthesize() method:
     
     # specify out_path to save audio to storage
     jj.synthesize(text = "hi my name is jeff", out_path = "jeff.wav")
-    jj.synthesize(text = "pee pee poo poo girl", out_path = "watolink_meme.wav")
     jj.synthesize(text = "omae wa mo shindeiru", out_path = "watolink_meme.wav")
