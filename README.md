@@ -9,6 +9,8 @@ Note: For Mac devices with ARM SOCs (M1, M2 etc) you will need to run our tools 
 ## Credit
 Some of our models and signal processing methods were adapted from Aravind Ravi's Brain Computer Interface Repository (see here: https://github.com/aaravindravi/Brain-computer-interfaces)
 
+The FBCCA Model we used was adapted from an implementation in this repository: https://github.com/eugeneALU/CECNL_RealTimeBCI
+
 ## Requirements
 
 To install requirements, make sure you have Python 3.10+ installed, then run
