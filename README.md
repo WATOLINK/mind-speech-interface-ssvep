@@ -164,7 +164,7 @@ for synthetic board:
 ```python
     python EEG-DATA-Pipeline/Data_Streamer.py --board-id=-1 --model-path=eeg-ai-layer\modelname.model
 ```
-for non synthetic board:
+for non synthetic board (our online system auto-detects board-id and serial-port):
 ```python
     python EEG-DATA-Pipeline/Data_Streamer.py --model-path=eeg-ai-layer\modelname.model
 ```
