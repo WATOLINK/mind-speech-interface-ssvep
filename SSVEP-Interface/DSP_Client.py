@@ -89,7 +89,7 @@ class EEGSocketListener:
             sample = pickle.loads(sample)
         except EOFError as e:
             # print(e)
-            x = 1 
+            pass
 
 
 
