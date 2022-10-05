@@ -1,4 +1,3 @@
-from re import S
 from PyQt5.QtWidgets import QWidget,QLineEdit,QHBoxLayout, QVBoxLayout
 from UI.Components.button_container import ButtonContainer, buttonClickNoise
 from UI.KeyboardPage.completer import suggestWords
@@ -208,7 +207,7 @@ def space(parent):
     #parent.parent.emit_message('client_message', {'message': temp})
 
 def toggle(parent):
-    buttonClickNoise()
+    # buttonClickNoise()
 
     toggleBtn = parent.findChild(ButtonContainer,"Toggle")
     keyboardWidget = parent.findChild(QWidget,"Keyboard Widget")

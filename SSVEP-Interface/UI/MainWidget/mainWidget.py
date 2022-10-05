@@ -25,7 +25,7 @@ from UI.Components.button_container import ButtonContainer
 from UI.helperFunctions import disableOtherButtons, changeStacks
 # from symbol import or_test
 from UI.status import setCurrentPage
-from UI.KeyboardPage.KeyboardWidget import keyboardClick
+from UI.KeyboardPage.KeyboardWidget import keyboardClick, toggle, space, backspace
 
 
 class MainContainer(QWidget):
@@ -74,10 +74,13 @@ class MainContainer(QWidget):
         self.myThread.noSig.connect(self.onNo)
 
         self.myThread.keyboardUpButOne.connect(self.onUpButOne)
-        # self.myThread.keyboardUpButTwo.connect(self.onUpButTwo)
-        # self.myThread.keyboardUpButThree.connect(self.onUpButThree)
-        # self.myThread.keyboardUpButFour.connect(self.onUpButFour)
-    
+        self.myThread.keyboardUpButTwo.connect(self.onUpButTwo)
+        self.myThread.keyboardUpButThree.connect(self.onUpButThree)
+        self.myThread.keyboardUpButFour.connect(self.onUpButFour)
+
+        self.myThread.spaceSig.connect(self.onSpace)
+        self.myThread.backspaceSig.connect(self.onBackspace)
+        self.myThread.toggleSig.connect(self.onToggle)
     
     def onVoice(self):
         outputVoice(self)
@@ -112,10 +115,23 @@ class MainContainer(QWidget):
     def onUpButOne(self):
         upButOne(self)
     
-    # def onUpButTwo(self):
-    #     upButTwo(self)
+    def onUpButTwo(self):
+        upButTwo(self)
 
+    def onUpButThree(self):
+        upButThree(self)
 
+    def onUpButFour(self):
+        upButFour(self)
+
+    def onSpace(self):
+        spaceButton(self)
+
+    def onToggle(self):
+        toggleButton(self)
+    
+    def onBackspace(self):
+        backspaceButton(self)
 
     def initUI(self):
         self.setGeometry(100, 100, 900, 900)
@@ -285,3 +301,18 @@ def upButFour(self):
     buttons = keyboard.findChildren(ButtonContainer)
     
     keyboardClick(self, buttons, buttons[3])
+
+def spaceButton(self):
+    # main = self.findChild(QStackedWidget, "Main Widget")
+    # page = main.findChild(QWidget, "Keyboard Page")
+    # lowKeys = page.findChild(QWidget, "low keys")
+
+    # buttons = lowKeys.findChild(ButtonContainer)
+    space(self)
+    
+def toggleButton(self):
+    toggle(self)
+
+def backspaceButton(self):
+    backspace(self)
+

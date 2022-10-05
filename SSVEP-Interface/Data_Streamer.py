@@ -33,8 +33,7 @@ from EEG_socket_publisher import EEGSocketPublisher
 # sys.path.append("SSVEP-Interface")
 # sys.path.append("SSVEP-Interface")
 # from InteractionTestDemo import mainFuncTest
-from time import time
-import time as t
+from time import time, sleep
 from main import mainGUIFunc
 from UI.status import getStatus
 import socket
@@ -137,34 +136,15 @@ def get_args(parser):
     parser.add_argument('--components', type=int, help='Number of components for CCA', required=False, default=3)
     return parser.parse_known_args()
 
-def ahh():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(('127.0.0.1', 32111))
-    sock.listen(1)
-
-    clientsocket, address = sock.accept()
-
-    while True:
-        t.sleep(2)
-        print("STATUS")
-        stat, i = getStatus()
-        print(stat)
-        # print(i)
-        # print(status)
-
 if __name__ == "__main__":
+    sleepTime = 0.25
+
     parser = argparse.ArgumentParser()
     args, _ = get_args(parser)
     info = Cyton_Board_Config(args)
 
-    slep = 0.25
-    # sock = threading.Thread(target=ahh)
-    # sock.start()
-
     publisher = EEGSocketPublisher(args)
     listener = EEGSocketListener(args)
-    
-    
 
     q = Queue()
     synch = Barrier(2)
@@ -176,8 +156,8 @@ if __name__ == "__main__":
     
     for process in sys_processes:
         process.start()
-        t.sleep(slep)
-        slep = 0
+        sleep(sleepTime)
+        sleepTime = 0
 
     for process in sys_processes:
         process.join()
