@@ -44,14 +44,14 @@ def getStatus():
     return status
 
 def printStatus():
-    clear()
+    # clear()
     global status
     global i
     i += 1
-    print(i)
-    print(' ### PAGE STATUS ###')
-    print(f" Stimuli :       {status['stimuli']}")
-    print(f" Output Mode:    {status['output mode']}")
-    print(f" Previous Page:  {status['previous page']}")
-    print(f" Current Page:   {status['current page']}")
-    print("")
+    # print(i)
+    # print(' ### PAGE STATUS ###')
+    # print(f" Stimuli :       {status['stimuli']}")
+    # print(f" Output Mode:    {status['output mode']}")
+    # print(f" Previous Page:  {status['previous page']}")
+    # print(f" Current Page:   {status['current page']}")
+    # print("")

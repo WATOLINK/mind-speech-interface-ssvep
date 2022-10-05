@@ -48,15 +48,15 @@ class AThread(QThread):
                 
                 print(freq)
                 print(page)
-                if freq == 13.25:
+                if freq == 8.25:
                     self.enterButtonSig.emit()
 
                 if page == "Output Menu Page":
                     if freq == 11.75:
                         self.twitterPageSig.emit()
-                    elif freq == 10.25:
+                    elif freq == 10.75:
                         self.voicePageSig.emit()
-                    elif freq == 9.25:
+                    elif freq == 9.75:
                         self.visCommPageSig.emit()
                     elif freq == 12.75:
                         self.helpPageSig.emit()
@@ -64,9 +64,9 @@ class AThread(QThread):
                 if page == "Keyboard YN Menu Page":
                     if freq == 12.75:
                         self.keyboardPageSig.emit()
-                    elif freq == 14.75:
+                    elif freq == 14.25:
                         self.ynPageSig.emit()
-                    elif freq == 9.25:
+                    elif freq == 9.75:
                         self.helpPageSig.emit()
                     elif freq == 10.75:
                         self.returnHomeSig.emit()
@@ -74,23 +74,23 @@ class AThread(QThread):
                 if page == "YN Page":
                     if freq == 12.75:
                         self.yesSig.emit()
-                    elif freq == 14.75:
+                    elif freq == 14.25:
                         self.noSig.emit()
 
                 if page == "Keyboard Page":
-                    # if freq == 12.75:
-                    #     self.keyboardUpButOne.emit()
-                    # elif freq == 11.75:
-                        # self.keyboardUpButTwo.emit()
-                    # elif freq == 9.25:
-                        # self.keyboardUpButThree.emit() 
-                    # elif freq == 10.75:
-                        # self.keyboardUpButFour.emit()
-                    # elif freq == 11.25:
-                        # self.spaceSig.emit()
-                    # elif freq == 10.25:
-                        # self.backspaceSig.emit()
-                    # elif freq == 14.75:
+                    if freq == 12.75:
+                        self.keyboardUpButOne.emit()
+                    elif freq == 11.75:
+                        self.keyboardUpButTwo.emit()
+                    elif freq == 9.75:
+                        self.keyboardUpButThree.emit() 
+                    elif freq == 10.75:
+                        self.keyboardUpButFour.emit()
+                    elif freq == 11.75:
+                        self.spaceSig.emit()
+                    elif freq == 10.75:
+                        self.backspaceSig.emit()
+                    elif freq == 14.25:
                         self.toggleSig.emit()
                     
             except EOFError:

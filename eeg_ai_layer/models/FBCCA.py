@@ -11,7 +11,7 @@ class FBCCA:
     """An FBCCA model."""
 
     def __init__(self, args):
-        self.frequencies = [0.0, 12.75, 14.75, 11.75, 10.25]
+        self.frequencies = [8.25, 8.75, 9.75, 10.75, 11.75, 12.75, 13.75, 14.25]
         if hasattr(args, "frequencies"):
             self.frequencies = args.frequencies  # [0.0, 12.75, 14.75, 11.75, 10.25]
         self.cca_frequencies = sorted(self.frequencies)
@@ -111,7 +111,7 @@ class FBCCA:
         return results
 
     def convert_index_to_frequency(self, predictions: np.array):
-        return [self.frequencies[pred] for pred in predictions]
+        return [self.cca_frequencies[pred] for pred in predictions]
 
     def test(self, hparams, test_data, test_labels):
         """

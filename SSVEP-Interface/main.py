@@ -68,18 +68,18 @@ def stimOnsetOffset():
 
     time.sleep(2)
     clientsocket, address = s.accept()
-    print("")
-    print("")
-    print("accepted")
-    print("")
-    print("")
+    #print("")
+    #print("")
+    #print("accepted")
+    #print("")
+    #print("")
     mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
     enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
     while True:
         if stopThread:
-            print("Exiting Stim Controller ...")
+            #print("Exiting Stim Controller ...")
             break
-        print("STIM ONSET OFFSET THREAT")
+        #print("STIM ONSET OFFSET THREAT")
         #ONSET
         currWidget = mainStack.currentWidget()
         enterButton.stimuli.toggleOn()
@@ -88,18 +88,18 @@ def stimOnsetOffset():
         setStimuliStatus('on')
         x = getStatus()
         
-        print("")
-        print("UI STATUS SENT")
-        print("")
+        #print("")
+        #print("UI STATUS SENT")
+        #print("")
 
         encoded = pickle.dumps(x)
         clientsocket.send(encoded)
 
         printStatus()
-        time.sleep(2)
+        time.sleep(5)
 
         if stopThread:
-            print("exiting stim controller thread")
+            #print("exiting stim controller thread")
             break
 
         # OFFSET
@@ -113,7 +113,7 @@ def stimOnsetOffset():
         clientsocket.send(encoded)
 
         printStatus()
-        time.sleep(10)
+        time.sleep(5)
 
 
 

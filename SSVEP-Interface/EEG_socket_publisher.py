@@ -69,7 +69,7 @@ class EEGSocketPublisher:
         self.connection.sendall(pickle.dumps(sample))
         
         self.count += 1
-        print(f'Sample #{self.count}: {sample.shape} to {self.port}')
+        #print(f'Sample #{self.count}: {sample.shape} to {self.port}')
 
     def publish(self, run_time=None):
         self.connection, self.address = self.socket.accept()

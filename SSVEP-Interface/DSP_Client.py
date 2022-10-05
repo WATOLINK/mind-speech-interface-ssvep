@@ -50,7 +50,7 @@ class EEGSocketListener:
         self.output_size = args.output_size
         self.num_channels = args.num_channels
 
-        self.data = np.empty((args.output_size * args.input_len, args.num_channels))
+        self.data = None
         self.samples = 0
         self.model = load_model(args)
 
@@ -130,12 +130,16 @@ class EEGSocketListener:
         while time_func:
             packet = self.recieve_packet()
             if self.UIDict["stimuli"] == "on":
-                packet = self.recieve_packet()
+                #packet = self.recieve_packet()
 
                 if packet is None:
                     break
                 
-                self.data = np.concatenate((self.data, packet), axis=0)
+                if self.data is None:
+                    self.data = packet
+                else:
+                    self.data = np.concatenate((self.data, packet), axis=0)
+                print(np.sum(np.isnan(self.data)), self.data.shape)
                 if self.data.shape[0] == self.input_len * self.window_length:
                     sample = np.expand_dims(self.data, axis=0)
                     prepared = self.model.prepare(sample)
@@ -147,7 +151,7 @@ class EEGSocketListener:
                     # If freq prediction does not exist on current UI Page, retry for next highest confidence
                     self.dictionary["freq"] = c.most_common(1)[0][0]
                     self.send_packet(self.dictionary)
-                    self.data = np.empty((self.output_size * self.input_len, self.num_channels))
+                    self.data = None
         self.close_socket_conn()
 
     def generate_csv(self, name="fullOBCI"):
