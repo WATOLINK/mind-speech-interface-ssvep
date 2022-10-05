@@ -18,7 +18,7 @@ def disableOtherButtons(buttons, selected):
     # else:
         # title.setText("")
 
-def changeStacks(parent,mainIndex):
+def changeStacks(parent, mainIndex):
     # buttonClickNoise()
 
     mainStack = parent.findChild(QStackedWidget,"Main Widget")

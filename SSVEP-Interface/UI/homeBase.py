@@ -9,7 +9,6 @@ import pickle
 import time
 
 
-
 class AThread(QThread):
     
     yesSig = pyqtSignal()
@@ -25,6 +24,15 @@ class AThread(QThread):
 
     keyboardPageSig = pyqtSignal()
     ynPageSig = pyqtSignal()
+
+    keyboardUpButOne = pyqtSignal()
+    keyboardUpButTwo = pyqtSignal()
+    keyboardUpButThree = pyqtSignal()
+    keyboardUpButFour = pyqtSignal()
+
+    spaceSig = pyqtSignal()
+    backspaceSig = pyqtSignal()
+    toggleSig = pyqtSignal()
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -70,11 +78,20 @@ class AThread(QThread):
                         self.noSig.emit()
 
                 if page == "Keyboard Page":
-                    print("")
-                    print("")
-                    print("GO BACK I HAVENT PROGRAMMED THIS :( ")
-                    print("")
-                    print("")
+                    # if freq == 12.75:
+                    #     self.keyboardUpButOne.emit()
+                    # elif freq == 11.75:
+                        # self.keyboardUpButTwo.emit()
+                    # elif freq == 9.25:
+                        # self.keyboardUpButThree.emit() 
+                    # elif freq == 10.75:
+                        # self.keyboardUpButFour.emit()
+                    # elif freq == 11.25:
+                        # self.spaceSig.emit()
+                    # elif freq == 10.25:
+                        # self.backspaceSig.emit()
+                    # elif freq == 14.75:
+                        self.toggleSig.emit()
                     
             except EOFError:
                     continue

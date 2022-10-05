@@ -1,5 +1,5 @@
-import imp
 import sys
+from tkinter import Button
 from PyQt5.QtWidgets import QWidget, QGridLayout, QLineEdit, QLabel, QStackedWidget
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtCore
@@ -24,7 +24,8 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout
 from UI.Components.button_container import ButtonContainer
 from UI.helperFunctions import disableOtherButtons, changeStacks
 # from symbol import or_test
-
+from UI.status import setCurrentPage
+from UI.KeyboardPage.KeyboardWidget import keyboardClick, toggle, space, backspace
 
 
 class MainContainer(QWidget):
@@ -72,6 +73,15 @@ class MainContainer(QWidget):
         self.myThread.yesSig.connect(self.onYes)
         self.myThread.noSig.connect(self.onNo)
 
+        self.myThread.keyboardUpButOne.connect(self.onUpButOne)
+        self.myThread.keyboardUpButTwo.connect(self.onUpButTwo)
+        self.myThread.keyboardUpButThree.connect(self.onUpButThree)
+        self.myThread.keyboardUpButFour.connect(self.onUpButFour)
+
+        self.myThread.spaceSig.connect(self.onSpace)
+        self.myThread.backspaceSig.connect(self.onBackspace)
+        self.myThread.toggleSig.connect(self.onToggle)
+    
     def onVoice(self):
         outputVoice(self)
 
@@ -82,8 +92,7 @@ class MainContainer(QWidget):
         outputKeyboard(self)
 
     def onHelpPage(self):
-        helpPage(self)
-
+        help(self)
 
     def onTwitter(self):
         outputTwitter(self)
@@ -103,6 +112,26 @@ class MainContainer(QWidget):
     def onNo(self):
         no(self)
 
+    def onUpButOne(self):
+        upButOne(self)
+    
+    def onUpButTwo(self):
+        upButTwo(self)
+
+    def onUpButThree(self):
+        upButThree(self)
+
+    def onUpButFour(self):
+        upButFour(self)
+
+    def onSpace(self):
+        spaceButton(self)
+
+    def onToggle(self):
+        toggleButton(self)
+    
+    def onBackspace(self):
+        backspaceButton(self)
 
     def initUI(self):
         self.setGeometry(100, 100, 900, 900)
@@ -113,18 +142,12 @@ class MainContainer(QWidget):
 
 def enterButton(self):
     enter = self.findChild(ButtonContainer, "Enter Button")
-    print(enter)
+    # print(enter)
     submitAndReturn(enter, self)
-    
-def keyboardPage(self):
-    main = self.findChild(QStackedWidget, "Main Widget")
-    keyboard = main.findChild(QWidget,"Keyboard Page")
-    
 
-def helpPage(self):
-    # main = self.findChild(QStackedWidget, "Main Widget")
-    # OutputMenuUpper
+def help(self):
     print("helped")
+    
     changeStacks(self ,getMainWidgetIndex("Help Page"))
 
     
@@ -172,12 +195,12 @@ def outputVoice(self):
     layout = outputMenu.findChild(QHBoxLayout, "layout")
 
     buttons = upperMenu.findChildren(ButtonContainer)
-    for button in buttons:
-        print(button.label.text())
-    print(upperMenu)
+    # for button in buttons:
+        # print(button.label.text())
+    # print(upperMenu)
     buttons[1].setChecked(True)
     disableOtherButtons(buttons, buttons[1])
-    print(buttons[1])
+    # print(buttons[1])
     
 
 def outputVisComm(self):
@@ -199,7 +222,7 @@ def outputTwitter(self):
 
     buttons[0].setChecked(True)
     disableOtherButtons(buttons, buttons[0])
-    print(buttons[0])
+    # print(buttons[0])
 
 
 def outputKeyboard(self):
@@ -242,3 +265,54 @@ def no(self):
 
     buttons[1].setChecked(True)
     disableOtherButtons(buttons, buttons[1])
+
+def upButOne(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    page = main.findChild(QWidget, "Keyboard Page")
+    keyboard = page.findChild(QWidget, "Keyboard Widget")
+
+    buttons = keyboard.findChildren(ButtonContainer)
+
+    keyboardClick(self, buttons, buttons[0])
+
+def upButTwo(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    page = main.findChild(QWidget, "Keyboard Page")
+    keyboard = page.findChild(QWidget, "Keyboard Widget")
+
+    buttons = keyboard.findChildren(ButtonContainer)
+
+    keyboardClick(self, buttons, buttons[1])
+
+def upButThree(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    page = main.findChild(QWidget, "Keyboard Page")
+    keyboard = page.findChild(QWidget, "Keyboard Widget")
+    
+    buttons = keyboard.findChildren(ButtonContainer)
+    
+    keyboardClick(self, buttons, buttons[2])
+
+def upButFour(self):
+    main = self.findChild(QStackedWidget, "Main Widget")
+    page = main.findChild(QWidget, "Keyboard Page")
+    keyboard = page.findChild(QWidget, "Keyboard Widget")
+    
+    buttons = keyboard.findChildren(ButtonContainer)
+    
+    keyboardClick(self, buttons, buttons[3])
+
+def spaceButton(self):
+    # main = self.findChild(QStackedWidget, "Main Widget")
+    # page = main.findChild(QWidget, "Keyboard Page")
+    # lowKeys = page.findChild(QWidget, "low keys")
+
+    # buttons = lowKeys.findChild(ButtonContainer)
+    space(self)
+    
+def toggleButton(self):
+    toggle(self)
+
+def backspaceButton(self):
+    backspace(self)
+

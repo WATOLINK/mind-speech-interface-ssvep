@@ -24,6 +24,7 @@ def submitAndReturn(self,parent):
     messageBox = parent.findChild(QLabel,"Prompt")
     mainStack = parent.findChild(QStackedWidget,"Main Widget")
     currWidget = mainStack.currentWidget()
+    print(currWidget)
     inputField = parent.findChild(QLineEdit,"Input")
 
     if currWidget.objectName() == "Output Menu Page":
