@@ -26,6 +26,11 @@ class AThread(QThread):
     keyboardPageSig = pyqtSignal()
     ynPageSig = pyqtSignal()
 
+    keyboardUpButOne = pyqtSignal()
+    keyboardUpButTwo = pyqtSignal()
+    keyboardUpButThree = pyqtSignal()
+    keyboardUpButFour = pyqtSignal()
+
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def run(self):
@@ -70,6 +75,10 @@ class AThread(QThread):
                         self.noSig.emit()
 
                 if page == "Keyboard Page":
+                    # self.keyboardUpButOne.emit()
+                    # self.keyboardUpButTwo.emit()
+                    # self.keyboardUpButThree.emit() 
+                    self.keyboardUpButFour.emit()
                     print("")
                     print("")
                     print("GO BACK I HAVENT PROGRAMMED THIS :( ")

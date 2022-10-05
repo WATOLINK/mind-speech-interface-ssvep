@@ -20,7 +20,7 @@ if tail != 'mind-speech-interface-ssvep':
 sys.path.append(path)
 from eeg_ai_layer.models.Model import load_model
 
-dictionary = {'freq': 0.0, 'page': "Output Menu Page"}
+
 
 
 class EEGSocketListener:
@@ -45,6 +45,8 @@ class EEGSocketListener:
 
     UIDict = None       # Dict from UI with onset offset mechanism info
 
+    dictionary = None
+
     def __init__(self, args):
         self.host = args.host
         self.lisPort = args.lisPort
@@ -58,6 +60,8 @@ class EEGSocketListener:
         self.data = np.empty((args.output_size * args.input_len, args.num_channels))
         self.samples = 0
         self.model = load_model(args)
+
+        self.dictionary = {'freq': 0.0, 'page': "Output Menu Page"}
 
     def open_socket_conn(self):
         self.lisSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -84,7 +88,8 @@ class EEGSocketListener:
                 # self.input_len * self.num_channels * 8 + 50000)
             sample = pickle.loads(sample)
         except EOFError as e:
-            print(e)
+            # print(e)
+            x = 1 
 
 
 
@@ -97,9 +102,11 @@ class EEGSocketListener:
             try:
                 UIDictSerial = self.lisSocketUI.recv(1024)
                 self.UIDict = pickle.loads(UIDictSerial)
+                print(self.UIDict)
                 print(f"PRINTING UIDict FROM FUNC: {self.UIDict}")
+                self.dictionary["page"] = self.UIDict['current page']
             except EOFError as e:
-                print("No dict received from UI")
+                # print("No dict received from UI")
                 print(e)
 
             if self.UIDict is None:
@@ -120,14 +127,19 @@ class EEGSocketListener:
         self.data = np.zeros((50,8))
 
         # Create and start thread
-        self.UIDict = {"onOff":1}
+        self.UIDict = {
+            'stimuli': 'on',
+            'current page': 'Output Menu Page',
+            'previous page': '',
+            'output mode': ''
+        }       
         UIthreadRecv = threading.Thread(target=self.recieve_packet_UI)
         UIthreadRecv.start()
         # Initializing it on 1, but it is passed onto the thread, which toggles it every 2 seconds
         
         while time_func:
             packet = self.recieve_packet()
-            print(f"Dict: {self.UIDict}")
+            # print(f"Dict: {self.UIDict}")
 
             if packet is None:
                 break
@@ -138,21 +150,21 @@ class EEGSocketListener:
                 print("Building 250 sample packet")
             else:
                 self.data = np.concatenate((self.data, packet), axis=0)
-                print(f"concatenated size: {np.shape(self.data)}")
+                # print(f"concatenated size: {np.shape(self.data)}")
                 self.data = np.delete(self.data, range(0,50), axis=0)
 
-                print(f"Built 250 sample packet - Packet size: {np.shape(self.data)}")
+                # print(f"Built 250 sample packet - Packet size: {np.shape(self.data)}")
                 sample = self.data[0:250]
 
-                if (self.UIDict["onOff"] == 1):
+                if (self.UIDict["stimuli"] == "on"):
                     prepared = self.model.prepare(sample)
                     prediction = self.model.predict(prepared)
                     frequencies = self.model.convert_index_to_frequency(prediction)
                     c = Counter(frequencies)
                     print(f"Prediction: {c.most_common(1)[0][0]}")
-                    
-                    dictionary["freq"] = c.most_common(1)[0][0]
-                    self.send_packet(dictionary)
+                    # If freq prediction does not exist on current UI Page, retry for next highest confidence
+                    self.dictionary["freq"] = c.most_common(1)[0][0]
+                    self.send_packet(self.dictionary)
                 else:
                     print(f"Prediction not sent")
 
