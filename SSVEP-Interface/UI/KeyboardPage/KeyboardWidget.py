@@ -1,3 +1,4 @@
+from re import S
 from PyQt5.QtWidgets import QWidget,QLineEdit,QHBoxLayout, QVBoxLayout
 from UI.Components.button_container import ButtonContainer, buttonClickNoise
 from UI.KeyboardPage.completer import suggestWords
@@ -57,6 +58,8 @@ class KeyboardWidget(QWidget):
         layout = QHBoxLayout()
         buttons = []
 
+        sidebar.setObjectName("low keys")
+        
         toggleBtn = ButtonContainer("Toggle Words", freqName="Word Toggle", checkable=False)
         toggleBtn.setObjectName("Toggle")
         buttons.append(toggleBtn)
@@ -75,15 +78,19 @@ class KeyboardWidget(QWidget):
         return sidebar
 
 def clickedGroup(parent, buttons, text, level):
-    
+    print("Ahdsasdifha")
+    print(level)
+
     if level == 1:
         nextGroup = groupedChars2[groupedChars.index(text)]
         
     elif level == 2:
         nextGroup = list(text.split(' | '))
         print(nextGroup)
-    
+    print(len(buttons))
+    print("length")
     for x in range(len(buttons) - 1):
+        print(x)
         buttons[x].label.setText(nextGroup[x])
 
     buttons[3].label.setText("Back")
@@ -110,12 +117,13 @@ def clickedBack(parent, buttons, text, level):
 
 
 def keyboardClick(parent,buttons,selected,prediction=False):
-    buttonClickNoise()
+    # buttonClickNoise()
 
     toggleBtn = parent.findChild(ButtonContainer,"Toggle")
-
     btnText = selected.label.text()
-    
+
+
+
     if btnText in groupedChars:
         clickedGroup(parent, buttons, btnText, 1)
     elif any(btnText in subl for subl in groupedChars2):
@@ -127,14 +135,18 @@ def keyboardClick(parent,buttons,selected,prediction=False):
             clickedBack(parent, buttons, btnText, 3)
 
     elif prediction == True: # Different button functionality when using GTP3 for prediction
+
         writePredictionToInput(parent, buttons, btnText, charMode=toggleBtn.label.text() == "Toggle Words")
     else:
+        
         writeToInput(parent, buttons, btnText)
 
 
 def writeToInput(parent, buttons, text):
+    
     inputField = parent.findChild(QLineEdit,"Input")
 
+    
     prevText = inputField.text()
     if len(text) == 1:
         for x in range(len(buttons)):

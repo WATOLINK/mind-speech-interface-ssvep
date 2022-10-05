@@ -1,38 +1,57 @@
 import os
 clear = lambda: os.system('cls')
-from PyQt5.QtWidgets import QStackedWidget
+global i 
+i = 1
+global status
+status = {
+    'stimuli': 'on',
+    'current page': 'Output Menu Page',
+    'previous page': '',
+    'output mode': ''
+}
 
+def getStimuliStatus():
+    global status
+    return status['stimuli']
 
-outputMode = "" 
-previousPage = ""
-currentPage = "Output Menu Page"
-
+def setStimuliStatus(stimStatus):
+    global status
+    status['stimuli'] = stimStatus
 
 def getPreviousPage():
-    return previousPage
+    global status
+    return status['previous page']
 
 def setPreviousPage(newPreviousPage):
-    global previousPage
-    previousPage = newPreviousPage
+    global status
+    status['previous page'] = newPreviousPage
 
 def setCurrentPage(newCurrentPage):
-    global currentPage
-
-    setPreviousPage(currentPage)
-    currentPage = newCurrentPage
+    global status
+    setPreviousPage(status['current page'])
+    status['current page'] = newCurrentPage
     
 def getOutputMode():
-    return outputMode
+    global status
+    return status['output mode']
 
 def setOutputMode(newOutputMode):
-    global outputMode
-    outputMode = newOutputMode
+    global status
+    status['output mode'] = newOutputMode
 
-def printStatus(parent):
-    # clear()
-    print(" ### PAGE STATUS ###")
-    print(f" Output Mode:    {outputMode}")
-    print(f" Previous Page:  {previousPage}")
-    mainStack = parent.findChild(QStackedWidget,"Main Widget")
-    print(f" Current Page:   {mainStack.currentWidget().objectName()}")
-    print(" ###################")
+def getStatus():
+    global status
+    return status
+
+def printStatus():
+    clear()
+    global status
+    global i
+    i += 1
+    print(i)
+    print(' ### PAGE STATUS ###')
+    print(f" Stimuli :       {status['stimuli']}")
+    print(f" Output Mode:    {status['output mode']}")
+    print(f" Previous Page:  {status['previous page']}")
+    print(f" Current Page:   {status['current page']}")
+    print("")

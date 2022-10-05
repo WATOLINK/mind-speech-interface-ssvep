@@ -4,8 +4,10 @@ from UI.Components.button_container import buttonClickNoise
 from UI.status import setCurrentPage, printStatus
 
 def disableOtherButtons(buttons, selected):
-    buttonClickNoise()
-    
+    # buttonClickNoise()
+    print(selected)
+    print("")
+    print("")
     if selected.isChecked():
         # title.setText(selected.label.text())
         for button in buttons:
@@ -14,8 +16,8 @@ def disableOtherButtons(buttons, selected):
     # else:
         # title.setText("")
 
-def changeStacks(parent,mainIndex):
-    buttonClickNoise()
+def changeStacks(parent, mainIndex):
+    # buttonClickNoise()
 
     mainStack = parent.findChild(QStackedWidget,"Main Widget")
     # bottomStack = parent.findChild(QStackedWidget,"Bottom Widget")

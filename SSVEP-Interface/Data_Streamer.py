@@ -17,18 +17,27 @@
         TEST_DATA.csv in /EEG-Streamer/ directory is the output CSV from DSP_Client.py
 """
 import argparse
+import threading
+# from unittest import main
+# from SSVEP-Interface.InteractionTestDemo import mainFuncTest
+#from test_onoff_mechanism import testOnsetOffset
 import pandas as pd
 from brainflow.board_shim import BrainFlowInputParams
 from multiprocessing import Process, Queue, Barrier
 import serial.tools.list_ports as p
 
+
 from DSP_Client import EEGSocketListener
 from EEG_socket_publisher import EEGSocketPublisher
-import sys
-sys.path.append("SSVEP-Interface")
-from InteractionTestDemo import mainFuncTest
+# import sys
+# sys.path.append("SSVEP-Interface")
+# sys.path.append("SSVEP-Interface")
+# from InteractionTestDemo import mainFuncTest
 from time import time
-
+import time as t
+from main import mainGUIFunc
+from UI.status import getStatus
+import socket
 
 def Cyton_Board_Config(args):
     ports = p.comports()
@@ -115,6 +124,7 @@ def get_args(parser):
     parser.add_argument('--file', type=str, help='file', required=False, default='')
     parser.add_argument('--host', type=str, help='host name', required=False, default='127.0.0.1')
     parser.add_argument('--lisPort', type=int, help='lis port', required=False, default=65432)
+    parser.add_argument('--lisPortUI', type=int, help='lis port UI', required=False, default=32111)
     parser.add_argument('--num-channels', type=int, help='number of channels', required=False, default=8)
     parser.add_argument('--input-len', type=int, help='input size', required=False, default=50)
     parser.add_argument('--output-size', type=int, help='output size', required=False, default=1)
@@ -127,23 +137,47 @@ def get_args(parser):
     parser.add_argument('--components', type=int, help='Number of components for CCA', required=False, default=1)
     return parser.parse_known_args()
 
+def ahh():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(('127.0.0.1', 32111))
+    sock.listen(1)
+
+    clientsocket, address = sock.accept()
+
+    while True:
+        t.sleep(2)
+        print("STATUS")
+        stat, i = getStatus()
+        print(stat)
+        # print(i)
+        # print(status)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     args, _ = get_args(parser)
     info = Cyton_Board_Config(args)
+
+    slep = 0.25
+    # sock = threading.Thread(target=ahh)
+    # sock.start()
+
     publisher = EEGSocketPublisher(args)
     listener = EEGSocketListener(args)
+    
+    
 
     q = Queue()
     synch = Barrier(2)
-    sys_processes = [Process(target=Streamer, args=(publisher, synch, q, info), name="Streamer"),
+    sys_processes = [Process(target=mainGUIFunc, name="App"),
+                     Process(target=Streamer, args=(publisher, synch, q, info), name="Streamer"),
                      Process(target=DSP, args=(listener, synch, q,), name="Dsp Client"),
-                     Process(target=mainFuncTest, name="App")
                      ]
 
+    
     for process in sys_processes:
         process.start()
+        t.sleep(slep)
+        slep = 0
 
     for process in sys_processes:
         process.join()
