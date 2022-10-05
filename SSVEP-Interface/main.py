@@ -3,15 +3,21 @@ import socketio
 from PyQt5.QtCore import center, Qt
 
 from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow, QStackedWidget
+from UI.status import getStatus
 
 from UI.MainWidget.mainWidget import MainContainer
-
 from UI.styles import windowStyle
 
-from UI.Components.button_container import buttonClickNoise, ButtonContainer
+from UI.Components.button_container import ButtonContainer#, buttonClickNoise
+from UI.status import printStatus, setStimuliStatus
 
 import threading
 import time
+import socket
+import pickle
+
+
+
 
 class Window(QMainWindow):
     def __init__(self, parent=None):
@@ -53,49 +59,79 @@ class Window(QMainWindow):
 
 
 def stimOnsetOffset():
+    
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('127.0.0.1', 32111))
+    s.listen(1)
+    
+
+    time.sleep(2)
+    clientsocket, address = s.accept()
+    print("")
+    print("")
+    print("accepted")
+    print("")
+    print("")
     mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
     enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
-    
     while True:
         if stopThread:
             print("Exiting Stim Controller ...")
             break
-
+        print("STIM ONSET OFFSET THREAT")
         #ONSET
         currWidget = mainStack.currentWidget()
         enterButton.stimuli.toggleOn()
         for button in currWidget.findChildren(ButtonContainer):
             button.stimuli.toggleOn()
-
-        print(f"Stim on, Page: {currWidget.objectName()}")
+        setStimuliStatus('on')
+        x = getStatus()
         
+        print("")
+        print("UI STATUS SENT")
+        print("")
+
+        encoded = pickle.dumps(x)
+        clientsocket.send(encoded)
+
+        printStatus()
         time.sleep(2)
 
         if stopThread:
             print("exiting stim controller thread")
             break
 
+        # OFFSET
         currWidget = mainStack.currentWidget()
         enterButton.stimuli.toggleOff()
         for button in currWidget.findChildren(ButtonContainer):
             button.stimuli.toggleOff()
-        print(f"Stim off")
+        setStimuliStatus('off')
 
-        time.sleep(2)
+        encoded = pickle.dumps(x)
+        clientsocket.send(encoded)
+
+        printStatus()
+        time.sleep(10)
 
 
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    global window
-    window = Window()
-    window.setStyleSheet(windowStyle)
+def mainGUIFunc():
+
 
     global stopThread
     stopThread = False
     x = threading.Thread(target=stimOnsetOffset)
     x.start()
 
+    app = QApplication(sys.argv)
+    global window
+    window = Window()
+    window.setStyleSheet(windowStyle)
+
+
+    
     window.show()
 
     try:

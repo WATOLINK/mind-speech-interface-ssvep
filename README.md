@@ -9,6 +9,8 @@ Note: For Mac devices with ARM SOCs (M1, M2 etc) you will need to run our tools 
 ## Credit
 Some of our models and signal processing methods were adapted from Aravind Ravi's Brain Computer Interface Repository (see here: https://github.com/aaravindravi/Brain-computer-interfaces)
 
+The FBCCA Model we used was adapted from an implementation in this repository: https://github.com/eugeneALU/CECNL_RealTimeBCI
+
 ## Requirements
 
 To install requirements, make sure you have Python 3.10+ installed, then run
@@ -25,6 +27,7 @@ When setting up the device please make sure the channel numbers correspond to th
 
 ![image](https://user-images.githubusercontent.com/34819737/178824314-7b1296b8-cdd2-424b-86ef-b65fec7e2d6e.png)
 
+# OFFLINE SSVEP BCI 
 
 ## Offline SSVEP Data Collection 
 
@@ -109,7 +112,7 @@ And averaged FFT plots of every stimuli response for each electrode will appear 
 
 <img width="654" alt="Screen Shot 2022-07-05 at 4 58 29 PM" src="https://user-images.githubusercontent.com/34819737/177415446-e1ec3b81-8d0d-49e0-97e5-822074659387.png">
 
-## Model Training
+## CCAKNN Model Training/Testing
 
 Training models is relatively simple using the training script! 
 
@@ -136,8 +139,25 @@ If you'd like to see some metrics, pass the `--verbose` flag like so:
 python -m eeg_ai_layer.models.train --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --output-name=<YOUR_MODEL_NAME> --verbose
 ```
 
+# ONLINE SSVEP BCI 
+
+## GPT-3 API Key Setup
+In order to use GPT-3, create a ```.env``` file within the mind-speech-interface-ssvep folder. 
+
+Within this document create a variable called ```OPENAI_KEY```, and set it to your OpenAI API key. Ensure that the key is in quotation marks.
+
+Now, GPT-3 should work with the SSVEP GUI!
+
+## Twitter API Key Setup
+TODO: Kai wya?
+
+## Text To Speech Setup
+Please follow the readme in "mind-speech-interface-ssvep/SSVEP-Interface/_TTS/".
+ 
+This feature allows you to train a voice model on samples of your own voice to use with the interface. It is not required for operation of the GUI.
+
 ## Online SSVEP Interface
-To run our fully integrated SSVEP interface, copy and paste the following commands:
+After ensuring GPT-3, Twitter, and TTS features are setup, you will be ready to run our fully integrated SSVEP interface, copy and paste the following commands:
 
 ```python
     cd mind-speech-interface-ssvep
@@ -146,22 +166,9 @@ for synthetic board:
 ```python
     python EEG-DATA-Pipeline/Data_Streamer.py --board-id=-1 --model-path=eeg-ai-layer\modelname.model
 ```
-for non synthetic board:
+for non synthetic board (our online system auto-detects board-id and serial-port):
 ```python
     python EEG-DATA-Pipeline/Data_Streamer.py --model-path=eeg-ai-layer\modelname.model
 ```
 
-After following this readme you should be all set to use our repository to communicate with your brain ;)
-
 Note: If you are using the OpenBCI with active electrodes with the online interface, please follow the steps to change the gain mentioned in the offline setup earlier before running the online interface.
-
-
-## SSVEP GUI 
-To run our latest non-integrated SSVEP GUI, copy and paste the following commands:
-
-```python
-    cd mind-speech-interface-ssvep
-```
-```python
-     python SSVEP-Interface/main.py
-```

@@ -1,6 +1,6 @@
 from concurrent.futures import thread
 from http.client import ImproperConnectionState
-import imp
+# import imp
 import sys
 
 from PyQt5.QtWidgets import QApplication,QVBoxLayout,QWidget,QHBoxLayout,QSizePolicy,QLineEdit,QLabel
@@ -21,6 +21,37 @@ import socket
 import pickle
 
 
+class AThread(QThread):
+    
+    yesSig = pyqtSignal(float)
+    noSig = pyqtSignal(float)
+    badSig = pyqtSignal(float)
+    
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def run(self):
+        
+            try:
+                self.s.connect(('127.0.0.1', 55432))
+                while True:
+                    try:
+                        msg = self.s.recv(10000000)
+                        message = pickle.loads(msg)
+                        if float(message) == 14.75:
+                            self.yesSig.emit(message)
+                        elif float(message) == 11.75:
+                            self.noSig.emit(message)
+                        else:
+                            self.badSig.emit(message)
+
+                        print(message)
+                    
+                    except EOFError:
+                        break
+
+            finally:
+                return
+    
 class Window(QMainWindow):
     """Main Window."""
 
@@ -175,32 +206,6 @@ def mainFuncTest():
     sys.exit(app.exec_())
 
 
-class AThread(QThread):
-    
-    yesSig = pyqtSignal(float)
-    noSig = pyqtSignal(float)
-    badSig = pyqtSignal(float)
-    
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    def run(self):
-        self.s.connect(('127.0.0.1', 55432))
-        while True:
-            try:
-                msg = self.s.recv(10000000)
-                message = pickle.loads(msg)
-                if float(message) == 14.75:
-                    self.yesSig.emit(message)
-                elif float(message) == 11.75:
-                    self.noSig.emit(message)
-                else:
-                    self.badSig.emit(message)
-
-                print(message)
-                    
-            except EOFError:
-                    continue
-        
             
             
         

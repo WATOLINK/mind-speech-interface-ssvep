@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QLabel,QStackedWidget,QLineEdit
-from UI.Components.button_container import ButtonContainer, buttonClickNoise
+from UI.Components.button_container import ButtonContainer
 from server.twitterAPI import tweet
 from _TTS.watolink_TTS import *
 
@@ -24,6 +24,7 @@ def submitAndReturn(self,parent):
     messageBox = parent.findChild(QLabel,"Prompt")
     mainStack = parent.findChild(QStackedWidget,"Main Widget")
     currWidget = mainStack.currentWidget()
+    print(currWidget)
     inputField = parent.findChild(QLineEdit,"Input")
 
     if currWidget.objectName() == "Output Menu Page":

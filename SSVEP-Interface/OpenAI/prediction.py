@@ -7,7 +7,7 @@ class OpenAI():
     def __init__(self, engine="curie", stop_condition=[".", "!", "\n", ","]):
         '''Initializes OpenAI with provided parameters, leave as empty for default
 
-            If missing API Key, contact Jackie on Discord
+            If missing API Key, contact Bryan or Aayush on Discord
         '''
         load_dotenv()
         OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
