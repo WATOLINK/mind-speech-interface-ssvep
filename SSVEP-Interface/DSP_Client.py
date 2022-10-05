@@ -46,6 +46,7 @@ class EEGSocketListener:
         self.pubPort = args.pubPort
 
         self.input_len = args.input_len
+        self.window_length = args.window_length
         self.output_size = args.output_size
         self.num_channels = args.num_channels
 
@@ -114,11 +115,10 @@ class EEGSocketListener:
         time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
 
         init_slider_count = 0
-        self.data = np.zeros((50, 8))
 
         # Create and start thread
         self.UIDict = {
-            'stimuli': 'on',
+            'stimuli': 'off',
             'current page': 'Output Menu Page',
             'previous page': '',
             'output mode': ''
@@ -129,36 +129,25 @@ class EEGSocketListener:
 
         while time_func:
             packet = self.recieve_packet()
-            # print(f"Dict: {self.UIDict}")
+            if self.UIDict["stimuli"] == "on":
+                packet = self.recieve_packet()
 
-            if packet is None:
-                break
-
-            # first 5 loops - build 250 sample packet from 50 sample packets
-            if init_slider_count < 4:
+                if packet is None:
+                    break
+                
                 self.data = np.concatenate((self.data, packet), axis=0)
-                print("Building 250 sample packet")
-            else:
-                self.data = np.concatenate((self.data, packet), axis=0)
-                # print(f"concatenated size: {np.shape(self.data)}")
-                self.data = np.delete(self.data, range(0,50), axis=0)
-
-                # print(f"Built 250 sample packet - Packet size: {np.shape(self.data)}")
-                sample = self.data[0:250]
-
-                if self.UIDict["stimuli"] == "on":
-                    sample = np.expand_dims(sample, axis=0)
+                if self.data.shape[0] == self.input_len * self.window_length:
+                    sample = np.expand_dims(self.data, axis=0)
                     prepared = self.model.prepare(sample)
                     prediction = self.model.predict(prepared)
                     prediction = [int(pred) for pred in list(prediction)]
                     frequencies = self.model.convert_index_to_frequency(prediction)
                     c = Counter(frequencies)
+                    print(f"Prediction: {c.most_common(1)[0][0]}")
                     # If freq prediction does not exist on current UI Page, retry for next highest confidence
                     self.dictionary["freq"] = c.most_common(1)[0][0]
                     self.send_packet(self.dictionary)
-                else:
-                    print(f"Prediction not sent")
-            init_slider_count += 1
+                    self.data = np.empty((self.output_size * self.input_len, self.num_channels))
         self.close_socket_conn()
 
     def generate_csv(self, name="fullOBCI"):

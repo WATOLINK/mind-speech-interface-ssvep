@@ -130,7 +130,7 @@ def get_args(parser):
     parser.add_argument('--model-type', type=str, help='model type (CCA-KNN)', required=False, default='cca_knn')
     parser.add_argument('--model-path', type=str, help='path for saved model', required=False, default=None)
     parser.add_argument('--pubPort', type=int, help='publisher port', required=False, default=55432)
-    parser.add_argument('--window-length', type=int, help='window size (s)', required=False, default=1)
+    parser.add_argument('--window-length', type=int, help='window size (s)', required=False, default=2)
     parser.add_argument('--shift-length', type=int, help='shift length', required=False, default=1)
     parser.add_argument('--sample-rate', type=int, help='sample rate', required=False, default=250)
     parser.add_argument('--components', type=int, help='Number of components for CCA', required=False, default=1)
