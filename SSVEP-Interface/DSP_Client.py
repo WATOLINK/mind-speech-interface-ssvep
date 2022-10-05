@@ -1,16 +1,11 @@
-from logging.config import dictConfig
 import socket
 import os
 import pickle
 import sys
-from turtle import clear
 import numpy as np
 import pandas as pd
 from time import time
-import time as t
-from brainflow.data_filter import DataFilter, FilterTypes
 from collections import Counter
-from numpy import savetxt
 import threading
 
 path = os.getcwd()
@@ -21,13 +16,10 @@ sys.path.append(path)
 from eeg_ai_layer.models.Model import load_model
 
 
-
-
 class EEGSocketListener:
     # Socket Object and Params
     lisSocket = None
     pubSocket = None
-    listSockerUI = None
     host = ''  # Server hostname or IP
     lisPort = None  # Port used by server
     pubPort = None  # Port used to publish to UI
@@ -82,7 +74,7 @@ class EEGSocketListener:
 
     def recieve_packet(self):
         # the size of the input data = num elements * 8 bytes + 500 for leeway
-        
+
         try:
             sample = self.lisSocket.recv(1000000000)
                 # self.input_len * self.num_channels * 8 + 50000)
@@ -90,8 +82,6 @@ class EEGSocketListener:
         except EOFError as e:
             # print(e)
             pass
-
-
 
         if sample is None:
             print("COLLECTION COMPLETE")
@@ -124,7 +114,7 @@ class EEGSocketListener:
         time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
 
         init_slider_count = 0
-        self.data = np.zeros((50,8))
+        self.data = np.zeros((50, 8))
 
         # Create and start thread
         self.UIDict = {
@@ -132,11 +122,11 @@ class EEGSocketListener:
             'current page': 'Output Menu Page',
             'previous page': '',
             'output mode': ''
-        }       
+        }
         UIthreadRecv = threading.Thread(target=self.recieve_packet_UI)
         UIthreadRecv.start()
         # Initializing it on 1, but it is passed onto the thread, which toggles it every 2 seconds
-        
+
         while time_func:
             packet = self.recieve_packet()
             # print(f"Dict: {self.UIDict}")
@@ -156,32 +146,22 @@ class EEGSocketListener:
                 # print(f"Built 250 sample packet - Packet size: {np.shape(self.data)}")
                 sample = self.data[0:250]
 
-                if (self.UIDict["stimuli"] == "on"):
+                if self.UIDict["stimuli"] == "on":
+                    sample = np.expand_dims(sample, axis=0)
                     prepared = self.model.prepare(sample)
                     prediction = self.model.predict(prepared)
+                    prediction = [int(pred) for pred in list(prediction)]
                     frequencies = self.model.convert_index_to_frequency(prediction)
                     c = Counter(frequencies)
-                    print(f"Prediction: {c.most_common(1)[0][0]}")
                     # If freq prediction does not exist on current UI Page, retry for next highest confidence
                     self.dictionary["freq"] = c.most_common(1)[0][0]
                     self.send_packet(self.dictionary)
                 else:
                     print(f"Prediction not sent")
-
             init_slider_count += 1
-
-    def filter(self):
-        num_eeg_channels = 8
-        sampling_rate = 250
-        mid_freq = 12
-        band_width = 4
-        for channel in range(num_eeg_channels):
-            DataFilter.perform_bandpass(self.data[channel], sampling_rate, mid_freq, band_width, 2,
-                                        FilterTypes.BUTTERWORTH, 0)
+        self.close_socket_conn()
 
     def generate_csv(self, name="fullOBCI"):
         df = pd.DataFrame(data=self.data, columns=list(range(1, 9)))
         print(f'{name}.csv Generated')
         df.to_csv(f'{name}.csv')
-        return
-

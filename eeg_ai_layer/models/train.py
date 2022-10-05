@@ -33,8 +33,8 @@ def get_args(parser: ArgumentParser):
     parser.add_argument('--output-name', type=str, default=None, help="Name to save the model")
     parser.add_argument('--data', type=str, help="Filepath for a dataset. Will perform a train/test split.")
     parser.add_argument('--sample-rate', type=int, default=250, help="Sampling rate (hz)")
-    parser.add_argument('--window-length', type=int, default=1, help="Window length for data processing")
-    parser.add_argument('--shift-length', type=int, default=1/250, help="Shift length for data processing")
+    parser.add_argument('--window-length', type=float, default=1, help="Window length for data processing")
+    parser.add_argument('--shift-length', type=float, default=1/250, help="Shift length for data processing")
     parser.add_argument('--lower-freq', type=float, default=5, help="Lower frequency bound for a bandpass filter")
     parser.add_argument('--upper-freq', type=float, default=5, help="Upper frequency bound for a bandpass filter")
     parser.add_argument('--random-state', type=int, default=42, help="Random State")
@@ -83,13 +83,31 @@ def join_datasets(data_path: str) -> pd.DataFrame:
         A single dataFrame containing joined data of all csvs.
     """
     try:
-        return pd.read_csv(data_path)
+        data = pd.read_csv(data_path)
+        return data
     except IsADirectoryError:
-        paths = os.listdir(data_path)[1:]
+        paths = [path for path in os.listdir(data_path) if path.endswith(".csv") or os.path.isdir(os.path.join(data_path, path))]
         data = join_datasets(os.path.join(data_path, paths[0]))
         for path in paths[1:]:
-            data.append(join_datasets(os.path.join(data_path, path)))
+            data = data.append(join_datasets(os.path.join(data_path, path)), ignore_index=True)
         return data
+
+def segment_data_from_trials(trials: List):
+    segments = []
+    segment_labels = []
+    for trial in trials:
+        label = trial.iloc[0]['Frequency']
+        trial.drop(columns=['Frequency'], inplace=True)
+        duration = int(args.window_length * args.sample_rate)
+        data_overlap = (args.window_length - args.shift_length) * args.sample_rate
+        segs = buffer(trial, duration, data_overlap)
+        for seg in segs:
+            segments.append(seg)
+            segment_labels.append(label)
+    if args.no_zero:
+        segments = [segment for idx, segment in enumerate(segments) if segment_labels[idx] != 0]
+        segment_labels = [segment_label for idx, segment_label in enumerate(segment_labels) if segment_labels[idx] != 0]
+    return segments, segment_labels
 
 
 if __name__ == "__main__":
@@ -100,36 +118,25 @@ if __name__ == "__main__":
 
     if args.data:
         data = join_datasets(args.data)
+        data.drop(columns=['time', 'Color Code'], inplace=True)
 
         # offset 1 for Timestep
         if all(data.iloc[0, 1:].values == 0):
             data.at[1, 'Frequency'] = data.loc[0, 'Frequency']
-            data.at[1, 'Color Code'] = data.loc[0, 'Color Code']
             data = data[1:]
-        data = parse_and_filter_eeg_data(data=data, sample_rate=args.sample_rate, lowcut=9, highcut=16)
+            data.index = np.arange(data.shape[0])
 
-        train_data = data.drop(columns=['time', 'Color Code'])
-
-        trials = split_trials(train_data)
-        segments = []
-        segment_labels = []
-        for trial in trials:
-            label = trial.iloc[0]['Frequency']
-            trial.drop(columns=['Frequency'], inplace=True)
-            duration = args.window_length * args.sample_rate
-            data_overlap = (args.window_length - args.shift_length) * args.sample_rate
-            segs = buffer(trial, duration, data_overlap)
-            for seg in segs:
-                segments.append(seg)
-                segment_labels.append(label)
-        seggies = np.arange(len(segment_labels))
-        if args.no_zero:
-            segments = [segments[ts] for ts in seggies if segment_labels[ts] != 0]
-            segment_labels = [segment_labels[ts] for ts in seggies if segment_labels[ts] != 0]
+        if args.model_type == "fbcca":
+            trials = split_trials(data)
+            test_data, test_labels = segment_data_from_trials(trials=trials)
+        else:
+            train_data = parse_and_filter_eeg_data(data=data, sample_rate=args.sample_rate, lowcut=9, highcut=16)
+            trials = split_trials(train_data)
+            segments, segment_labels = segment_data_from_trials(trials=trials)
             seggies = np.arange(len(segment_labels))
-        train_segs, test_segs = train_test_split(seggies, test_size=0.2, random_state=42)
-        train_data, train_labels = [segments[ts] for ts in train_segs], [segment_labels[ts] for ts in train_segs]
-        test_data, test_labels = [segments[ts] for ts in test_segs], [segment_labels[ts] for ts in test_segs]
+            train_segs, test_segs = train_test_split(seggies, test_size=0.2, random_state=42)
+            train_data, train_labels = [segments[ts] for ts in train_segs], [segment_labels[ts] for ts in train_segs]
+            test_data, test_labels = [segments[ts] for ts in test_segs], [segment_labels[ts] for ts in test_segs]
 
     if args.training_data:
         train_data = pd.read_csv(args.training_data)
@@ -139,11 +146,10 @@ if __name__ == "__main__":
         test_data = pd.read_csv(args.testing_data)
         test_data, splits = parse_and_filter_eeg_data(test_data)
 
-    if args.model_type == 'cca_knn':
-        args.__dict__['frequencies'] = np.unique(data['Frequency'].dropna().sort_values())
+    args.__dict__['frequencies'] = np.unique(data['Frequency'].dropna().sort_values())
     model = load_model(args=args)
 
-    if args.train:
+    if args.train and args.model_type != "fbcca":
         print("Train")
         train_metrics = train(model, train_data, train_labels)
 
@@ -154,7 +160,11 @@ if __name__ == "__main__":
         test_metrics.update(train_metrics)
 
     if args.verbose:
-        print(*[f"{key}:\n{test_metrics[key]}" for key in test_metrics], sep='\n')
+        for key in test_metrics:
+            message = f"{key}: {test_metrics[key]}"
+            if "confusion_matrix" in key:
+                message = f"{key}:\n{test_metrics[key]}"
+            print(message)
 
     if args.output_path and args.output_name:
         path = os.path.join(args.output_path, args.output_name)
