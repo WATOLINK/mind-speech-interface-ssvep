@@ -74,9 +74,9 @@ class MainContainer(QWidget):
         self.myThread.noSig.connect(self.onNo)
 
         self.myThread.keyboardUpButOne.connect(self.onUpButOne)
-        self.myThread.keyboardUpButTwo.connect(self.onUpButTwo)
-        self.myThread.keyboardUpButThree.connect(self.onUpButThree)
-        self.myThread.keyboardUpButFour.connect(self.onUpButFour)
+        # self.myThread.keyboardUpButTwo.connect(self.onUpButTwo)
+        # self.myThread.keyboardUpButThree.connect(self.onUpButThree)
+        # self.myThread.keyboardUpButFour.connect(self.onUpButFour)
     
     
     def onVoice(self):
@@ -112,8 +112,8 @@ class MainContainer(QWidget):
     def onUpButOne(self):
         upButOne(self)
     
-    def onUpButTwo(self):
-        upButTwo(self)
+    # def onUpButTwo(self):
+    #     upButTwo(self)
 
 
 

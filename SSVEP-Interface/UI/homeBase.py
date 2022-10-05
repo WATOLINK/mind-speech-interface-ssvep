@@ -75,10 +75,10 @@ class AThread(QThread):
                         self.noSig.emit()
 
                 if page == "Keyboard Page":
-                    # self.keyboardUpButOne.emit()
+                    self.keyboardUpButOne.emit()
                     # self.keyboardUpButTwo.emit()
                     # self.keyboardUpButThree.emit() 
-                    self.keyboardUpButFour.emit()
+                    # self.keyboardUpButFour.emit()
                     print("")
                     print("")
                     print("GO BACK I HAVENT PROGRAMMED THIS :( ")
