@@ -5,8 +5,9 @@ The watolink SSVEP-Interface is able to communicate directly with twitter.
 If twitter communication is selected, users will tweets their inputs to **@watolink**.
 
 **Login Credentials:**
-Username: watolink
-Password: watolink1234
+
+- Username: watolink
+- Password: watolink1234
 
 To communicate with Twitter, make sure that you have the following environement variables saved in a .env file in the current directory:
 
