@@ -164,11 +164,11 @@ After ensuring GPT-3, Twitter, and TTS features are setup, you will be ready to 
 ```
 for synthetic board:
 ```python
-    python EEG-DATA-Pipeline/Data_Streamer.py --board-id=-1 --model-path=eeg-ai-layer\modelname.model
+    python SSVEP-Interface/Data_Streamer.py --board-id=-1 --model-path=eeg-ai-layer\modelname.model OR --model-type=fbcca
 ```
 for non synthetic board (our online system auto-detects board-id and serial-port):
 ```python
-    python EEG-DATA-Pipeline/Data_Streamer.py --model-path=eeg-ai-layer\modelname.model
+    python SSVEP-Interface/Data_Streamer.py --model-path=eeg-ai-layer\modelname.model OR --model-type=fbcca
 ```
 
 Note: If you are using the OpenBCI with active electrodes with the online interface, please follow the steps to change the gain mentioned in the offline setup earlier before running the online interface.
