@@ -3,8 +3,6 @@ import os
 from dotenv import load_dotenv
 
 def tweet(data):
-    print("tweeting...")
-
     load_dotenv()
 
     BEARER_TOKEN = os.environ.get("TWITTER_BEARER_TOKEN")
@@ -16,7 +14,3 @@ def tweet(data):
     api = tweepy.Client(BEARER_TOKEN, CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 
     api.create_tweet(text=data)
-    print("tweeted!")
-
-if __name__ == "__main__":
-    tweet("L + ratio")
