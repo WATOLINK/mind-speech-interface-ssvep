@@ -1,5 +1,5 @@
 import sys
-# import socketio
+import socketio
 import asyncio
 import socket
 import websockets
@@ -151,6 +151,7 @@ def mainGUIFunc():
     x = threading.Thread(target=stimOnsetOffset)
     x.start()
 
+    # Thread for web app websocket
     threading.Thread(target=webAppSocket).start()
 
     app = QApplication(sys.argv)
