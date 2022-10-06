@@ -52,29 +52,29 @@ class AThread(QThread):
                     self.enterButtonSig.emit()
 
                 if page == "Output Menu Page":
-                    if freq == 11.75:
+                    if freq == 13.75:
                         self.twitterPageSig.emit()
                     elif freq == 10.75:
                         self.voicePageSig.emit()
                     elif freq == 9.75:
                         self.visCommPageSig.emit()
-                    elif freq == 12.75:
+                    elif freq == 14.25:
                         self.helpPageSig.emit()
 
                 if page == "Keyboard YN Menu Page":
                     if freq == 12.75:
                         self.keyboardPageSig.emit()
-                    elif freq == 14.25:
+                    elif freq == 13.75:
                         self.ynPageSig.emit()
-                    elif freq == 9.75:
+                    elif freq == 14.25:
                         self.helpPageSig.emit()
                     elif freq == 10.75:
                         self.returnHomeSig.emit()
 
                 if page == "YN Page":
-                    if freq == 12.75:
+                    if freq == 8.75:
                         self.yesSig.emit()
-                    elif freq == 14.25:
+                    elif freq == 13.75:
                         self.noSig.emit()
 
                 if page == "Keyboard Page":
@@ -86,9 +86,9 @@ class AThread(QThread):
                         self.keyboardUpButThree.emit() 
                     elif freq == 10.75:
                         self.keyboardUpButFour.emit()
-                    elif freq == 11.75:
+                    elif freq == 8.75:
                         self.spaceSig.emit()
-                    elif freq == 10.75:
+                    elif freq == 13.75:
                         self.backspaceSig.emit()
                     elif freq == 14.25:
                         self.toggleSig.emit()

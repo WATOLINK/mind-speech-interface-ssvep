@@ -68,11 +68,11 @@ def stimOnsetOffset():
 
     time.sleep(2)
     clientsocket, address = s.accept()
-    #print("")
-    #print("")
-    #print("accepted")
-    #print("")
-    #print("")
+    print("")
+    print("")
+    print("accepted")
+    print("")
+    print("")
     mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
     enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
     while True:

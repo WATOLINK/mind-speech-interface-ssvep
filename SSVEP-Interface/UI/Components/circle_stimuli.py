@@ -62,7 +62,7 @@ class CircleFlash (QOpenGLWidget):
                 radius = 1
 
                 # set circle colour
-                self.gl.glColor3f(self.rValue/255, self.gValue/255, self.bValue/255);
+                self.gl.glColor3f(self.rValue/255, self.gValue/255, self.bValue/255)
 
                 # start drawing circle
                 self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)    

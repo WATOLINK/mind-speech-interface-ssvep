@@ -92,7 +92,7 @@ class FBCCA:
             Correlations to each of the reference signals
         """
         # result matrix
-        r = np.zeros((self.frequency_bands, len(self.cca_frequencies)))
+        r = np.zeros((self.frequency_bands, len(self.cca_frequencies))) 
         results = np.zeros(data.shape[0])
         signal_range = range(data.shape[0])
         if self.verbose:
@@ -111,7 +111,7 @@ class FBCCA:
         return results
 
     def convert_index_to_frequency(self, predictions: np.array):
-        return [self.cca_frequencies[pred] for pred in predictions]
+        return [self.frequencies[pred] for pred in predictions]
 
     def test(self, hparams, test_data, test_labels):
         """
