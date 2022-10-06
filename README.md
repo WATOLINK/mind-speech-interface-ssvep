@@ -154,10 +154,10 @@ To use the twitter api refer to the readme in "mind-speech-interface-ssvep/SSVEP
 ## Text To Speech Setup
 Please follow the readme in "mind-speech-interface-ssvep/SSVEP-Interface/_TTS/".
 
+This feature allows you to train a voice model on samples of your own voice to use with the interface. It is not required for operation of the GUI.
+
 ## Speech To Text Webapp for Prompt Input 
 TODO: Jason, Ivan
- 
-This feature allows you to train a voice model on samples of your own voice to use with the interface. It is not required for operation of the GUI.
 
 ## Online SSVEP Interface
 After ensuring GPT-3, Twitter, and TTS features are setup, you will be ready to run our fully integrated SSVEP interface, copy and paste the following commands:
