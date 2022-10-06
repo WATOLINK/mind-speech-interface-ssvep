@@ -149,10 +149,13 @@ Within this document create a variable called ```OPENAI_KEY```, and set it to yo
 Now, GPT-3 should work with the SSVEP GUI!
 
 ## Twitter API Key Setup
-TODO: Kai wya?
+To use the twitter api refer to the readme in "mind-speech-interface-ssvep/SSVEP-Interface/server/".
 
 ## Text To Speech Setup
 Please follow the readme in "mind-speech-interface-ssvep/SSVEP-Interface/_TTS/".
+
+## Speech To Text Webapp for Prompt Input 
+TODO: Jason, Ivan
  
 This feature allows you to train a voice model on samples of your own voice to use with the interface. It is not required for operation of the GUI.
 
