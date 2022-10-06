@@ -15,7 +15,7 @@ def getMainWidgetIndex(name):
 WINDOW_WIDTH = 2400
 WINDOW_HEIGHT = 1360
 
-STIMULI_SIZE = 260
+STIMULI_SIZE = 220
 
 # Set stimuli frequencies for the main UI
 # Note that the key must match the value of the "freqName" passed when creating ButtonContainer object 
@@ -23,7 +23,7 @@ MAIN_STIM_FREQUENCIES = {
     'Enter': 8.25,
 
     'Output Menu 1': 13.75,
-    'Output Menu 2': 10.75,
+    'Output Menu 2': 11.75,
     'Output Menu 3': 9.75,
     'Output Menu Help': 14.25,
 

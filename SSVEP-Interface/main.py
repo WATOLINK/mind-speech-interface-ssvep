@@ -1,5 +1,4 @@
 import sys
-import socketio
 import asyncio
 import socket
 import websockets

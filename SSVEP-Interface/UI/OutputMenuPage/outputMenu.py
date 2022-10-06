@@ -27,7 +27,7 @@ def OutputMenuUpper(parent):
     layout.setObjectName("layout")
 
     # DO NOT CHANGE RIGHT NOW
-    labels = ['Use Twitter','Use Voice','Use Visual Communication']
+    labels = ['Use Twitter','Use Voice']
     buttons = []
 
     for x in range(len(labels)):
@@ -40,8 +40,8 @@ def OutputMenuUpper(parent):
         lambda: disableOtherButtons(buttons, buttons[0]))
     buttons[1].clicked.connect(
         lambda: disableOtherButtons(buttons, buttons[1]))
-    buttons[2].clicked.connect(
-        lambda: disableOtherButtons(buttons, buttons[2]))
+    # buttons[2].clicked.connect(
+    #     lambda: disableOtherButtons(buttons, buttons[2]))
     print("")
     print("ahhh")
     print("")

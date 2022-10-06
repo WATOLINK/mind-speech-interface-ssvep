@@ -33,7 +33,6 @@ class FBCCA:
         self.verbose = False
         if hasattr(args, "verbose"):
             self.verbose = args.verbose
-
         self.freq2label = {freq: idx for idx, freq in enumerate(self.frequencies)}
 
     def create_reference_templates(self, frequencies: List):
@@ -94,6 +93,7 @@ class FBCCA:
         # result matrix
         r = np.zeros((self.frequency_bands, len(self.cca_frequencies))) 
         results = np.zeros(data.shape[0])
+        confidence = np.zeros(data.shape[0])
         signal_range = range(data.shape[0])
         if self.verbose:
             signal_range = trange(data.shape[0])
@@ -107,7 +107,11 @@ class FBCCA:
                     r[frequency_band, frequ] = r_tmp
             rho = np.dot(self.fb_coefs, r)  # weighted sum of r from all different filter banks' result
             tau = np.argmax(rho)  # get maximum from the target as the final predict (get the index)
+            confidence[segment] = np.max(rho)
             results[segment] = tau  # index indicate the maximum(most possible) target
+        print(rho)
+        print(self.frequencies)
+        print(f"confidence: {confidence[0]}")
         return results
 
     def convert_index_to_frequency(self, predictions: np.array):

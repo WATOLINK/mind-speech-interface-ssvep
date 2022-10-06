@@ -54,7 +54,7 @@ class AThread(QThread):
                 if page == "Output Menu Page":
                     if freq == 13.75:
                         self.twitterPageSig.emit()
-                    elif freq == 10.75:
+                    elif freq == 11.75:
                         self.voicePageSig.emit()
                     elif freq == 9.75:
                         self.visCommPageSig.emit()
