@@ -156,7 +156,7 @@ Please follow the readme in "mind-speech-interface-ssvep/SSVEP-Interface/_TTS/".
 
 This feature allows you to train a voice model on samples of your own voice to use with the interface. It is not required for operation of the GUI.
 
-## Speech To Text Webapp for Prompt Input 
+## Speech To Text WebApp for Prompt Input 
 TODO: Jason, Ivan
 
 ## Online SSVEP Interface
