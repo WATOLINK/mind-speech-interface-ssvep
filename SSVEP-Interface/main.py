@@ -109,7 +109,7 @@ def stimOnsetOffset(s, window):
         time.sleep(5)
 
 
-def webAppSocket():
+def webAppSocket(window):
     async def server(websocket):
         print("Client Connected")
         while True:
@@ -152,7 +152,7 @@ def mainGUIFunc(client_socket):
     threading.Thread(target=stimOnsetOffset, args=(client_socket, window,)).start()
 
     # Thread for web app websocket
-    threading.Thread(target=webAppSocket).start()
+    threading.Thread(target=webAppSocket, args=(window,)).start()
 
     try:
         sys.exit(app.exec_())
