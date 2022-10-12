@@ -207,9 +207,7 @@ def outputVoice(self):
 #     main = self.findChild(QStackedWidget, "Main Widget")
 #     outputMenu = main.findChild(QWidget, "Output Menu Page")
 #     upperMenu = outputMenu.findChild(QWidget, "Upper Menu")
-
 #     buttons = upperMenu.findChildren(ButtonContainer)
-
 #     buttons[2].setChecked(True)
 #     disableOtherButtons(buttons, buttons[2])
 
