@@ -3,7 +3,6 @@ from brainflow.board_shim import BoardShim
 import numpy as np
 import pickle
 from time import time
-import random as r 
 
 
 class EEGSocketPublisher:
@@ -37,9 +36,9 @@ class EEGSocketPublisher:
     def close_socket_conn(self):
         self.socket.close()
 
-    def open_board_conn(self, board_id, params, streamer_params):
+    def open_board_conn(self, board_id, board_params, streamer_params):
         BoardShim.enable_dev_board_logger()
-        self.board = BoardShim(board_id, params)
+        self.board = BoardShim(board_id, board_params)
         # Start Acquisition
         self.board.prepare_session()
         self.board.start_stream(45000, streamer_params)
@@ -65,18 +64,15 @@ class EEGSocketPublisher:
         return sample
 
     def send_packet(self, sample):
-        #print(time())
         self.connection.sendall(pickle.dumps(sample))
-        
         self.count += 1
-        #print(f'Sample #{self.count}: {sample.shape} to {self.port}')
 
     def publish(self, run_time=None):
         self.connection, self.address = self.socket.accept()
         with self.connection:
             print('Connected by', self.address)
             print("Connected by: EEG_Socket : "+str(round(time() * 1000))+"ms")
-            exp_count = run_time *2
+            exp_count = run_time * 2
             init_time = time()
             time_func = (lambda: (self.count < exp_count) and (time() - init_time < run_time + 1)) if run_time else (
                 lambda: True)

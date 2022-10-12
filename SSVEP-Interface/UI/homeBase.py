@@ -94,7 +94,4 @@ class AThread(QThread):
                         self.toggleSig.emit()
                     
             except EOFError:
-                    continue
-
-
-    
+                continue

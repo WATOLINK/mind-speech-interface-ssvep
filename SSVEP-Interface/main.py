@@ -19,8 +19,6 @@ import socket
 import pickle
 
 
-
-
 class Window(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -59,22 +57,15 @@ class Window(QMainWindow):
     #         print('Not connected to server')
 
 
-
-def stimOnsetOffset():
-    
-
+def create_ui_socket():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('127.0.0.1', 32111))
     s.listen(1)
-    
+    return s
 
-    time.sleep(2)
-    clientsocket, address = s.accept()
-    #print("")
-    #print("")
-    #print("accepted")
-    #print("")
-    #print("")
+
+def stimOnsetOffset(s, window):
+    client_socket, _ = s.accept()
     mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
     enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
     while True:
@@ -95,7 +86,7 @@ def stimOnsetOffset():
         #print("")
 
         encoded = pickle.dumps(x)
-        clientsocket.send(encoded)
+        client_socket.send(encoded)
 
         printStatus()
         time.sleep(5)
@@ -112,11 +103,10 @@ def stimOnsetOffset():
         setStimuliStatus('off')
 
         encoded = pickle.dumps(x)
-        clientsocket.send(encoded)
+        client_socket.send(encoded)
 
         printStatus()
         time.sleep(5)
-
 
 
 def webAppSocket():
@@ -141,26 +131,28 @@ def webAppSocket():
     asyncio.run(startServer())
 
 
-
-def mainGUIFunc():
-
-
-    global stopThread
-    stopThread = False
-    x = threading.Thread(target=stimOnsetOffset)
-    x.start()
-
+def startWebSocketThread():
     # Thread for web app websocket
     threading.Thread(target=webAppSocket).start()
 
-    app = QApplication(sys.argv)
-    global window
+
+def create_window():
     window = Window()
     window.setStyleSheet(windowStyle)
-
-
-
     window.show()
+    return window
+
+
+def mainGUIFunc(client_socket):
+    global stopThread
+    stopThread = False
+    app = QApplication(sys.argv)
+    window = create_window()
+
+    threading.Thread(target=stimOnsetOffset, args=(client_socket, window,)).start()
+
+    # Thread for web app websocket
+    threading.Thread(target=webAppSocket).start()
 
     try:
         sys.exit(app.exec_())
