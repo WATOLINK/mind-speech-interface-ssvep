@@ -42,9 +42,6 @@ def OutputMenuUpper(parent):
         lambda: disableOtherButtons(buttons, buttons[1]))
     # buttons[2].clicked.connect(
     #     lambda: disableOtherButtons(buttons, buttons[2]))
-    print("")
-    print("ahhh")
-    print("")
 
     outputMode.setLayout(layout)
     return outputMode

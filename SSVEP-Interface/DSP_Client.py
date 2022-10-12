@@ -59,14 +59,16 @@ class EEGSocketListener:
     def open_socket_conn(self):
         self.lisSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.lisSocket.connect((self.host, self.lisPort))
+        print(f"listening on {self.host}:{self.lisPort}")
 
         self.lisSocketUI = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.lisSocketUI.connect((self.host, self.lisPortUI))
+        print(f"listening on {self.host}:{self.lisPortUI}")
 
         self.pubSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.pubSocket.bind((self.host, self.pubPort))
         self.pubSocket.listen(1)
-        print("listening")
+        print(f"publishing on {self.host}:{self.pubPort}")
 
     def close_socket_conn(self):
         self.lisSocket.close()
@@ -75,7 +77,6 @@ class EEGSocketListener:
 
     def recieve_packet(self):
         # the size of the input data = num elements * 8 bytes + 500 for leeway
-
         try:
             sample = self.lisSocket.recv(1000000000)
                 # self.input_len * self.num_channels * 8 + 50000)
@@ -96,12 +97,11 @@ class EEGSocketListener:
                 print(self.UIDict)
                 print(f"PRINTING UIDict FROM FUNC: {self.UIDict}")
                 self.dictionary["page"] = self.UIDict['current page']
-            except EOFError as e:
-                # print("No dict received from UI")
-                print(e)
-
+            except EOFError:
+                break
             if self.UIDict is None:
                 print("no dict received from UI")
+        self.close_socket_conn()
 
 
     def send_packet(self, sample):

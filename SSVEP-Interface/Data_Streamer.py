@@ -17,10 +17,6 @@
         TEST_DATA.csv in /EEG-Streamer/ directory is the output CSV from DSP_Client.py
 """
 import argparse
-import threading
-# from unittest import main
-# from SSVEP-Interface.InteractionTestDemo import mainFuncTest
-#from test_onoff_mechanism import testOnsetOffset
 import pandas as pd
 from brainflow.board_shim import BrainFlowInputParams
 from multiprocessing import Process, Queue, Barrier
@@ -29,14 +25,9 @@ import serial.tools.list_ports as p
 
 from DSP_Client import EEGSocketListener
 from EEG_socket_publisher import EEGSocketPublisher
-# import sys
-# sys.path.append("SSVEP-Interface")
-# sys.path.append("SSVEP-Interface")
-# from InteractionTestDemo import mainFuncTest
 from time import time, sleep
-from main import mainGUIFunc
-from UI.status import getStatus
-import socket
+from main import mainGUIFunc, create_ui_socket
+
 
 def Cyton_Board_Config(args):
     ports = p.comports()
@@ -86,12 +77,12 @@ def CSV(data, col):
 
 
 def Streamer(publisher, synch, q, info):
-    publisher.open_connections(board_id=info[0], board_params=info[1], streamer_params=info[2])
+    publisher.open_board_conn(board_id=info[0], board_params=info[1], streamer_params=info[2])
     if publisher.board.get_board_id() == 0 or publisher.board.get_board_id() == 2:
         publisher.col_low_lim = 1
         publisher.col_hi_lim = 9
     synch.wait()
-    print("Elapsed Time Streamer Process: "+str(round(time() * 1000))+"ms")
+    print(f"Elapsed Time Streamer Process: {time() * 1000} ms")
     publisher.publish(99999999999)
     if q.get() is None:
         publisher.close_connections()
@@ -99,9 +90,8 @@ def Streamer(publisher, synch, q, info):
    
 
 def DSP(listener, synch, q):
-    listener.open_socket_conn()
     synch.wait()
-    print("Elapsed Time DSP Process: "+str(round(time() * 1000))+"ms")
+    print(f"Elapsed Time DSP Process: {time() * 1000} ms")
     listener.listen()
     q.put(None)
     if q.get() is None:
@@ -136,6 +126,7 @@ def get_args(parser):
     parser.add_argument('--components', type=int, help='Number of components for CCA', required=False, default=1)
     return parser.parse_known_args()
 
+
 if __name__ == "__main__":
     sleepTime = 0.25
 
@@ -144,16 +135,19 @@ if __name__ == "__main__":
     info = Cyton_Board_Config(args)
 
     publisher = EEGSocketPublisher(args)
+    publisher.open_socket_conn()
+    client_socket = create_ui_socket()
     listener = EEGSocketListener(args)
+    listener.open_socket_conn()
 
     q = Queue()
     synch = Barrier(2)
-    sys_processes = [Process(target=mainGUIFunc, name="App"),
-                     Process(target=Streamer, args=(publisher, synch, q, info), name="Streamer"),
-                     Process(target=DSP, args=(listener, synch, q,), name="Dsp Client"),
-                     ]
+    sys_processes = [
+        Process(target=mainGUIFunc, args=(client_socket,), name="App"),
+        Process(target=Streamer, args=(publisher, synch, q, info), name="Streamer"),
+        Process(target=DSP, args=(listener, synch, q,), name="Dsp Client"),
+    ]
 
-    
     for process in sys_processes:
         process.start()
         sleep(sleepTime)
