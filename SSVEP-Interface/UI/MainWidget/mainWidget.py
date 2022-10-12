@@ -62,7 +62,6 @@ class MainContainer(QWidget):
         self.myThread.helpPageSig.connect(self.onHelpPage)
         self.myThread.voicePageSig.connect(self.onVoice)
         self.myThread.twitterPageSig.connect(self.onTwitter)
-        # self.myThread.visCommPageSig.connect(self.onVisComm)
 
         self.myThread.keyboardPageSig.connect(self.onOutputKeyboard)
         self.myThread.ynPageSig.connect(self.onOutputYN)
@@ -96,9 +95,6 @@ class MainContainer(QWidget):
 
     def onTwitter(self):
         outputTwitter(self)
-
-    # def onVisComm(self):
-    #     outputVisComm(self)
 
     def onOutputYN(self):
         outputYN(self)

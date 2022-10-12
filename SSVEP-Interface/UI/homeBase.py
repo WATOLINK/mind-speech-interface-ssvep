@@ -20,7 +20,6 @@ class AThread(QThread):
 
     voicePageSig = pyqtSignal()
     twitterPageSig = pyqtSignal()
-    visCommPageSig = pyqtSignal()
 
     keyboardPageSig = pyqtSignal()
     ynPageSig = pyqtSignal()
@@ -52,12 +51,10 @@ class AThread(QThread):
                     self.enterButtonSig.emit()
 
                 if page == "Output Menu Page":
-                    if freq == 13.75:
+                    if freq == 10.75:
                         self.twitterPageSig.emit()
-                    elif freq == 11.75:
-                        self.voicePageSig.emit()
                     elif freq == 9.75:
-                        self.visCommPageSig.emit()
+                        self.voicePageSig.emit()
                     elif freq == 14.25:
                         self.helpPageSig.emit()
 

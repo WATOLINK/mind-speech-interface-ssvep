@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.cross_decomposition import CCA
 from sklearn.metrics import confusion_matrix, accuracy_score
 from typing import List
-from eeg_ai_layer.models.utils import filterbank, iir_notch_filter
+from eeg_ai_layer.models.utils import filterbank, iir_notch_filter, softmax
 from scipy.stats import pearsonr
 from tqdm import trange
 
@@ -107,9 +107,9 @@ class FBCCA:
                     r[frequency_band, frequ] = r_tmp
             rho = np.dot(self.fb_coefs, r)  # weighted sum of r from all different filter banks' result
             tau = np.argmax(rho)  # get maximum from the target as the final predict (get the index)
-            confidence[segment] = np.max(rho)
+            confidence[segment] = np.max(softmax(rho))
             results[segment] = tau  # index indicate the maximum(most possible) target
-        print(rho)
+        print(softmax(rho))
         print(self.frequencies)
         print(f"confidence: {confidence[0]}")
         return results

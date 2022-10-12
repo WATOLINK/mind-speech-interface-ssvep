@@ -22,9 +22,8 @@ STIMULI_SIZE = 200
 MAIN_STIM_FREQUENCIES = { 
     'Enter': 8.25,
 
-    'Output Menu 1': 13.75,
+    'Output Menu 1': 10.75,
     'Output Menu 2': 11.75,
-    'Output Menu 3': 9.75,
     'Output Menu Help': 14.25,
 
     'Keyboard YN Menu 1': 12.75,

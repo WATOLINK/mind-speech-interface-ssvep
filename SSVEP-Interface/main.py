@@ -15,6 +15,7 @@ from UI.status import printStatus, setStimuliStatus
 
 import threading
 import time
+from datetime import datetime
 import socket
 import pickle
 
@@ -58,6 +59,7 @@ def stimOnsetOffset(s, window):
     mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
     enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
     while True:
+        print(f"UI Stim Iteration: {datetime.now()}")
         if stopThread:
             break
 
@@ -114,19 +116,16 @@ def webAppSocket(window):
     asyncio.run(startServer())
 
 
-def startWebSocketThread():
-    # Thread for web app websocket
-    threading.Thread(target=webAppSocket).start()
-
-
 def create_window():
     window = Window()
     window.setStyleSheet(windowStyle)
     window.show()
+    print(f"window shown: {datetime.now()}")
     return window
 
 
-def mainGUIFunc(client_socket):
+def mainGUIFunc(client_socket, synch):
+    # synch.wait()
     global stopThread
     stopThread = False
     app = QApplication(sys.argv)
