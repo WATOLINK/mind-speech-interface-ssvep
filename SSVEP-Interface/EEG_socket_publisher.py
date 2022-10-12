@@ -81,6 +81,7 @@ class EEGSocketPublisher:
                 if self.board.get_board_data_count() >= self.input_len:
                     packet = self.retrieve_sample()
                     self.send_packet(packet)
+                    print("packet sent")
                     
             self.connection.sendall(pickle.dumps(None))
             

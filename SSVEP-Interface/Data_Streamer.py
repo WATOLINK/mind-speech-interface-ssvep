@@ -91,12 +91,13 @@ def Streamer(publisher, synch, q, info):
 
 def DSP(listener, synch, q):
     synch.wait()
-    print(f"Elapsed Time DSP Process: {time() * 1000} ms")
-    listener.listen()
-    q.put(None)
-    if q.get() is None:
+    print("Elapsed Time DSP Process: "+str(round(time() * 1000))+"ms")
+    try:
+        listener.listen()
+    finally:
         listener.close_socket_conn()
-    listener.generate_csv()
+        print("generating")
+        listener.generate_csv()
     
 
 def get_args(parser):
@@ -115,14 +116,14 @@ def get_args(parser):
     parser.add_argument('--lisPort', type=int, help='lis port', required=False, default=65432)
     parser.add_argument('--lisPortUI', type=int, help='lis port UI', required=False, default=32111)
     parser.add_argument('--num-channels', type=int, help='number of channels', required=False, default=8)
-    parser.add_argument('--input-len', type=int, help='input size', required=False, default=250)
+    parser.add_argument('--input-len', type=int, help='input size', required=False, default=1250)
     parser.add_argument('--output-size', type=int, help='output size', required=False, default=1)
     parser.add_argument('--model-type', type=str, help='model type (CCA-KNN)', required=False, default='cca_knn')
     parser.add_argument('--model-path', type=str, help='path for saved model', required=False, default=None)
     parser.add_argument('--pubPort', type=int, help='publisher port', required=False, default=55432)
     parser.add_argument('--window-length', type=int, help='window size (s)', required=False, default=5)
     parser.add_argument('--shift-length', type=int, help='shift length', required=False, default=1)
-    parser.add_argument('--sample-rate', type=int, help='sample rate', required=False, default=250)
+    parser.add_argument('--sample-rate', type=int, help='sample rate', required=False, default=1250)
     parser.add_argument('--components', type=int, help='Number of components for CCA', required=False, default=1)
     return parser.parse_known_args()
 

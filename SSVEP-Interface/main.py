@@ -23,17 +23,6 @@ class Window(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        #TODO: fix server comm integration
-        # SocketIO connection
-        # self.connected = False
-        # self.sio = socketio.Client()
-        # try:
-        #     self.sio.connect('http://127.0.0.1:5000')
-        #     print("Connected")
-        #     self.connected = True
-        # except socketio.exceptions.ConnectionError as err:
-        #     print("ConnectionError:", err)
-
         self.generalLayout = QVBoxLayout()
         self.generalLayout.setAlignment(Qt.AlignCenter)
 
@@ -70,9 +59,8 @@ def stimOnsetOffset(s, window):
     enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
     while True:
         if stopThread:
-            #print("Exiting Stim Controller ...")
             break
-        #print("STIM ONSET OFFSET THREAT")
+
         #ONSET
         currWidget = mainStack.currentWidget()
         enterButton.stimuli.toggleOn()
@@ -81,10 +69,6 @@ def stimOnsetOffset(s, window):
         setStimuliStatus('on')
         x = getStatus()
         
-        #print("")
-        #print("UI STATUS SENT")
-        #print("")
-
         encoded = pickle.dumps(x)
         client_socket.send(encoded)
 
@@ -92,7 +76,6 @@ def stimOnsetOffset(s, window):
         time.sleep(5)
 
         if stopThread:
-            #print("exiting stim controller thread")
             break
 
         # OFFSET
@@ -109,7 +92,7 @@ def stimOnsetOffset(s, window):
         time.sleep(5)
 
 
-def webAppSocket():
+def webAppSocket(window):
     async def server(websocket):
         print("Client Connected")
         while True:
@@ -152,7 +135,7 @@ def mainGUIFunc(client_socket):
     threading.Thread(target=stimOnsetOffset, args=(client_socket, window,)).start()
 
     # Thread for web app websocket
-    threading.Thread(target=webAppSocket).start()
+    threading.Thread(target=webAppSocket, args=(window,)).start()
 
     try:
         sys.exit(app.exec_())

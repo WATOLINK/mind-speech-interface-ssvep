@@ -62,7 +62,7 @@ class MainContainer(QWidget):
         self.myThread.helpPageSig.connect(self.onHelpPage)
         self.myThread.voicePageSig.connect(self.onVoice)
         self.myThread.twitterPageSig.connect(self.onTwitter)
-        self.myThread.visCommPageSig.connect(self.onVisComm)
+        # self.myThread.visCommPageSig.connect(self.onVisComm)
 
         self.myThread.keyboardPageSig.connect(self.onOutputKeyboard)
         self.myThread.ynPageSig.connect(self.onOutputYN)
@@ -97,8 +97,8 @@ class MainContainer(QWidget):
     def onTwitter(self):
         outputTwitter(self)
 
-    def onVisComm(self):
-        outputVisComm(self)
+    # def onVisComm(self):
+    #     outputVisComm(self)
 
     def onOutputYN(self):
         outputYN(self)
@@ -203,15 +203,15 @@ def outputVoice(self):
     # print(buttons[1])
     
 
-def outputVisComm(self):
-    main = self.findChild(QStackedWidget, "Main Widget")
-    outputMenu = main.findChild(QWidget, "Output Menu Page")
-    upperMenu = outputMenu.findChild(QWidget, "Upper Menu")
+# def outputVisComm(self):
+#     main = self.findChild(QStackedWidget, "Main Widget")
+#     outputMenu = main.findChild(QWidget, "Output Menu Page")
+#     upperMenu = outputMenu.findChild(QWidget, "Upper Menu")
 
-    buttons = upperMenu.findChildren(ButtonContainer)
+#     buttons = upperMenu.findChildren(ButtonContainer)
 
-    buttons[2].setChecked(True)
-    disableOtherButtons(buttons, buttons[2])
+#     buttons[2].setChecked(True)
+#     disableOtherButtons(buttons, buttons[2])
 
 def outputTwitter(self):
     main = self.findChild(QStackedWidget, "Main Widget")

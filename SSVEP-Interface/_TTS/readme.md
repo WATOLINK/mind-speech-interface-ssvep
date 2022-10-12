@@ -1,6 +1,9 @@
 # Watolink_TTS
+
 Watolink_TTS is a class that provides methods to train and use a coqui AI TTS model
+
 # Notes:
+
 1. run with python3.8 or greater since coqui is only installed in python 3.8
 2. relevant doc info: https://tts.readthedocs.io/en/latest/inference.html
 3. adapted from synthesize.py: https://github.com/coqui-ai/TTS/blob/dev/TTS/bin/synthesize.py
@@ -8,24 +11,27 @@ Watolink_TTS is a class that provides methods to train and use a coqui AI TTS mo
 5. install pytorch with cuda if training is not using GPU
 
 # Installation
+
 1. Install Visual Studio C++ build tools, select **Desktop development with C++** (note: on mac you need to install c++ build tools with xcode)
 2. `pip install TTS`
 3. `pip install simpleaudio`
 4. Download prebuilt TTS model for coqui AI in the CLI
+
 ```
-tts --text "Text for TTS" --model_name "tts_models/en/ljspeech/tacotron2-DDC"]
+tts --text "Text for TTS" --model_name "tts_models/en/ljspeech/tacotron2-DDC"
 ```
 
 **Errors:**
 If encountering any install errors, such as "ERROR: Invalid requirement: 'simpleaudio\x83", try the following:
+
 ```
 pip install -U pip
 pip uninstall setuptools
 pip install 'setuptools<20.2'
 ```
 
-
 # Example usage:
+
 First, import everything from watolink_TTS
 
     from watolink_TTS import *
@@ -52,7 +58,7 @@ Lastly, you generate speech from text by simply calling the synthesize() method:
 
     # audio is generated and delete in realtime if not specify out_path
     jj.synthesize(text = "dame dane")
-    
+
     # specify out_path to save audio to storage
     jj.synthesize(text = "hi my name is jeff", out_path = "jeff.wav")
     jj.synthesize(text = "omae wa mo shindeiru", out_path = "watolink_meme.wav")

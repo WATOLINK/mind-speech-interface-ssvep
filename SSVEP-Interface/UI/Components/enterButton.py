@@ -48,8 +48,6 @@ def submitAndReturn(self,parent):
         elif getOutputMode() == "Voice":
                 print("voice not yet implemented")
                 TTS.synthesize(text = inputField.text())
-        elif getOutputMode() == "Visual":
-                print("visual not yet implemented")
 
         inputField.clear()
 
@@ -66,7 +64,7 @@ def submitAndReturn(self,parent):
 
 def navigateFromOutputMode(parent):
     
-    labels = ['Use Twitter','Use Voice','Use Visual Communication']
+    labels = ['Use Twitter','Use Voice']
     mainButtons = [parent.findChild(ButtonContainer,label) for label in labels]
 
     print("clicked")
@@ -79,9 +77,6 @@ def navigateFromOutputMode(parent):
             elif button.label.text() == labels[1]:
                 # print("going to Voice")
                 setOutputMode("Voice")
-            elif button.label.text() == labels[2]:
-                # print("going to Visual Communication")
-                setOutputMode("Visual")
 
             button.setChecked(False)
             changeStacks(parent,getMainWidgetIndex("Keyboard YN Menu Page"))

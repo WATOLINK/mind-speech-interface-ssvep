@@ -38,6 +38,8 @@ class EEGSocketListener:
     UIDict = None       # Dict from UI with onset offset mechanism info
 
     dictionary = None
+    
+    csvData = None
 
     def __init__(self, args):
         self.host = args.host
@@ -55,6 +57,7 @@ class EEGSocketListener:
         self.model = load_model(args)
 
         self.dictionary = {'freq': 0.0, 'page': "Output Menu Page"}
+        self.csvData = []
 
     def open_socket_conn(self):
         self.lisSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -81,6 +84,8 @@ class EEGSocketListener:
             sample = self.lisSocket.recv(1000000000)
                 # self.input_len * self.num_channels * 8 + 50000)
             sample = pickle.loads(sample)
+            self.csvData.append(sample)
+            # print(self.csvData.shape)
         except EOFError as e:
             # print(e)
             pass
@@ -154,7 +159,7 @@ class EEGSocketListener:
                     self.data = None
         self.close_socket_conn()
 
-    def generate_csv(self, name="fullOBCI"):
-        df = pd.DataFrame(data=self.data, columns=list(range(1, 9)))
+    def generate_csv(self, name="fullOBCI_1"):
+        df = pd.DataFrame(data=self.csvData, columns=list(range(1, 9)))
         print(f'{name}.csv Generated')
         df.to_csv(f'{name}.csv')
