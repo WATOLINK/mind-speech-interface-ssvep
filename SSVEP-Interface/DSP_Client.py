@@ -82,22 +82,22 @@ class EEGSocketListener:
     def recieve_packet(self):
         # the size of the input data = num elements * 8 bytes + 500 for leeway
         try:
-            sample = self.lisSocket.recv(1000000000)
-            sample = pickle.loads(sample)
+            full_msg = b""
+            while len(full_msg) < 180162:
+                full_msg += self.lisSocket.recv(1000000000)
+            sample = pickle.loads(full_msg)
 
-            pizza_time = sample[:, [0,1,2,3,4,5,6,7,17]]
+            pizza_time = sample[:, [0, 1, 2, 3, 4, 5, 6, 7, 17]]
             sample = sample[:, :8]
 
-            # sample = np.hstack((samp,timestamp.T))
             if self.csvData is None:
                 self.csvData = pizza_time
             else:
                 self.csvData = np.vstack((self.csvData, pizza_time))
-            print(self.csvData.shape)
-            
+
         except EOFError:
-            # print(e)
-            pass
+            self.close_socket_conn()
+            return
 
         if sample is None:
             print("COLLECTION COMPLETE")
@@ -106,8 +106,10 @@ class EEGSocketListener:
     def recieve_packet_UI(self):
         while True:
             try:
-                UIDictSerial = self.lisSocketUI.recv(1024)
-                self.UIDict = pickle.loads(UIDictSerial)
+                full_msg = b""
+                while len(full_msg) < 101:
+                    full_msg += self.lisSocketUI.recv(1024)
+                self.UIDict = pickle.loads(full_msg)
                 print(self.UIDict)
                 print(f"PRINTING UIDict FROM FUNC: {self.UIDict}")
                 self.dictionary["page"] = self.UIDict['current page']
@@ -116,7 +118,6 @@ class EEGSocketListener:
             if self.UIDict is None:
                 print("no dict received from UI")
         self.close_socket_conn()
-
 
     def send_packet(self, sample):
         self.connection.sendall(pickle.dumps(sample))
@@ -144,8 +145,6 @@ class EEGSocketListener:
         while time_func:
             packet = self.recieve_packet()
             if self.UIDict["stimuli"] == "on":
-                #packet = self.recieve_packet()
-
                 if packet is None:
                     break
                 
@@ -153,7 +152,7 @@ class EEGSocketListener:
                     self.data = packet
                 else:
                     self.data = np.concatenate((self.data, packet), axis=0)
-                print(np.sum(np.isnan(self.data)), self.data.shape)
+
                 if self.data.shape[0] == self.sample_rate * self.window_length:
                     sample = np.expand_dims(self.data, axis=0)
                     prepared = self.model.prepare(sample)
@@ -168,13 +167,14 @@ class EEGSocketListener:
                     self.data = None
         self.close_socket_conn()
 
-    def generate_csv(self, name="fullOBCI_6"):
-        print(self.csvData[:, -1])
-        df = pd.DataFrame(data=self.csvData)
-        # df['']
-        print(f'{name}.csv Generated')
-        files = glob.glob("*.csv")
-        files.sort()
-        print(files)
-        name = f"{files[-1][:-5]}{int(files[-1][-5]) + 1}.csv"
-        df.to_csv(name, index=False)
+    def generate_csv(self, name="online_data/fullOBCI_1.csv"):
+        if self.csvData is None:
+            print(f"Can't save online session because no data was collected!")
+        else:
+            os.makedirs("online_data", exist_ok=True)
+            df = pd.DataFrame(data=self.csvData)
+            files = glob.glob("online_data/*.csv")
+            if files:
+                files.sort()
+                name = f"{files[-1][:-5]}{int(files[-1][-5]) + 1}.csv"
+            df.to_csv(name, index=False)

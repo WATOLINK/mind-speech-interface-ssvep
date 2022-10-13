@@ -1,9 +1,7 @@
 import socket
 from brainflow.board_shim import BoardShim
-import numpy as np
 import pickle
 from time import time
-import pandas as pd
 
 
 class EEGSocketPublisher:
@@ -28,7 +26,6 @@ class EEGSocketPublisher:
 
         self.input_len = args.input_len
         self.num_channels = args.num_channels
-        self.csv_count = 0
 
     def open_socket_conn(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -58,16 +55,7 @@ class EEGSocketPublisher:
         self.close_board_conn()
 
     def retrieve_sample(self):
-        # self.col_hi_lim = r.randint(2,8)
-        sample = self.board.get_board_data(self.input_len).T[:, self.col_low_lim:18]
-        df = pd.DataFrame(data=sample)
-        df.to_csv(f"susswuss/sussywussy_{self.csv_count}.csv", index=False)
-        self.csv_count += 1
-
-        # assert type(sample) == np.ndarray, f"Not a Numpy ND Array {type(sample), sample}"
-        # assert sample.shape == (self.input_len, self.num_channels), \
-        #     f"Incorrect Shape, Expected: {(self.input_len, self.num_channels)}, Recieved: {sample.shape}"
-        return sample
+        return self.board.get_board_data(self.input_len).T[:, self.col_low_lim:18]
 
     def send_packet(self, sample):
         self.connection.sendall(pickle.dumps(sample))
@@ -76,13 +64,12 @@ class EEGSocketPublisher:
     def publish(self, run_time=None):
         self.connection, self.address = self.socket.accept()
         with self.connection:
-            print('Connected by', self.address)
-            print("Connected by: EEG_Socket : "+str(round(time() * 1000))+"ms")
+            print(f'Connected by {self.address}')
+            print(f"Connected by: EEG_Socket: {time() * 1000:.0f} ms")
             exp_count = run_time * 2
             init_time = time()
             time_func = (lambda: (self.count < exp_count) and (time() - init_time < run_time + 1)) if run_time else (
                 lambda: True)
-            init_time = round(init_time * 1000)
             while time_func():
                 if self.board.get_board_data_count() >= self.input_len:
                     packet = self.retrieve_sample()
@@ -90,4 +77,3 @@ class EEGSocketPublisher:
                     print("packet sent")
                     
             self.connection.sendall(pickle.dumps(None))
-    
