@@ -1,6 +1,5 @@
 import sys
 import asyncio
-import socket
 import websockets
 from PyQt5.QtCore import center, Qt
 
@@ -16,8 +15,8 @@ from UI.status import printStatus, setStimuliStatus
 import threading
 import time
 from datetime import datetime
+from socket_utils import socket_send
 import socket
-import pickle
 
 
 class Window(QMainWindow):
@@ -71,8 +70,7 @@ def stimOnsetOffset(s, window):
         setStimuliStatus('on')
         x = getStatus()
         
-        encoded = pickle.dumps(x)
-        client_socket.send(encoded)
+        socket_send(sending_socket=client_socket, data=x)
 
         printStatus()
         time.sleep(5)
@@ -87,8 +85,7 @@ def stimOnsetOffset(s, window):
             button.stimuli.toggleOff()
         setStimuliStatus('off')
 
-        encoded = pickle.dumps(x)
-        client_socket.send(encoded)
+        socket_send(sending_socket=client_socket, data=x)
 
         printStatus()
         time.sleep(5)

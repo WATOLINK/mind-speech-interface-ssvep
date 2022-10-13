@@ -8,6 +8,7 @@ from time import time
 from collections import Counter
 import threading
 import glob
+from socket_utils import socket_receive
 
 path = os.getcwd()
 head, tail = os.path.split(path)
@@ -79,45 +80,31 @@ class EEGSocketListener:
         self.pubSocket.close()
         self.lisSocketUI.close()
 
-    def recieve_packet(self):
-        # the size of the input data = num elements * 8 bytes + 500 for leeway
-        try:
-            full_msg = b""
-            while len(full_msg) < 180162:
-                full_msg += self.lisSocket.recv(1000000000)
-            sample = pickle.loads(full_msg)
-
-            pizza_time = sample[:, [0, 1, 2, 3, 4, 5, 6, 7, 17]]
-            sample = sample[:, :8]
-
-            if self.csvData is None:
-                self.csvData = pizza_time
-            else:
-                self.csvData = np.vstack((self.csvData, pizza_time))
-
-        except EOFError:
+    def receive_packet(self):
+        sample = socket_receive(self.lisSocket)
+        if sample is None:
             self.close_socket_conn()
             return
+        pizza_time = sample[:, [0, 1, 2, 3, 4, 5, 6, 7, 17]]
+        sample = sample[:, :8]
 
-        if sample is None:
-            print("COLLECTION COMPLETE")
+        if self.csvData is None:
+            self.csvData = pizza_time
+        else:
+            self.csvData = np.vstack((self.csvData, pizza_time))
         return sample
 
-    def recieve_packet_UI(self):
-        while True:
-            try:
-                full_msg = b""
-                while len(full_msg) < 101:
-                    full_msg += self.lisSocketUI.recv(1024)
-                self.UIDict = pickle.loads(full_msg)
-                print(self.UIDict)
-                print(f"PRINTING UIDict FROM FUNC: {self.UIDict}")
-                self.dictionary["page"] = self.UIDict['current page']
-            except EOFError:
-                break
-            if self.UIDict is None:
-                print("no dict received from UI")
-        self.close_socket_conn()
+    def receive_packet_UI(self):
+        message = socket_receive(self.lisSocketUI)
+        if message is None:
+            self.close_socket_conn()
+            return
+        self.UIDict = message
+        if self.UIDict is None:
+            print("no dict received from UI")
+        else:
+            self.dictionary["page"] = self.UIDict['current page']
+        # self.close_socket_conn()
 
     def send_packet(self, sample):
         self.connection.sendall(pickle.dumps(sample))
@@ -129,8 +116,6 @@ class EEGSocketListener:
         init_time = time()
         time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
 
-        init_slider_count = 0
-
         # Create and start thread
         self.UIDict = {
             'stimuli': 'off',
@@ -138,12 +123,11 @@ class EEGSocketListener:
             'previous page': '',
             'output mode': ''
         }
-        UIthreadRecv = threading.Thread(target=self.recieve_packet_UI)
-        UIthreadRecv.start()
+        threading.Thread(target=self.receive_packet_UI).start()
         # Initializing it on 1, but it is passed onto the thread, which toggles it every 2 seconds
 
         while time_func:
-            packet = self.recieve_packet()
+            packet = self.receive_packet()
             if self.UIDict["stimuli"] == "on":
                 if packet is None:
                     break

@@ -2,6 +2,7 @@ import socket
 from brainflow.board_shim import BoardShim
 import pickle
 from time import time
+from socket_utils import socket_send
 
 
 class EEGSocketPublisher:
@@ -58,7 +59,7 @@ class EEGSocketPublisher:
         return self.board.get_board_data(self.input_len).T[:, self.col_low_lim:18]
 
     def send_packet(self, sample):
-        self.connection.sendall(pickle.dumps(sample))
+        socket_send(sending_socket=self.connection, data=sample)
         self.count += 1
 
     def publish(self, run_time=None):
@@ -77,3 +78,4 @@ class EEGSocketPublisher:
                     print("packet sent")
                     
             self.connection.sendall(pickle.dumps(None))
+        self.close_connections()
