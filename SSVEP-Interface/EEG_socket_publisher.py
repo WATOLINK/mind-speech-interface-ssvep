@@ -57,7 +57,7 @@ class EEGSocketPublisher:
         self.close_board_conn()
 
     def retrieve_sample(self):
-        return self.board.get_board_data(self.input_len).T[:, self.col_low_lim:18]
+        return self.board.get_board_data().T[:, self.col_low_lim:18]
 
     def send_packet(self, sample):
         socket_send(sending_socket=self.connection, data=sample)

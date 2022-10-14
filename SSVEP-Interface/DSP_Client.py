@@ -44,6 +44,9 @@ class EEGSocketListener:
     dictionary = None
     
     csvData = None
+    # input_size = None
+
+    
 
     def __init__(self, args):
         self.host = args.host
@@ -55,6 +58,7 @@ class EEGSocketListener:
         self.window_length = args.window_length
         self.output_size = args.output_size
         self.num_channels = args.num_channels
+        self.input_size = args.input_size
 
         self.data = None
         self.samples = 0
@@ -63,6 +67,7 @@ class EEGSocketListener:
         self.dictionary = {'freq': 0.0, 'page': "Output Menu Page"}
         self.csvData = None
 
+    
     def open_socket_conn(self):
         self.lisSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.lisSocket.connect((self.host, self.lisPort))
@@ -138,7 +143,24 @@ class EEGSocketListener:
         while time_func:
             packet = self.receive_packet()
             if self.UIDict["stimuli"] == "off":
-                self.data = None
+                
+                if self.data is not None:
+                    
+                    self.data = np.concatenate((self.data, packet), axis=0)
+                    print(self.data.shape)
+                    self.data = self.data[125:1125]
+
+                    # if self.data.shape[0] == self.sample_rate * self.window_length:
+                    sample = np.expand_dims(self.data, axis=0)
+                    prepared = self.model.prepare(sample)
+                    _, confidence = self.model.predict(prepared)
+                    print(f"Prediction made at: {datetime.now()}")
+                    frequency = self.highest_matching_frequency(confidences=confidence,
+                                                                frequencies=page_frequencies[self.UIDict['current page']])
+                    self.dictionary["freq"] = frequency
+                    self.send_packet(self.dictionary)
+                    print(f"Prediction sent at: {datetime.now()}")
+                    self.data = None
             else:
                 if packet is None:
                     break
@@ -147,18 +169,9 @@ class EEGSocketListener:
                     self.data = packet
                 else:
                     self.data = np.concatenate((self.data, packet), axis=0)
-                if self.data is not None:
-                    if self.data.shape[0] == self.sample_rate * self.window_length:
-                        sample = np.expand_dims(self.data, axis=0)
-                        prepared = self.model.prepare(sample)
-                        _, confidence = self.model.predict(prepared)
-                        print(f"Prediction made at: {datetime.now()}")
-                        frequency = self.highest_matching_frequency(confidences=confidence,
-                                                                    frequencies=page_frequencies[self.UIDict['current page']])
-                        self.dictionary["freq"] = frequency
-                        self.send_packet(self.dictionary)
-                        print(f"Prediction sent at: {datetime.now()}")
-                        self.data = None
+
+                print(self.data.shape)
+                
         self.close_socket_conn()
 
     def generate_csv(self, name="online_data/fullOBCI_1.csv"):
