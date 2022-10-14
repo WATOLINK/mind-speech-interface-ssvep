@@ -117,7 +117,7 @@ class EEGSocketListener:
         self.UIDict = {
             'stimuli': 'off',
             'current page': 'Output Menu Page',
-            'output mode': ''
+            'output mode': '',
             'on_stimulus_timestamp': None
         }
         threading.Thread(target=self.receive_packet_UI).start()
