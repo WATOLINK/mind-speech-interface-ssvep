@@ -85,10 +85,13 @@ class FBCCA:
         Make a prediction for the main frequency each signal using FBCCA.
 
         Args:
-            signals: The input ndarray of signals
+            data: The input ndarray of signals
+            frequencies: An optional subset of frequencies to predict for.
+                If none are provided, predicts on the standard frequencies defined in the class.
 
         Returns:
-            Correlations to each of the reference signals
+            Index of frequency in frequencies with the highest correlation.
+            Also returns the confidence for each of the correlations
         """
         if frequencies is None:
             frequencies = self.cca_frequencies
