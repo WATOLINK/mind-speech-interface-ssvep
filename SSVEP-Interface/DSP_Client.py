@@ -9,6 +9,7 @@ import threading
 import glob
 from socket_utils import socket_receive
 from PageFrequencies import page_frequencies
+from datetime import datetime
 
 path = os.getcwd()
 head, tail = os.path.split(path)
@@ -106,13 +107,6 @@ class EEGSocketListener:
         self.connection.sendall(pickle.dumps(sample))
         print(f'Sent {sample}')
 
-    def highest_matching_frequency(self, confidences: np.array, frequencies=None):
-        if frequencies is None:
-            frequencies = self.model.cca_frequencies
-        indices = [self.model.freq2label[freq] for freq in frequencies]
-        subset_confidence = confidences[:, indices]
-        return self.model.cca_frequencies[indices[np.argmax(subset_confidence, axis=1)[0]]]
-
     def listen(self, run_time=None):
         self.connection, self.address = self.pubSocket.accept()
         print("Connected by: DSP_Client : "+str(round(time() * 1000))+"ms")
@@ -161,13 +155,13 @@ class EEGSocketListener:
                     self.data = self.data[np.nonzero(self.data[:, -1] > off_stim_time)]
         self.close_socket_conn()
 
-    def generate_csv(self, name="online_data/fullOBCI_1.csv"):
+    def generate_csv(self, name="SSVEP-Interface/online_data/eeg.csv"):
         if self.csvData is None:
             print(f"Can't save online session because no data was collected!")
         else:
-            os.makedirs("online_data", exist_ok=True)
+            os.makedirs("SSVEP-Interface/online_data", exist_ok=True)
             df = pd.DataFrame(data=self.csvData)
-            files = glob.glob("online_data/*.csv")
+            files = glob.glob("SSVEP-Interface/online_data/*.csv")
             if files:
                 files.sort()
                 name = f"{files[-1][:-5]}{int(files[-1][-5]) + 1}.csv"

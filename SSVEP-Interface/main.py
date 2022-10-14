@@ -31,20 +31,12 @@ class Window(QMainWindow):
         self.setCentralWidget(self._centralWidget)
         self._centralWidget.setLayout(self.generalLayout)
 
-         # Make sure to pass in 'self' to the child widget for it to access parent to for methods and children
         self.mainWidget = MainContainer(self)
 
-        self.setWindowTitle('Main Window')  # Sets name of window
+        self.setWindowTitle('WATOLINK Mind Speech SSVEP Interface')  # Sets name of window
         # Adds central widget where we are going to do most of our work
         self.setCentralWidget(self.mainWidget)
         self.setGeometry(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
-
-    #TODO: fix server comm integration
-    # def emit_message(self, message, data):
-    #     if self.connected:
-    #         self.sio.emit(message, data)
-    #     else:
-    #         print('Not connected to server')
 
 
 def create_ui_socket():
@@ -83,7 +75,7 @@ def stimOnsetOffset(s, window):
         if stopThread:
             break
 
-        # ONSET
+         #ONSET
         currWidget = mainStack.currentWidget()
         enterButton.stimuli.toggleOn()
         for button in currWidget.findChildren(ButtonContainer):

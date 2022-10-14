@@ -47,13 +47,12 @@ class MainContainer(QWidget):
         mainWidget = mainStack(self)
         
         #UPPER SECTION
-        layout.addWidget(title(), 0, 0, 1, 1)
-        layout.addWidget(promptBox("What did you have for dinner last night?"), 1, 0, 1, textFieldWidth)
-        layout.addWidget(inputBox(self), 2, 0, 1, textFieldWidth)
+        layout.addWidget(promptBox("What did you have for dinner last night?"), 0, 0, 1, textFieldWidth)
+        layout.addWidget(inputBox(self), 1, 0, 1, textFieldWidth)
 
-        layout.addWidget(EnterButton(self), 0, 3, 3, width-textFieldWidth)
+        layout.addWidget(EnterButton(self), 0, 3, 2, width-textFieldWidth)
         #MIDDLE SECTION
-        layout.addWidget(mainWidget, 3, 0, 2, width)
+        layout.addWidget(mainWidget, 2, 0, 2, width)
 
         self.initUI()
 
@@ -146,14 +145,6 @@ def help(self):
     
     changeStacks(self ,getMainWidgetIndex("Help Page"))
 
-    
-def title():
-    title = QLabel("test")
-    title.setObjectName("Title")
-    title.setMaximumHeight(40)
-    return title
-
-
 def promptBox(text=""):
     prompt = QLabel(text)
     prompt.setStyleSheet(promptBoxStyle)
@@ -188,15 +179,11 @@ def outputVoice(self):
     main = self.findChild(QStackedWidget, "Main Widget")
     outputMenu = main.findChild(QWidget, "Output Menu Page")
     upperMenu = outputMenu.findChild(QWidget, "Upper Menu")
-    layout = outputMenu.findChild(QHBoxLayout, "layout")
 
     buttons = upperMenu.findChildren(ButtonContainer)
-    # for button in buttons:
-        # print(button.label.text())
-    # print(upperMenu)
+
     buttons[1].setChecked(True)
     disableOtherButtons(buttons, buttons[1])
-    # print(buttons[1])
 
 
 def outputTwitter(self):
@@ -208,7 +195,6 @@ def outputTwitter(self):
 
     buttons[0].setChecked(True)
     disableOtherButtons(buttons, buttons[0])
-    # print(buttons[0])
 
 
 def outputKeyboard(self):
@@ -289,11 +275,6 @@ def upButFour(self):
     keyboardClick(self, buttons, buttons[3])
 
 def spaceButton(self):
-    # main = self.findChild(QStackedWidget, "Main Widget")
-    # page = main.findChild(QWidget, "Keyboard Page")
-    # lowKeys = page.findChild(QWidget, "low keys")
-
-    # buttons = lowKeys.findChild(ButtonContainer)
     space(self)
     
 def toggleButton(self):
