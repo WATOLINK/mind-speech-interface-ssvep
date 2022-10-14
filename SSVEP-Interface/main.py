@@ -40,13 +40,6 @@ class Window(QMainWindow):
         self.setCentralWidget(self.mainWidget)
         self.setGeometry(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 
-    #TODO: fix server comm integration
-    # def emit_message(self, message, data):
-    #     if self.connected:
-    #         self.sio.emit(message, data)
-    #     else:
-    #         print('Not connected to server')
-
 
 def create_ui_socket():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

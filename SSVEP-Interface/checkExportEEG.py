@@ -1,6 +1,6 @@
 import pandas as pd
 
-data = pd.read_csv("./sussywussy_12.csv")
+data = pd.read_csv(".online_data/eeg.csv")
 
 total = 0
 prev_row = None
