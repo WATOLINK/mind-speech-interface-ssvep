@@ -183,3 +183,6 @@ def filterbank(eeg, sample_rate, idx_fb=0):
                 y[ch_i, :, trial_i] = scipy.signal.filtfilt(B, A, eeg[ch_i, :, trial_i], padtype='odd',
                                                             padlen=3 * (max(len(B), len(A)) - 1))
     return y
+
+def softmax(x):
+    return np.exp(x) / sum(np.exp(x))

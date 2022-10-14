@@ -116,14 +116,14 @@ def get_args(parser):
     parser.add_argument('--lisPort', type=int, help='lis port', required=False, default=65432)
     parser.add_argument('--lisPortUI', type=int, help='lis port UI', required=False, default=32111)
     parser.add_argument('--num-channels', type=int, help='number of channels', required=False, default=8)
-    parser.add_argument('--input-len', type=int, help='input size', required=False, default=1250)
+    parser.add_argument('--input-len', type=int, help='input size', required=False, default=1000)
     parser.add_argument('--output-size', type=int, help='output size', required=False, default=1)
-    parser.add_argument('--model-type', type=str, help='model type (CCA-KNN)', required=False, default='cca_knn')
+    parser.add_argument('--model-type', type=str, help='model type', required=False, default='fbcca')
     parser.add_argument('--model-path', type=str, help='path for saved model', required=False, default=None)
     parser.add_argument('--pubPort', type=int, help='publisher port', required=False, default=55432)
-    parser.add_argument('--window-length', type=int, help='window size (s)', required=False, default=5)
-    parser.add_argument('--shift-length', type=int, help='shift length', required=False, default=1)
-    parser.add_argument('--sample-rate', type=int, help='sample rate', required=False, default=1250)
+    parser.add_argument('--window-length', type=int, help='window size (s)', required=False, default=4)
+    parser.add_argument('--shift-length', type=int, help='shift length (s)', required=False, default=1)
+    parser.add_argument('--sample-rate', type=int, help='sample rate (hz)', required=False, default=250)
     parser.add_argument('--components', type=int, help='Number of components for CCA', required=False, default=1)
     return parser.parse_known_args()
 
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     q = Queue()
     synch = Barrier(2)
     sys_processes = [
-        Process(target=mainGUIFunc, args=(client_socket,), name="App"),
+        Process(target=mainGUIFunc, args=(client_socket, synch,), name="App"),
         Process(target=Streamer, args=(publisher, synch, q, info), name="Streamer"),
         Process(target=DSP, args=(listener, synch, q,), name="Dsp Client"),
     ]

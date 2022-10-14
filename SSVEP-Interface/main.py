@@ -12,9 +12,11 @@ from UI.styles import windowStyle
 
 from UI.Components.button_container import ButtonContainer#, buttonClickNoise
 from UI.status import printStatus, setStimuliStatus
+from UI.UI_DEFS import WINDOW_HEIGHT, WINDOW_WIDTH
 
 import threading
 import time
+from datetime import datetime
 import socket
 import pickle
 
@@ -36,7 +38,7 @@ class Window(QMainWindow):
         self.setWindowTitle('Main Window')  # Sets name of window
         # Adds central widget where we are going to do most of our work
         self.setCentralWidget(self.mainWidget)
-        self.setGeometry(0, 0, 2400, 1340)
+        self.setGeometry(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 
     #TODO: fix server comm integration
     # def emit_message(self, message, data):
@@ -61,7 +63,25 @@ def stimOnsetOffset(s, window):
         if stopThread:
             break
 
-        #ONSET
+        # OFFSET
+        currWidget = mainStack.currentWidget()
+        enterButton.stimuli.toggleOff()
+        for button in currWidget.findChildren(ButtonContainer):
+            button.stimuli.toggleOff()
+        setStimuliStatus('off')
+        x = getStatus()
+
+        print(f"OFF STIMULUS: {datetime.now()}")
+        encoded = pickle.dumps(x)
+        client_socket.send(encoded)
+
+        printStatus()
+        time.sleep(5)       
+
+        if stopThread:
+            break
+
+         #ONSET
         currWidget = mainStack.currentWidget()
         enterButton.stimuli.toggleOn()
         for button in currWidget.findChildren(ButtonContainer):
@@ -69,22 +89,7 @@ def stimOnsetOffset(s, window):
         setStimuliStatus('on')
         x = getStatus()
         
-        encoded = pickle.dumps(x)
-        client_socket.send(encoded)
-
-        printStatus()
-        time.sleep(5)
-
-        if stopThread:
-            break
-
-        # OFFSET
-        currWidget = mainStack.currentWidget()
-        enterButton.stimuli.toggleOff()
-        for button in currWidget.findChildren(ButtonContainer):
-            button.stimuli.toggleOff()
-        setStimuliStatus('off')
-
+        print(f"ON STIMULUS: {datetime.now()}")
         encoded = pickle.dumps(x)
         client_socket.send(encoded)
 
@@ -114,19 +119,16 @@ def webAppSocket(window):
     asyncio.run(startServer())
 
 
-def startWebSocketThread():
-    # Thread for web app websocket
-    threading.Thread(target=webAppSocket).start()
-
-
 def create_window():
     window = Window()
     window.setStyleSheet(windowStyle)
     window.show()
+    print(f"window shown: {datetime.now()}")
     return window
 
 
-def mainGUIFunc(client_socket):
+def mainGUIFunc(client_socket, synch):
+    # synch.wait()
     global stopThread
     stopThread = False
     app = QApplication(sys.argv)

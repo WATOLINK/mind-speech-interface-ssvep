@@ -1,3 +1,5 @@
+
+
 MAIN_WIDGET_INDEXES = [
     "Output Menu Page",
     "Keyboard YN Menu Page",
@@ -12,8 +14,8 @@ def getMainWidgetIndex(name):
     else:
         print("invalid sidebar name")
 
-WINDOW_WIDTH = 2400
-WINDOW_HEIGHT = 1360
+WINDOW_WIDTH = 1900
+WINDOW_HEIGHT = 1061
 
 STIMULI_SIZE = 200
 
@@ -22,14 +24,13 @@ STIMULI_SIZE = 200
 MAIN_STIM_FREQUENCIES = { 
     'Enter': 8.25,
 
-    'Output Menu 1': 13.75,
-    'Output Menu 2': 11.75,
-    'Output Menu 3': 9.75,
+    'Output Menu 1': 10.75,
+    'Output Menu 2': 13.75,
     'Output Menu Help': 14.25,
 
     'Keyboard YN Menu 1': 12.75,
     'Keyboard YN Menu 2': 13.75,
-    'Keyboard YN Menu Help': 14.25,
+    # 'Keyboard YN Menu Help': 14.25,
     'Back to Output Menu': 10.75,
     
     'YN 1': 8.75,
