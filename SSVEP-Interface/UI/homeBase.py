@@ -7,6 +7,7 @@ from PyQt5 import QtCore
 import socket
 import pickle
 import time
+from UI.UI_DEFS import MAIN_STIM_FREQUENCIES
 
 
 class AThread(QThread):
@@ -47,47 +48,45 @@ class AThread(QThread):
                 
                 print(freq)
                 print(page)
-                if freq == 8.25:
+                if MAIN_STIM_FREQUENCIES['Enter'] == 8.25:
                     self.enterButtonSig.emit()
 
                 if page == "Output Menu Page":
-                    if freq == 10.75:
+                    if freq == MAIN_STIM_FREQUENCIES['Output Menu 1']:
                         self.twitterPageSig.emit()
-                    elif freq == 9.75:
+                    elif freq == MAIN_STIM_FREQUENCIES['Output Menu 2']:
                         self.voicePageSig.emit()
-                    elif freq == 14.25:
+                    elif freq == MAIN_STIM_FREQUENCIES['Output Menu Help']:
                         self.helpPageSig.emit()
 
                 if page == "Keyboard YN Menu Page":
-                    if freq == 12.75:
+                    if freq == MAIN_STIM_FREQUENCIES['Keyboard YN Menu 1']:
                         self.keyboardPageSig.emit()
-                    elif freq == 13.75:
+                    elif freq == MAIN_STIM_FREQUENCIES['Keyboard YN Menu 2']:
                         self.ynPageSig.emit()
-                    elif freq == 14.25:
-                        self.helpPageSig.emit()
-                    elif freq == 10.75:
+                    elif freq == MAIN_STIM_FREQUENCIES['Back to Output Menu']:
                         self.returnHomeSig.emit()
 
                 if page == "YN Page":
-                    if freq == 8.75:
+                    if freq == MAIN_STIM_FREQUENCIES['YN 1']:
                         self.yesSig.emit()
-                    elif freq == 13.75:
+                    elif freq == MAIN_STIM_FREQUENCIES['YN 2']:
                         self.noSig.emit()
 
                 if page == "Keyboard Page":
-                    if freq == 12.75:
+                    if freq == MAIN_STIM_FREQUENCIES['Keyboard 1']:
                         self.keyboardUpButOne.emit()
-                    elif freq == 11.75:
+                    elif freq == MAIN_STIM_FREQUENCIES['Keyboard 2']:
                         self.keyboardUpButTwo.emit()
-                    elif freq == 9.75:
+                    elif freq == MAIN_STIM_FREQUENCIES['Keyboard 3']:
                         self.keyboardUpButThree.emit() 
-                    elif freq == 10.75:
+                    elif freq == MAIN_STIM_FREQUENCIES['Keyboard 4']:
                         self.keyboardUpButFour.emit()
-                    elif freq == 8.75:
+                    elif freq == MAIN_STIM_FREQUENCIES['Space']:
                         self.spaceSig.emit()
-                    elif freq == 13.75:
+                    elif freq == MAIN_STIM_FREQUENCIES['Backspace']:
                         self.backspaceSig.emit()
-                    elif freq == 14.25:
+                    elif freq == MAIN_STIM_FREQUENCIES['Word Toggle']:
                         self.toggleSig.emit()
                     
             except EOFError:

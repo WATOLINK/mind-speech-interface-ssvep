@@ -60,9 +60,10 @@ class EEGSocketPublisher:
     def retrieve_sample(self):
         # self.col_hi_lim = r.randint(2,8)
         sample = self.board.get_board_data(self.input_len).T[:, self.col_low_lim:18]
-        df = pd.DataFrame(data=sample)
-        df.to_csv(f"susswuss/sussywussy_{self.csv_count}.csv", index=False)
-        self.csv_count += 1
+        # x =self.board.get_board_data()
+        # df = pd.DataFrame(data=sample)
+        # df.to_csv(f"susswuss/sussywussy_{self.csv_count}.csv", index=False)
+        # self.csv_count += 1
 
         # assert type(sample) == np.ndarray, f"Not a Numpy ND Array {type(sample), sample}"
         # assert sample.shape == (self.input_len, self.num_channels), \
@@ -88,6 +89,6 @@ class EEGSocketPublisher:
                     packet = self.retrieve_sample()
                     self.send_packet(packet)
                     print("packet sent")
-                    
+
             self.connection.sendall(pickle.dumps(None))
     

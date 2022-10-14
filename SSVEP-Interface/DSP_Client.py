@@ -8,6 +8,8 @@ from time import time
 from collections import Counter
 import threading
 import glob
+from PageFrequencies import page_frequencies
+from datetime import datetime
 
 path = os.getcwd()
 head, tail = os.path.split(path)
@@ -85,7 +87,7 @@ class EEGSocketListener:
             sample = self.lisSocket.recv(1000000000)
             sample = pickle.loads(sample)
 
-            pizza_time = sample[:, [0,1,2,3,4,5,6,7,17]]
+            pizza_time = sample[:, [0, 1, 2, 3, 4, 5, 6, 7, 17]]
             sample = sample[:, :8]
 
             # sample = np.hstack((samp,timestamp.T))
@@ -121,6 +123,13 @@ class EEGSocketListener:
     def send_packet(self, sample):
         self.connection.sendall(pickle.dumps(sample))
         print(f'Sent {sample}')
+    
+    def highest_matching_frequency(self, confidences: np.array, frequencies=None):
+        if frequencies is None:
+            frequencies = self.model.cca_frequencies
+        indices = [self.model.freq2label[freq] for freq in frequencies]
+        subset_confidence = confidences[:, indices]
+        return self.model.cca_frequencies[indices[np.argmax(subset_confidence, axis=1)[0]]]
 
     def listen(self, run_time=None):
         self.connection, self.address = self.pubSocket.accept()
@@ -143,7 +152,9 @@ class EEGSocketListener:
 
         while time_func:
             packet = self.recieve_packet()
-            if self.UIDict["stimuli"] == "on":
+            if self.UIDict["stimuli"] == "off":
+                self.data = None
+            else:
                 #packet = self.recieve_packet()
 
                 if packet is None:
@@ -153,28 +164,25 @@ class EEGSocketListener:
                     self.data = packet
                 else:
                     self.data = np.concatenate((self.data, packet), axis=0)
-                print(np.sum(np.isnan(self.data)), self.data.shape)
-                if self.data.shape[0] == self.sample_rate * self.window_length:
-                    sample = np.expand_dims(self.data, axis=0)
-                    prepared = self.model.prepare(sample)
-                    prediction = self.model.predict(prepared)
-                    prediction = [int(pred) for pred in list(prediction)]
-                    frequencies = self.model.convert_index_to_frequency(prediction)
-                    c = Counter(frequencies)
-                    print(f"Prediction: {c.most_common(1)[0][0]}")
-                    # If freq prediction does not exist on current UI Page, retry for next highest confidence
-                    self.dictionary["freq"] = c.most_common(1)[0][0]
-                    self.send_packet(self.dictionary)
-                    self.data = None
+                if self.data is not None:
+                    if self.data.shape[0] == self.sample_rate * self.window_length:
+                        sample = np.expand_dims(self.data, axis=0)
+                        prepared = self.model.prepare(sample)
+                        _, confidence = self.model.predict(prepared)
+                        print(f"Prediction made at: {datetime.now()}")
+                        frequency = self.highest_matching_frequency(confidences=confidence,
+                                                                    frequencies=page_frequencies[self.UIDict['current page']])
+                        self.dictionary["freq"] = frequency
+                        self.send_packet(self.dictionary)
+                        print(f"Prediction sent at: {datetime.now()}")
+                        self.data = None
         self.close_socket_conn()
 
     def generate_csv(self, name="fullOBCI_6"):
         print(self.csvData[:, -1])
         df = pd.DataFrame(data=self.csvData)
-        # df['']
         print(f'{name}.csv Generated')
         files = glob.glob("*.csv")
         files.sort()
-        print(files)
         name = f"{files[-1][:-5]}{int(files[-1][-5]) + 1}.csv"
         df.to_csv(name, index=False)

@@ -81,7 +81,6 @@ class KeyboardWidget(QWidget):
         return sidebar
 
 def clickedGroup(parent, buttons, text, level):
-    print("Ahdsasdifha")
     print(level)
 
     if level == 1:

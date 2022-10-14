@@ -48,14 +48,14 @@ def KeyboardYNMenuLower(parent):
 
     buttons = []
 
-    buttons.append(ButtonContainer("Help",freqName="Keyboard YN Menu Help",checkable=False))
+    # buttons.append(ButtonContainer("Help",freqName="Keyboard YN Menu Help",checkable=False))
     buttons.append(ButtonContainer("Back to Menu",freqName="Back to Output Menu",checkable=False))
     
     for button in buttons:
         layout.addWidget(button)
 
-    buttons[0].clicked.connect(lambda: changeStacks(parent,getMainWidgetIndex("Help Page")))
-    buttons[1].clicked.connect(lambda: returnToOutputMenu(parent))
+    # buttons[0].clicked.connect(lambda: changeStacks(parent,getMainWidgetIndex("Help Page")))
+    buttons[0].clicked.connect(lambda: returnToOutputMenu(parent))
 
 
     sidebar.setLayout(layout)

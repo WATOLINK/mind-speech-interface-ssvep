@@ -12,6 +12,7 @@ from UI.styles import windowStyle
 
 from UI.Components.button_container import ButtonContainer#, buttonClickNoise
 from UI.status import printStatus, setStimuliStatus
+from UI.UI_DEFS import WINDOW_HEIGHT, WINDOW_WIDTH
 
 import threading
 import time
@@ -37,7 +38,7 @@ class Window(QMainWindow):
         self.setWindowTitle('Main Window')  # Sets name of window
         # Adds central widget where we are going to do most of our work
         self.setCentralWidget(self.mainWidget)
-        self.setGeometry(0, 0, 2400, 1340)
+        self.setGeometry(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 
     #TODO: fix server comm integration
     # def emit_message(self, message, data):
@@ -59,24 +60,6 @@ def stimOnsetOffset(s, window):
     mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
     enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
     while True:
-        print(f"UI Stim Iteration: {datetime.now()}")
-        if stopThread:
-            break
-
-        #ONSET
-        currWidget = mainStack.currentWidget()
-        enterButton.stimuli.toggleOn()
-        for button in currWidget.findChildren(ButtonContainer):
-            button.stimuli.toggleOn()
-        setStimuliStatus('on')
-        x = getStatus()
-        
-        encoded = pickle.dumps(x)
-        client_socket.send(encoded)
-
-        printStatus()
-        time.sleep(5)
-
         if stopThread:
             break
 
@@ -86,7 +69,27 @@ def stimOnsetOffset(s, window):
         for button in currWidget.findChildren(ButtonContainer):
             button.stimuli.toggleOff()
         setStimuliStatus('off')
+        x = getStatus()
 
+        print(f"OFF STIMULUS: {datetime.now()}")
+        encoded = pickle.dumps(x)
+        client_socket.send(encoded)
+
+        printStatus()
+        time.sleep(5)       
+
+        if stopThread:
+            break
+
+         #ONSET
+        currWidget = mainStack.currentWidget()
+        enterButton.stimuli.toggleOn()
+        for button in currWidget.findChildren(ButtonContainer):
+            button.stimuli.toggleOn()
+        setStimuliStatus('on')
+        x = getStatus()
+        
+        print(f"ON STIMULUS: {datetime.now()}")
         encoded = pickle.dumps(x)
         client_socket.send(encoded)
 
