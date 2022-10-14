@@ -8,7 +8,7 @@ from playsound import playsound
 
 from UI.UI_DEFS import getMainWidgetIndex
 
-from UI.status import setOutputMode, getPreviousPage, getOutputMode
+from UI.status import setOutputMode, getOutputMode
 
 from UI.helperFunctions import disableOtherButtons, changeStacks
 
@@ -36,7 +36,7 @@ def submitAndReturn(self,parent):
         return
 
     elif currWidget.objectName() == "Help Page":
-        changeStacks(parent, getMainWidgetIndex(getPreviousPage()))
+        changeStacks(parent, getMainWidgetIndex("Output Menu Page"))
         return
 
     if inputField.text():

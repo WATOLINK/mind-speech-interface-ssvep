@@ -32,10 +32,9 @@ class Window(QMainWindow):
         self.setCentralWidget(self._centralWidget)
         self._centralWidget.setLayout(self.generalLayout)
 
-         # Make sure to pass in 'self' to the child widget for it to access parent to for methods and children
         self.mainWidget = MainContainer(self)
 
-        self.setWindowTitle('Main Window')  # Sets name of window
+        self.setWindowTitle('WATOLINK Mind Speech SSVEP Interface')  # Sets name of window
         # Adds central widget where we are going to do most of our work
         self.setCentralWidget(self.mainWidget)
         self.setGeometry(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
