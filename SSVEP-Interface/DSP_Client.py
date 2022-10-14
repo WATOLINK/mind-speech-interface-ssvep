@@ -5,10 +5,12 @@ import sys
 import numpy as np
 import pandas as pd
 from time import time
+from collections import Counter
 import threading
 import glob
 from socket_utils import socket_receive
 from PageFrequencies import page_frequencies
+from datetime import datetime
 
 path = os.getcwd()
 head, tail = os.path.split(path)
@@ -115,7 +117,7 @@ class EEGSocketListener:
             frequencies = self.model.cca_frequencies
         indices = [self.model.freq2label[freq] for freq in frequencies]
         subset_confidence = confidences[:, indices]
-        return frequencies[indices[np.argmax(subset_confidence, axis=1)[0]]]
+        return self.model.cca_frequencies[indices[np.argmax(subset_confidence, axis=1)[0]]]
 
     def listen(self, run_time=None):
         self.connection, self.address = self.pubSocket.accept()
@@ -135,7 +137,9 @@ class EEGSocketListener:
 
         while time_func:
             packet = self.receive_packet()
-            if self.UIDict["stimuli"] == "on":
+            if self.UIDict["stimuli"] == "off":
+                self.data = None
+            else:
                 if packet is None:
                     break
                 
@@ -143,19 +147,18 @@ class EEGSocketListener:
                     self.data = packet
                 else:
                     self.data = np.concatenate((self.data, packet), axis=0)
-
-                if self.data.shape[0] == self.sample_rate * self.window_length:
-                    sample = np.expand_dims(self.data, axis=0)
-                    prepared = self.model.prepare(sample)
-                    prediction, confidence = self.model.predict(prepared)
-                    prediction = prediction.astype('int')
-                    frequencies = self.model.convert_index_to_frequency(prediction)
-                    frequencies = self.highest_matching_frequency(confidences=confidence,
-                                                                  frequencies=page_frequencies[self.UIDict['current page']])
-                    # If freq prediction does not exist on current UI Page, retry for next highest confidence
-                    self.dictionary["freq"] = frequencies
-                    self.send_packet(self.dictionary)
-                    self.data = None
+                if self.data is not None:
+                    if self.data.shape[0] == self.sample_rate * self.window_length:
+                        sample = np.expand_dims(self.data, axis=0)
+                        prepared = self.model.prepare(sample)
+                        _, confidence = self.model.predict(prepared)
+                        print(f"Prediction made at: {datetime.now()}")
+                        frequency = self.highest_matching_frequency(confidences=confidence,
+                                                                    frequencies=page_frequencies[self.UIDict['current page']])
+                        self.dictionary["freq"] = frequency
+                        self.send_packet(self.dictionary)
+                        print(f"Prediction sent at: {datetime.now()}")
+                        self.data = None
         self.close_socket_conn()
 
     def generate_csv(self, name="online_data/fullOBCI_1.csv"):
