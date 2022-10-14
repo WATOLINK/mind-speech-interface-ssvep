@@ -96,14 +96,16 @@ class EEGSocketListener:
         return sample
 
     def receive_packet_UI(self):
-        message = socket_receive(self.lisSocketUI)
-        print(f"Received {message} from UI")
-        if message is None:
-            print("no dict received from UI")
-            self.close_socket_conn()
-            return
-        self.UIDict = message
-        self.dictionary["page"] = self.UIDict['current page']
+        while True:
+            message = socket_receive(self.lisSocketUI)
+            print(f"Received {message} from UI")
+            if message is None:
+                print("no dict received from UI")
+                self.close_socket_conn()
+                return
+            self.UIDict = message
+            self.dictionary["page"] = self.UIDict['current page']
+        self.close_socket_conn()
 
     def send_packet(self, sample):
         self.connection.sendall(pickle.dumps(sample))
