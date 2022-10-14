@@ -92,8 +92,8 @@ class FBCCA:
         """
         # result matrix
         r = np.zeros((self.frequency_bands, len(self.cca_frequencies))) 
-        results = np.zeros(data.shape[0])
-        confidence = np.zeros(data.shape[0])
+        results = np.zeros((data.shape[0]))
+        confidence = np.zeros((data.shape[0], len(self.cca_frequencies)))
         signal_range = range(data.shape[0])
         if self.verbose:
             signal_range = trange(data.shape[0])
@@ -107,12 +107,9 @@ class FBCCA:
                     r[frequency_band, frequ] = r_tmp
             rho = np.dot(self.fb_coefs, r)  # weighted sum of r from all different filter banks' result
             tau = np.argmax(rho)  # get maximum from the target as the final predict (get the index)
-            confidence[segment] = np.max(softmax(rho))
+            confidence[segment, :] = softmax(rho)
             results[segment] = tau  # index indicate the maximum(most possible) target
-        print(softmax(rho))
-        print(self.frequencies)
-        print(f"confidence: {confidence[0]}")
-        return results
+        return results, confidence
 
     def convert_index_to_frequency(self, predictions: np.array):
         return [self.frequencies[pred] for pred in predictions]
@@ -132,7 +129,7 @@ class FBCCA:
         test_data = np.array(test_data)
         test_data = self.prepare(data=test_data)
         idx_labels = [self.freq2label[label] for label in test_labels]
-        predictions = self.predict(data=test_data)
+        predictions, confidence = self.predict(data=test_data)
         if self.frequencies[0] == 0:
             predictions = [pred + 1 for pred in predictions]
         cca_accuracy = accuracy_score(y_true=idx_labels, y_pred=predictions)

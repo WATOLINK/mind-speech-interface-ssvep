@@ -69,7 +69,7 @@ def stimOnsetOffset(s, window):
             button.stimuli.toggleOn()
         setStimuliStatus('on')
         x = getStatus()
-        
+        print(f"Sending {x}")
         socket_send(sending_socket=client_socket, data=x)
 
         printStatus()
@@ -85,6 +85,7 @@ def stimOnsetOffset(s, window):
             button.stimuli.toggleOff()
         setStimuliStatus('off')
 
+        print(f"Sending {x}")
         socket_send(sending_socket=client_socket, data=x)
 
         printStatus()

@@ -9,6 +9,7 @@ from collections import Counter
 import threading
 import glob
 from socket_utils import socket_receive
+from PageFrequencies import page_frequencies
 
 path = os.getcwd()
 head, tail = os.path.split(path)
@@ -96,6 +97,7 @@ class EEGSocketListener:
 
     def receive_packet_UI(self):
         message = socket_receive(self.lisSocketUI)
+        print(f"Received {message} from UI")
         if message is None:
             print("no dict received from UI")
             self.close_socket_conn()
@@ -106,6 +108,13 @@ class EEGSocketListener:
     def send_packet(self, sample):
         self.connection.sendall(pickle.dumps(sample))
         print(f'Sent {sample}')
+
+    def highest_matching_frequency(self, confidences: np.array, frequencies=None):
+        if frequencies is None:
+            frequencies = self.model.cca_frequencies
+        indices = [self.model.freq2label[freq] for freq in frequencies]
+        subset_confidence = confidences[:, indices]
+        return frequencies[indices[np.argmax(subset_confidence, axis=1)[0]]]
 
     def listen(self, run_time=None):
         self.connection, self.address = self.pubSocket.accept()
@@ -137,13 +146,13 @@ class EEGSocketListener:
                 if self.data.shape[0] == self.sample_rate * self.window_length:
                     sample = np.expand_dims(self.data, axis=0)
                     prepared = self.model.prepare(sample)
-                    prediction = self.model.predict(prepared)
-                    prediction = [int(pred) for pred in list(prediction)]
+                    prediction, confidence = self.model.predict(prepared)
+                    prediction = prediction.astype('int')
                     frequencies = self.model.convert_index_to_frequency(prediction)
-                    c = Counter(frequencies)
-                    print(f"Prediction: {c.most_common(1)[0][0]}")
+                    frequencies = self.highest_matching_frequency(confidences=confidence,
+                                                                  frequencies=page_frequencies[self.UIDict['current page']])
                     # If freq prediction does not exist on current UI Page, retry for next highest confidence
-                    self.dictionary["freq"] = c.most_common(1)[0][0]
+                    self.dictionary["freq"] = frequencies
                     self.send_packet(self.dictionary)
                     self.data = None
         self.close_socket_conn()
