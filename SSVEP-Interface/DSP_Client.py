@@ -58,7 +58,6 @@ class EEGSocketListener:
         self.window_length = args.window_length
         self.output_size = args.output_size
         self.num_channels = args.num_channels
-        self.input_size = args.input_size
 
         self.data = None
         self.samples = 0
