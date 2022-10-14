@@ -117,8 +117,8 @@ class EEGSocketListener:
         self.UIDict = {
             'stimuli': 'off',
             'current page': 'Output Menu Page',
-            'previous page': '',
             'output mode': ''
+            'on_stimulus_timestamp': None
         }
         threading.Thread(target=self.receive_packet_UI).start()
         # Initializing it on 1, but it is passed onto the thread, which toggles it every 2 seconds
