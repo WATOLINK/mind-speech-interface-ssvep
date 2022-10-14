@@ -2,7 +2,6 @@ import socket
 from brainflow.board_shim import BoardShim
 import pickle
 from time import time
-import pandas as pd
 from socket_utils import socket_send
 
 
@@ -28,6 +27,7 @@ class EEGSocketPublisher:
 
         self.input_len = args.input_len
         self.num_channels = args.num_channels
+        self.timestamp_channel = 17
 
     def open_socket_conn(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -40,6 +40,7 @@ class EEGSocketPublisher:
     def open_board_conn(self, board_id, board_params, streamer_params):
         BoardShim.enable_dev_board_logger()
         self.board = BoardShim(board_id, board_params)
+        self.timestamp_channel = BoardShim.get_board_descr(board_id)['timestamp_channel']
         # Start Acquisition
         self.board.prepare_session()
         self.board.start_stream(45000, streamer_params)
@@ -57,7 +58,8 @@ class EEGSocketPublisher:
         self.close_board_conn()
 
     def retrieve_sample(self):
-        return self.board.get_board_data(self.input_len).T[:, self.col_low_lim:18]
+        columns = list(range(self.col_low_lim, self.col_hi_lim)) + [self.timestamp_channel]
+        return self.board.get_board_data(self.input_len).T[:, columns]
 
     def send_packet(self, sample):
         socket_send(sending_socket=self.connection, data=sample)

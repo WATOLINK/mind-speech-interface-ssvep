@@ -1,4 +1,6 @@
 import os
+from time import time
+
 clear = lambda: os.system('cls')
 global i 
 i = 1
@@ -41,7 +43,9 @@ def setOutputMode(newOutputMode):
 
 def getStatus():
     global status
-    return status
+    status_update = status
+    status_update['timestamp'] = time()
+    return status_update
 
 def printStatus():
     # clear()

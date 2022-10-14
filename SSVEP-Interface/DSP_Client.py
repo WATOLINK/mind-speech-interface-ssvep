@@ -5,12 +5,10 @@ import sys
 import numpy as np
 import pandas as pd
 from time import time
-from collections import Counter
 import threading
 import glob
 from socket_utils import socket_receive
 from PageFrequencies import page_frequencies
-from datetime import datetime
 
 path = os.getcwd()
 head, tail = os.path.split(path)
@@ -87,19 +85,15 @@ class EEGSocketListener:
         if sample is None:
             self.close_socket_conn()
             return
-        pizza_time = sample[:, [0, 1, 2, 3, 4, 5, 6, 7, 17]]
-        sample = sample[:, :8]
-
         if self.csvData is None:
-            self.csvData = pizza_time
+            self.csvData = sample
         else:
-            self.csvData = np.vstack((self.csvData, pizza_time))
+            self.csvData = np.vstack((self.csvData, sample))
         return sample
 
     def receive_packet_UI(self):
         while True:
             message = socket_receive(self.lisSocketUI)
-            print(f"Received {message} from UI")
             if message is None:
                 print("no dict received from UI")
                 self.close_socket_conn()
@@ -137,28 +131,34 @@ class EEGSocketListener:
 
         while time_func:
             packet = self.receive_packet()
-            if self.UIDict["stimuli"] == "off":
-                self.data = None
+            if packet is None:
+                break
+            if self.data is None:
+                self.data = packet
             else:
-                if packet is None:
-                    break
-                
-                if self.data is None:
-                    self.data = packet
-                else:
-                    self.data = np.concatenate((self.data, packet), axis=0)
+                self.data = np.concatenate((self.data, packet))
+            if self.UIDict["stimuli"] == "off" and self.UIDict["on_stimulus_timestamp"]:
+                on_stim_time = self.UIDict["on_stimulus_timestamp"]
+                off_stim_time = self.UIDict["timestamp"]
                 if self.data is not None:
-                    if self.data.shape[0] == self.sample_rate * self.window_length:
-                        sample = np.expand_dims(self.data, axis=0)
-                        prepared = self.model.prepare(sample)
-                        _, confidence = self.model.predict(prepared)
-                        print(f"Prediction made at: {datetime.now()}")
-                        frequency = self.highest_matching_frequency(confidences=confidence,
-                                                                    frequencies=page_frequencies[self.UIDict['current page']])
-                        self.dictionary["freq"] = frequency
-                        self.send_packet(self.dictionary)
-                        print(f"Prediction sent at: {datetime.now()}")
-                        self.data = None
+                    subset = self.data[np.nonzero((self.data[:, -1] <= off_stim_time) &
+                                                  (self.data[:, -1] >= on_stim_time))]
+                    if subset.shape[0] < self.sample_rate * self.window_length:
+                        continue
+                    diff = subset.shape[0] - self.sample_rate * self.window_length
+                    left_diff = diff // 2
+                    right_diff = diff - left_diff
+                    subset = subset[left_diff: -right_diff]
+                    sample = np.expand_dims(subset[:, :-1], axis=0)
+                    prepared = self.model.prepare(sample)
+                    current_page_frequencies = page_frequencies[self.UIDict['current page']]
+                    results, _ = self.model.predict(prepared, frequencies=current_page_frequencies)
+                    frequency = self.model.convert_index_to_frequency(results, frequencies=current_page_frequencies)
+                    if len(frequency) == 1:
+                        frequency = frequency[0]
+                    self.dictionary["freq"] = frequency
+                    self.send_packet(self.dictionary)
+                    self.data = self.data[np.nonzero(self.data[:, -1] > off_stim_time)]
         self.close_socket_conn()
 
     def generate_csv(self, name="online_data/fullOBCI_1.csv"):

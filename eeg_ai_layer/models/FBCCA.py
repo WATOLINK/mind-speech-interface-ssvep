@@ -80,7 +80,7 @@ class FBCCA:
                                 quality_factor=self.quality_factors,
                                 sample_rate=self.sample_rate)
 
-    def predict(self, data: np.ndarray):
+    def predict(self, data: np.ndarray, frequencies: List[float] = None):
         """
         Make a prediction for the main frequency each signal using FBCCA.
 
@@ -90,29 +90,34 @@ class FBCCA:
         Returns:
             Correlations to each of the reference signals
         """
-        # result matrix
-        r = np.zeros((self.frequency_bands, len(self.cca_frequencies))) 
+        if frequencies is None:
+            frequencies = self.cca_frequencies
+        indices = [self.freq2label[freq] for freq in frequencies]
+        n_frequencies = len(frequencies)
+        r = np.zeros((self.frequency_bands, n_frequencies))
         results = np.zeros((data.shape[0]))
-        confidence = np.zeros((data.shape[0], len(self.cca_frequencies)))
+        confidence = np.zeros((data.shape[0], n_frequencies))
         signal_range = range(data.shape[0])
         if self.verbose:
             signal_range = trange(data.shape[0])
         for segment in signal_range:
             for frequency_band in range(self.frequency_bands):
                 segment_frequency_bank = filterbank(data[segment].T, self.sample_rate, frequency_band)
-                for frequ in range(len(self.cca_frequencies)):
-                    refdata = np.squeeze(self.reference_templates[frequ, :, :])  # pick corresponding freq target reference signal
+                for nf_index, frequency_idx in enumerate(indices):
+                    refdata = np.squeeze(self.reference_templates[frequency_idx, :, :])  # pick corresponding freq target reference signal
                     test_C, ref_C = self.cca.fit_transform(segment_frequency_bank.T, refdata.T)
                     r_tmp, _ = pearsonr(np.squeeze(test_C), np.squeeze(ref_C))
-                    r[frequency_band, frequ] = r_tmp
+                    r[frequency_band, nf_index] = r_tmp
             rho = np.dot(self.fb_coefs, r)  # weighted sum of r from all different filter banks' result
             tau = np.argmax(rho)  # get maximum from the target as the final predict (get the index)
             confidence[segment, :] = softmax(rho)
             results[segment] = tau  # index indicate the maximum(most possible) target
-        return results, confidence
+        return results.astype('int'), confidence
 
-    def convert_index_to_frequency(self, predictions: np.array):
-        return [self.frequencies[pred] for pred in predictions]
+    def convert_index_to_frequency(self, predictions: np.array, frequencies: List[float] = None):
+        if frequencies is None:
+            frequencies = self.cca_frequencies
+        return [frequencies[pred] for pred in predictions]
 
     def test(self, hparams, test_data, test_labels):
         """

@@ -58,6 +58,7 @@ def stimOnsetOffset(s, window):
     client_socket, _ = s.accept()
     mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
     enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
+    last_on_stimulus = None
     while True:
         if stopThread:
             break
@@ -69,6 +70,10 @@ def stimOnsetOffset(s, window):
             button.stimuli.toggleOff()
         setStimuliStatus('off')
         x = getStatus()
+        if last_on_stimulus is not None:
+            x['on_stimulus_timestamp'] = last_on_stimulus
+        else:
+            x['on_stimulus_timestamp'] = None
         print(f"OFF STIMULUS: {datetime.now()}, Sending {x}")
         socket_send(sending_socket=client_socket, data=x)
 
@@ -78,13 +83,14 @@ def stimOnsetOffset(s, window):
         if stopThread:
             break
 
-         #ONSET
+        # ONSET
         currWidget = mainStack.currentWidget()
         enterButton.stimuli.toggleOn()
         for button in currWidget.findChildren(ButtonContainer):
             button.stimuli.toggleOn()
         setStimuliStatus('on')
         x = getStatus()
+        last_on_stimulus = x['timestamp']
 
         print(f"ON STIMULUS: {datetime.now()}")
         print(f"Sending {x}")
