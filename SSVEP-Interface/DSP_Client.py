@@ -5,7 +5,6 @@ import sys
 import numpy as np
 import pandas as pd
 from time import time
-from collections import Counter
 import threading
 import glob
 from socket_utils import socket_receive
