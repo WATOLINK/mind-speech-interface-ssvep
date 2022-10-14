@@ -9,7 +9,6 @@ import threading
 import glob
 from socket_utils import socket_receive
 from PageFrequencies import page_frequencies
-from datetime import datetime
 
 path = os.getcwd()
 head, tail = os.path.split(path)
