@@ -43,11 +43,9 @@ def submitAndReturn(self,parent):
         temp = messageBox.text() + f"[{inputField.text()}]"
         messageBox.setText(temp)
         if getOutputMode() == "Twitter":
-                print("tweeting")
-                tweet(inputField.text())
+            tweet(inputField.text())
         elif getOutputMode() == "Voice":
-                print("voice not yet implemented")
-                TTS.synthesize(text = inputField.text())
+            TTS.synthesize(text = inputField.text())
 
         inputField.clear()
 

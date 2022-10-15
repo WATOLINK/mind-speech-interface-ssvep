@@ -59,7 +59,7 @@ class EEGSocketPublisher:
 
     def retrieve_sample(self):
         columns = list(range(self.col_low_lim, self.col_hi_lim)) + [self.timestamp_channel]
-        return self.board.get_board_data(self.input_len).T[:, columns]
+        return self.board.get_board_data().T[:, columns]
 
     def send_packet(self, sample):
         socket_send(sending_socket=self.connection, data=sample)

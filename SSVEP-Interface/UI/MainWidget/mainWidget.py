@@ -11,7 +11,7 @@ from UI.styles import textBoxStyle, promptBoxStyle
 
 from UI.OutputMenuPage.outputMenu import OutputMenuWidget
 from UI.KeyboardYNMenuPage.KeyboardYN import KeyboardYNMenuWidget
-from UI.YNPage.YN import YesNoWidget
+from UI.YNPage.YN import YesNoWidget, disableOtherButtonsYN
 from UI.KeyboardPage.KeyboardWidget import KeyboardWidget
 from UI.HelpPage.help import HelpWidget
 
@@ -227,7 +227,7 @@ def yes(self):
     buttons = YNpage.findChildren(ButtonContainer)
 
     buttons[0].setChecked(True)
-    disableOtherButtons(buttons, buttons[0])
+    disableOtherButtonsYN(self, buttons, buttons[0])
 
 def no(self):
     main = self.findChild(QStackedWidget, "Main Widget")
@@ -236,7 +236,7 @@ def no(self):
     buttons = YNpage.findChildren(ButtonContainer)
 
     buttons[1].setChecked(True)
-    disableOtherButtons(buttons, buttons[1])
+    disableOtherButtonsYN(self, buttons, buttons[1])
 
 def upButOne(self):
     main = self.findChild(QStackedWidget, "Main Widget")

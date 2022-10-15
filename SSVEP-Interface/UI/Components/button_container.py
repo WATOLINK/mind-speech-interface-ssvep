@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt
 from UI.styles import toggleButtonStyle, yesLabelStyle, toggleButtonStyleNoBorder
 from UI.Components.circle_stimuli import CircleFlash
 from UI.UI_DEFS import MAIN_STIM_FREQUENCIES, STIMULI_SIZE
-# from playsound import playsound
+from playsound import playsound
 
 class ButtonContainer(QtWidgets.QPushButton):
     def __init__(self, labelText="", freqName="", red=255, green=255, blue=255, horizontal=False, parent=None, checkable=True, border=True):
@@ -56,8 +56,8 @@ class ButtonContainer(QtWidgets.QPushButton):
     def labelText(self):
         return self.label.text()
 
-# def buttonClickNoise():
-#     playsound("SSVEP-interface/UI/Components/click.wav",block=False)
+def buttonClickNoise():
+    playsound("SSVEP-interface/UI/Components/click.wav",block=False)
 
 
 

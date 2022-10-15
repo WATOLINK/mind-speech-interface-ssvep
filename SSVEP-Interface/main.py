@@ -9,7 +9,7 @@ from UI.status import getStatus
 from UI.MainWidget.mainWidget import MainContainer
 from UI.styles import windowStyle
 
-from UI.Components.button_container import ButtonContainer#, buttonClickNoise
+from UI.Components.button_container import ButtonContainer, buttonClickNoise
 from UI.status import printStatus, setStimuliStatus
 from UI.UI_DEFS import WINDOW_HEIGHT, WINDOW_WIDTH
 
