@@ -17,7 +17,6 @@
         TEST_DATA.csv in /EEG-Streamer/ directory is the output CSV from DSP_Client.py
 """
 import argparse
-import pandas as pd
 from brainflow.board_shim import BrainFlowInputParams
 from multiprocessing import Process, Queue, Barrier
 import serial.tools.list_ports as p
@@ -59,21 +58,6 @@ def Cyton_Board_Config(args):
     params.file = args.file
 
     return board_id, params, args.streamer_params
-
-
-def CSV(data, col):
-    start = 0
-    end = 50
-    for i in range(len(data)):
-        # timestamp = np.arange(0, 0.4, 0.008)
-        sample_count = [j for j in range(start, end)]
-        data[i] = pd.DataFrame(data=data[i], index=sample_count, columns=col)
-        start += 50
-        end += 50
-
-    df = pd.concat(data, ignore_index=True)
-    df.index.name = 'Sample Count'
-    df.to_csv('data.csv')
 
 
 def Streamer(publisher, synch, q, info):
