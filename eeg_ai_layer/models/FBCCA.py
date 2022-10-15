@@ -27,13 +27,13 @@ class FBCCA:
         self.power_line_frequency = 60
         # Filter bank Initialization
         self.frequency_bands = args.frequency_bands if "frequency_bands" in args else 10
-        self.harmonics = args.harmonics if "harmonics" in args else 3
+        self.harmonics = args.harmonics if "harmonics" in args else 2
         self.fb_coefs = np.power(np.arange(1, self.frequency_bands + 1), -1.25) + 0.25
         self.reference_templates = self.create_reference_templates(frequencies=self.cca_frequencies)
         self.verbose = False
         if hasattr(args, "verbose"):
             self.verbose = args.verbose
-        self.freq2label = {freq: idx for idx, freq in enumerate(self.frequencies)}
+        self.freq2label = {freq: idx for idx, freq in enumerate(self.cca_frequencies)}
 
     def create_reference_templates(self, frequencies: List):
         """
@@ -138,8 +138,6 @@ class FBCCA:
         test_data = self.prepare(data=test_data)
         idx_labels = [self.freq2label[label] for label in test_labels]
         predictions, confidence = self.predict(data=test_data)
-        if self.frequencies[0] == 0:
-            predictions = [pred + 1 for pred in predictions]
         cca_accuracy = accuracy_score(y_true=idx_labels, y_pred=predictions)
         metrics = {'test_cca_accuracy': cca_accuracy}
         if hparams.verbose:

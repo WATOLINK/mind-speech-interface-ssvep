@@ -138,7 +138,7 @@ class EEGSocketListener:
                                                   (self.data[:, -1] >= on_stim_time))]
                     if subset.shape[0] < self.sample_rate * self.window_length:
                         continue
-                    diff = subset.shape[0] - self.sample_rate * self.window_length
+                    diff = int(subset.shape[0] - self.sample_rate * self.window_length)
                     left_diff = diff // 2
                     right_diff = diff - left_diff
                     subset = subset[left_diff: -right_diff]
