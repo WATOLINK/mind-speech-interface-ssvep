@@ -154,7 +154,7 @@ class EEGSocketListener:
                     self.data = self.data[np.nonzero(self.data[:, -1] > off_stim_time)]
         self.close_socket_conn()
 
-    def generate_csv(self, name="SSVEP-Interface/online_data/eeg.csv"):
+    def generate_csv(self, name="SSVEP-Interface/online_data/eeg_1.csv"):
         if self.csvData is None:
             print(f"Can't save online session because no data was collected!")
         else:
@@ -162,6 +162,10 @@ class EEGSocketListener:
             df = pd.DataFrame(data=self.csvData)
             files = glob.glob("SSVEP-Interface/online_data/*.csv")
             if files:
-                files.sort()
-                name = f"{files[-1][:-5]}{int(files[-1][-5]) + 1}.csv"
+                val = 1
+                for file in files:
+                    num = int(file[file.rindex('_') + 1: file.rindex('.')])
+                    val = max(val, num)
+                val += 1
+                name = f"SSVEP-Interface/online_data/eeg_{val}.csv"
             df.to_csv(name, index=False)
