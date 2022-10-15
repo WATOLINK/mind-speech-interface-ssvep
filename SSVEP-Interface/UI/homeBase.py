@@ -48,32 +48,28 @@ class AThread(QThread):
                 
                 print(freq)
                 print(page)
-                if MAIN_STIM_FREQUENCIES['Enter'] == 8.25:
+                if MAIN_STIM_FREQUENCIES['Enter'] == freq:
                     self.enterButtonSig.emit()
-
-                if page == "Output Menu Page":
+                elif page == "Output Menu Page":
                     if freq == MAIN_STIM_FREQUENCIES['Output Menu 1']:
                         self.twitterPageSig.emit()
                     elif freq == MAIN_STIM_FREQUENCIES['Output Menu 2']:
                         self.voicePageSig.emit()
                     elif freq == MAIN_STIM_FREQUENCIES['Output Menu Help']:
                         self.helpPageSig.emit()
-
-                if page == "Keyboard YN Menu Page":
+                elif page == "Keyboard YN Menu Page":
                     if freq == MAIN_STIM_FREQUENCIES['Keyboard YN Menu 1']:
                         self.keyboardPageSig.emit()
                     elif freq == MAIN_STIM_FREQUENCIES['Keyboard YN Menu 2']:
                         self.ynPageSig.emit()
                     elif freq == MAIN_STIM_FREQUENCIES['Back to Output Menu']:
                         self.returnHomeSig.emit()
-
-                if page == "YN Page":
+                elif page == "YN Page":
                     if freq == MAIN_STIM_FREQUENCIES['YN 1']:
                         self.yesSig.emit()
                     elif freq == MAIN_STIM_FREQUENCIES['YN 2']:
                         self.noSig.emit()
-
-                if page == "Keyboard Page":
+                elif page == "Keyboard Page":
                     if freq == MAIN_STIM_FREQUENCIES['Keyboard 1']:
                         self.keyboardUpButOne.emit()
                     elif freq == MAIN_STIM_FREQUENCIES['Keyboard 2']:

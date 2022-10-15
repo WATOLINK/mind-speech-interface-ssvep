@@ -1,35 +1,34 @@
-import json
+from UI.UI_DEFS import MAIN_STIM_FREQUENCIES
 
 page_frequencies = {
     "Output Menu Page": [
-        8.25,
-        10.75,
-        13.75,
-        14.25
+        MAIN_STIM_FREQUENCIES["Enter"],
+        MAIN_STIM_FREQUENCIES["Output Menu 1"],
+        MAIN_STIM_FREQUENCIES["Output Menu 2"],
+        MAIN_STIM_FREQUENCIES["Output Menu Help"],
     ],
     "Keyboard YN Menu Page": [
-        8.25,
-        10.75,
-        12.75,
-        13.75,
+        MAIN_STIM_FREQUENCIES["Enter"],
+        MAIN_STIM_FREQUENCIES["Keyboard YN Menu 1"],
+        MAIN_STIM_FREQUENCIES["Keyboard YN Menu 2"],
+        MAIN_STIM_FREQUENCIES["Back to Output Menu"],
     ],
     "YN Page": [
-        8.25,
-        8.75,
-        13.75
+        MAIN_STIM_FREQUENCIES["Enter"],
+        MAIN_STIM_FREQUENCIES["YN 1"],
+        MAIN_STIM_FREQUENCIES["YN 2"],
     ],
     "Keyboard Page": [
-        8.25,
-        8.75,
-        9.75,
-        10.75,
-        11.75,
-        12.75,
-        13.75,
-        14.25,
+        MAIN_STIM_FREQUENCIES["Enter"],
+        MAIN_STIM_FREQUENCIES['Keyboard 1'],
+        MAIN_STIM_FREQUENCIES['Keyboard 2'],
+        MAIN_STIM_FREQUENCIES['Keyboard 3'],
+        MAIN_STIM_FREQUENCIES['Keyboard 4'],
+        MAIN_STIM_FREQUENCIES['Space'],
+        MAIN_STIM_FREQUENCIES['Backspace'],
+        MAIN_STIM_FREQUENCIES['Word Toggle'],
     ],
     "Help Page": [
-        8.25,
+        MAIN_STIM_FREQUENCIES["Enter"],
     ]
 }
-

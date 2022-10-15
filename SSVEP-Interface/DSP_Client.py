@@ -5,11 +5,10 @@ import sys
 import numpy as np
 import pandas as pd
 from time import time
-from collections import Counter
 import threading
 import glob
+from socket_utils import socket_receive
 from PageFrequencies import page_frequencies
-from datetime import datetime
 
 path = os.getcwd()
 head, tail = os.path.split(path)
@@ -81,55 +80,31 @@ class EEGSocketListener:
         self.pubSocket.close()
         self.lisSocketUI.close()
 
-    def recieve_packet(self):
-        # the size of the input data = num elements * 8 bytes + 500 for leeway
-        try:
-            sample = self.lisSocket.recv(1000000000)
-            sample = pickle.loads(sample)
-
-            pizza_time = sample[:, [0, 1, 2, 3, 4, 5, 6, 7, 17]]
-            sample = sample[:, :8]
-
-            # sample = np.hstack((samp,timestamp.T))
-            if self.csvData is None:
-                self.csvData = pizza_time
-            else:
-                self.csvData = np.vstack((self.csvData, pizza_time))
-            print(self.csvData.shape)
-            
-        except EOFError:
-            # print(e)
-            pass
-
+    def receive_packet(self):
+        sample = socket_receive(self.lisSocket)
         if sample is None:
-            print("COLLECTION COMPLETE")
+            self.close_socket_conn()
+            return
+        if self.csvData is None:
+            self.csvData = sample
+        else:
+            self.csvData = np.vstack((self.csvData, sample))
         return sample
 
-    def recieve_packet_UI(self):
+    def receive_packet_UI(self):
         while True:
-            try:
-                UIDictSerial = self.lisSocketUI.recv(1024)
-                self.UIDict = pickle.loads(UIDictSerial)
-                print(self.UIDict)
-                print(f"PRINTING UIDict FROM FUNC: {self.UIDict}")
-                self.dictionary["page"] = self.UIDict['current page']
-            except EOFError:
-                break
-            if self.UIDict is None:
+            message = socket_receive(self.lisSocketUI)
+            if message is None:
                 print("no dict received from UI")
+                self.close_socket_conn()
+                return
+            self.UIDict = message
+            self.dictionary["page"] = self.UIDict['current page']
         self.close_socket_conn()
-
 
     def send_packet(self, sample):
         self.connection.sendall(pickle.dumps(sample))
         print(f'Sent {sample}')
-    
-    def highest_matching_frequency(self, confidences: np.array, frequencies=None):
-        if frequencies is None:
-            frequencies = self.model.cca_frequencies
-        indices = [self.model.freq2label[freq] for freq in frequencies]
-        subset_confidence = confidences[:, indices]
-        return self.model.cca_frequencies[indices[np.argmax(subset_confidence, axis=1)[0]]]
 
     def listen(self, run_time=None):
         self.connection, self.address = self.pubSocket.accept()
@@ -137,45 +112,46 @@ class EEGSocketListener:
         init_time = time()
         time_func = (lambda: time() - init_time < run_time) if run_time else (lambda: True)
 
-        init_slider_count = 0
-
         # Create and start thread
         self.UIDict = {
             'stimuli': 'off',
             'current page': 'Output Menu Page',
-            'previous page': '',
-            'output mode': ''
+            'output mode': '',
+            'on_stimulus_timestamp': None
         }
-        UIthreadRecv = threading.Thread(target=self.recieve_packet_UI)
-        UIthreadRecv.start()
+        threading.Thread(target=self.receive_packet_UI).start()
         # Initializing it on 1, but it is passed onto the thread, which toggles it every 2 seconds
 
         while time_func:
-            packet = self.recieve_packet()
-            if self.UIDict["stimuli"] == "off":
-                self.data = None
+            packet = self.receive_packet()
+            if packet is None:
+                break
+            if self.data is None:
+                self.data = packet
             else:
-                #packet = self.recieve_packet()
-
-                if packet is None:
-                    break
-                
-                if self.data is None:
-                    self.data = packet
-                else:
-                    self.data = np.concatenate((self.data, packet), axis=0)
+                self.data = np.concatenate((self.data, packet))
+            if self.UIDict["stimuli"] == "off" and self.UIDict["on_stimulus_timestamp"]:
+                on_stim_time = self.UIDict["on_stimulus_timestamp"]
+                off_stim_time = self.UIDict["timestamp"]
                 if self.data is not None:
-                    if self.data.shape[0] == self.sample_rate * self.window_length:
-                        sample = np.expand_dims(self.data, axis=0)
-                        prepared = self.model.prepare(sample)
-                        _, confidence = self.model.predict(prepared)
-                        print(f"Prediction made at: {datetime.now()}")
-                        frequency = self.highest_matching_frequency(confidences=confidence,
-                                                                    frequencies=page_frequencies[self.UIDict['current page']])
-                        self.dictionary["freq"] = frequency
-                        self.send_packet(self.dictionary)
-                        print(f"Prediction sent at: {datetime.now()}")
-                        self.data = None
+                    subset = self.data[np.nonzero((self.data[:, -1] <= off_stim_time) &
+                                                  (self.data[:, -1] >= on_stim_time))]
+                    if subset.shape[0] < self.sample_rate * self.window_length:
+                        continue
+                    diff = int(subset.shape[0] - self.sample_rate * self.window_length)
+                    left_diff = diff // 2
+                    right_diff = diff - left_diff
+                    subset = subset[left_diff: -right_diff]
+                    sample = np.expand_dims(subset[:, :-1], axis=0)
+                    prepared = self.model.prepare(sample)
+                    current_page_frequencies = page_frequencies[self.UIDict['current page']]
+                    results, _ = self.model.predict(prepared, frequencies=current_page_frequencies)
+                    frequency = self.model.convert_index_to_frequency(results, frequencies=current_page_frequencies)
+                    if len(frequency) == 1:
+                        frequency = frequency[0]
+                    self.dictionary["freq"] = frequency
+                    self.send_packet(self.dictionary)
+                    self.data = self.data[np.nonzero(self.data[:, -1] > off_stim_time)]
         self.close_socket_conn()
 
     def generate_csv(self, name="SSVEP-Interface/online_data/eeg.csv"):

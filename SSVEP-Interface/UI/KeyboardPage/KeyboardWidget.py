@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget,QLineEdit,QHBoxLayout, QVBoxLayout
-from UI.Components.button_container import ButtonContainer
-from UI.KeyboardPage.completer import AutoCompleter, suggestWords
+from UI.Components.button_container import ButtonContainer, buttonClickNoise
+from UI.KeyboardPage.completer import suggestWords
 
 # groupedChars = ['a | b | c | d | e | f',
 #                    'g | h | i | j | k | l',
@@ -119,7 +119,7 @@ def clickedBack(parent, buttons, text, level):
 
 
 def keyboardClick(parent,buttons,selected,prediction=False):
-    # buttonClickNoise()
+    buttonClickNoise()
 
     toggleBtn = parent.findChild(ButtonContainer,"Toggle")
     btnText = selected.label.text()
@@ -187,7 +187,7 @@ def writePredictionToInput(parent, buttons, text, charMode):
     inputField.setText(temp)
 
 def backspace(parent):
-    # buttonClickNoise()
+    buttonClickNoise()
 
     inputField = parent.findChild(QLineEdit,"Input")
 
@@ -200,7 +200,7 @@ def backspace(parent):
         #parent.parent.emit_message('client_message', {'message': temp[:-1]})
 
 def space(parent):
-    # buttonClickNoise()
+    buttonClickNoise()
 
     inputField = parent.findChild(QLineEdit,"Input")
 
@@ -211,7 +211,7 @@ def space(parent):
     #parent.parent.emit_message('client_message', {'message': temp})
 
 def toggle(parent):
-    # buttonClickNoise()
+    buttonClickNoise()
 
     toggleBtn = parent.findChild(ButtonContainer,"Toggle")
     keyboardWidget = parent.findChild(QWidget,"Keyboard Widget")

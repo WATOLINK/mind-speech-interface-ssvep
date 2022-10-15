@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLineEdit
 
-from UI.Components.button_container import ButtonContainer
+from UI.Components.button_container import ButtonContainer, buttonClickNoise
 
 
 class YesNoWidget(QWidget):
@@ -13,7 +13,7 @@ class YesNoWidget(QWidget):
 
     def createLayout(self,parent):
         layout = QHBoxLayout()
-        labels = ["Yes/True", "No/False"]
+        labels = ["Yes", "No"]
         buttons = []
 
         for i in range(len(labels)):
@@ -22,14 +22,14 @@ class YesNoWidget(QWidget):
             layout.addWidget(button)
             buttons.append(button)
 
-        buttons[0].clicked.connect(lambda: disableOtherButtons(parent, buttons, buttons[0]))
-        buttons[1].clicked.connect(lambda: disableOtherButtons(parent, buttons, buttons[1]))
+        buttons[0].clicked.connect(lambda: disableOtherButtonsYN(parent, buttons, buttons[0]))
+        buttons[1].clicked.connect(lambda: disableOtherButtonsYN(parent, buttons, buttons[1]))
 
         return layout
 
 # make the yn array of buttons single select + display selection input field
-def disableOtherButtons(parent,buttons, selected):    
-    # buttonClickNoise()
+def disableOtherButtonsYN(parent,buttons, selected):    
+    buttonClickNoise()
 
     inputField = parent.findChild(QLineEdit,"Input")
 

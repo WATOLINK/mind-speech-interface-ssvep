@@ -1,6 +1,5 @@
 import sys
 import asyncio
-import socket
 import websockets
 from PyQt5.QtCore import center, Qt
 
@@ -10,15 +9,15 @@ from UI.status import getStatus
 from UI.MainWidget.mainWidget import MainContainer
 from UI.styles import windowStyle
 
-from UI.Components.button_container import ButtonContainer#, buttonClickNoise
+from UI.Components.button_container import ButtonContainer, buttonClickNoise
 from UI.status import printStatus, setStimuliStatus
 from UI.UI_DEFS import WINDOW_HEIGHT, WINDOW_WIDTH
 
 import threading
 import time
 from datetime import datetime
+from socket_utils import socket_send
 import socket
-import pickle
 
 
 class Window(QMainWindow):
@@ -51,6 +50,7 @@ def stimOnsetOffset(s, window):
     client_socket, _ = s.accept()
     mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
     enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
+    last_on_stimulus = None
     while True:
         if stopThread:
             break
@@ -62,13 +62,15 @@ def stimOnsetOffset(s, window):
             button.stimuli.toggleOff()
         setStimuliStatus('off')
         x = getStatus()
-
-        print(f"OFF STIMULUS: {datetime.now()}")
-        encoded = pickle.dumps(x)
-        client_socket.send(encoded)
+        if last_on_stimulus is not None:
+            x['on_stimulus_timestamp'] = last_on_stimulus
+        else:
+            x['on_stimulus_timestamp'] = None
+        print(f"OFF STIMULUS: {datetime.now()}, Sending {x}")
+        socket_send(sending_socket=client_socket, data=x)
 
         printStatus()
-        time.sleep(5)       
+        time.sleep(5)
 
         if stopThread:
             break
@@ -80,10 +82,11 @@ def stimOnsetOffset(s, window):
             button.stimuli.toggleOn()
         setStimuliStatus('on')
         x = getStatus()
-        
+        last_on_stimulus = x['timestamp']
+
         print(f"ON STIMULUS: {datetime.now()}")
-        encoded = pickle.dumps(x)
-        client_socket.send(encoded)
+        print(f"Sending {x}")
+        socket_send(sending_socket=client_socket, data=x)
 
         printStatus()
         time.sleep(5)

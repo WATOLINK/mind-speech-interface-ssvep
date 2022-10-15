@@ -27,13 +27,13 @@ class FBCCA:
         self.power_line_frequency = 60
         # Filter bank Initialization
         self.frequency_bands = args.frequency_bands if "frequency_bands" in args else 10
-        self.harmonics = args.harmonics if "harmonics" in args else 3
+        self.harmonics = args.harmonics if "harmonics" in args else 2
         self.fb_coefs = np.power(np.arange(1, self.frequency_bands + 1), -1.25) + 0.25
         self.reference_templates = self.create_reference_templates(frequencies=self.cca_frequencies)
         self.verbose = False
         if hasattr(args, "verbose"):
             self.verbose = args.verbose
-        self.freq2label = {freq: idx for idx, freq in enumerate(self.frequencies)}
+        self.freq2label = {freq: idx for idx, freq in enumerate(self.cca_frequencies)}
 
     def create_reference_templates(self, frequencies: List):
         """
@@ -80,39 +80,47 @@ class FBCCA:
                                 quality_factor=self.quality_factors,
                                 sample_rate=self.sample_rate)
 
-    def predict(self, data: np.ndarray):
+    def predict(self, data: np.ndarray, frequencies: List[float] = None):
         """
         Make a prediction for the main frequency each signal using FBCCA.
 
         Args:
-            signals: The input ndarray of signals
+            data: The input ndarray of signals
+            frequencies: An optional subset of frequencies to predict for.
+                If none are provided, predicts on the standard frequencies defined in the class.
 
         Returns:
-            Correlations to each of the reference signals
+            Index of frequency in frequencies with the highest correlation.
+            Also returns the confidence for each of the correlations
         """
-        # result matrix
-        r = np.zeros((self.frequency_bands, len(self.cca_frequencies))) 
+        if frequencies is None:
+            frequencies = self.cca_frequencies
+        indices = [self.freq2label[freq] for freq in frequencies]
+        n_frequencies = len(frequencies)
+        r = np.zeros((self.frequency_bands, n_frequencies))
         results = np.zeros((data.shape[0]))
-        confidence = np.zeros((data.shape[0], len(self.cca_frequencies)))
+        confidence = np.zeros((data.shape[0], n_frequencies))
         signal_range = range(data.shape[0])
         if self.verbose:
             signal_range = trange(data.shape[0])
         for segment in signal_range:
             for frequency_band in range(self.frequency_bands):
                 segment_frequency_bank = filterbank(data[segment].T, self.sample_rate, frequency_band)
-                for frequ in range(len(self.cca_frequencies)):
-                    refdata = np.squeeze(self.reference_templates[frequ, :, :])  # pick corresponding freq target reference signal
+                for nf_index, frequency_idx in enumerate(indices):
+                    refdata = np.squeeze(self.reference_templates[frequency_idx, :, :])  # pick corresponding freq target reference signal
                     test_C, ref_C = self.cca.fit_transform(segment_frequency_bank.T, refdata.T)
                     r_tmp, _ = pearsonr(np.squeeze(test_C), np.squeeze(ref_C))
-                    r[frequency_band, frequ] = r_tmp
+                    r[frequency_band, nf_index] = r_tmp
             rho = np.dot(self.fb_coefs, r)  # weighted sum of r from all different filter banks' result
             tau = np.argmax(rho)  # get maximum from the target as the final predict (get the index)
             confidence[segment, :] = softmax(rho)
             results[segment] = tau  # index indicate the maximum(most possible) target
-        return results, confidence
+        return results.astype('int'), confidence
 
-    def convert_index_to_frequency(self, predictions: np.array):
-        return [self.frequencies[pred] for pred in predictions]
+    def convert_index_to_frequency(self, predictions: np.array, frequencies: List[float] = None):
+        if frequencies is None:
+            frequencies = self.cca_frequencies
+        return [frequencies[pred] for pred in predictions]
 
     def test(self, hparams, test_data, test_labels):
         """
@@ -130,8 +138,6 @@ class FBCCA:
         test_data = self.prepare(data=test_data)
         idx_labels = [self.freq2label[label] for label in test_labels]
         predictions, confidence = self.predict(data=test_data)
-        if self.frequencies[0] == 0:
-            predictions = [pred + 1 for pred in predictions]
         cca_accuracy = accuracy_score(y_true=idx_labels, y_pred=predictions)
         metrics = {'test_cca_accuracy': cca_accuracy}
         if hparams.verbose:
