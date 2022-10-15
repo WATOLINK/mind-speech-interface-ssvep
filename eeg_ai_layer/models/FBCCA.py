@@ -27,7 +27,7 @@ class FBCCA:
         self.power_line_frequency = 60
         # Filter bank Initialization
         self.frequency_bands = args.frequency_bands if "frequency_bands" in args else 10
-        self.harmonics = args.harmonics if "harmonics" in args else 3
+        self.harmonics = args.harmonics if "harmonics" in args else 2
         self.fb_coefs = np.power(np.arange(1, self.frequency_bands + 1), -1.25) + 0.25
         self.reference_templates = self.create_reference_templates(frequencies=self.cca_frequencies)
         self.verbose = False

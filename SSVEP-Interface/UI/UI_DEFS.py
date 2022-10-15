@@ -1,5 +1,4 @@
-
-
+"""UI Page Frequencies"""
 MAIN_WIDGET_INDEXES = [
     "Output Menu Page",
     "Keyboard YN Menu Page",
@@ -21,7 +20,7 @@ STIMULI_SIZE = 200
 
 # Set stimuli frequencies for the main UI
 # Note that the key must match the value of the "freqName" passed when creating ButtonContainer object 
-MAIN_STIM_FREQUENCIES = { 
+MAIN_STIM_FREQUENCIES = {
     'Enter': 8.25,
 
     'Output Menu 1': 10.75,
@@ -30,11 +29,10 @@ MAIN_STIM_FREQUENCIES = {
 
     'Keyboard YN Menu 1': 12.75,
     'Keyboard YN Menu 2': 13.75,
-    # 'Keyboard YN Menu Help': 14.25,
     'Back to Output Menu': 10.75,
     
     'YN 1': 8.75,
-    'YN 2': 13.75,
+    'YN 2': 9.75,
 
     'Keyboard 1': 12.75,
     'Keyboard 2': 11.75,
@@ -43,4 +41,4 @@ MAIN_STIM_FREQUENCIES = {
     'Space': 8.75,
     'Backspace': 13.75,
     'Word Toggle': 14.25,
-    }
+}
