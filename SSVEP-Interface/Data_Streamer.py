@@ -83,11 +83,11 @@ def Streamer(publisher, synch, q, info):
         publisher.col_hi_lim = 9
     synch.wait()
     print(f"Elapsed Time Streamer Process: {time() * 1000} ms")
-    publisher.publish(99999999999)
-    if q.get() is None:
+    try:
+        publisher.publish(99999999999)
+    finally:
         publisher.close_connections()
-        q.put(None)
-   
+
 
 def DSP(listener, synch, q):
     synch.wait()
