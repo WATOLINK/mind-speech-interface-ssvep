@@ -32,6 +32,7 @@ class CCAKNNModel:
         self.freq2label = {freq: idx for idx, freq in enumerate(self.frequencies)}
         self.lower_freq = args.lower_freq if "lower_freq" in args else 7
         self.upper_freq = args.upper_freq if "upper_freq" in args else 16
+        print(self.frequencies)
 
     def create_reference_templates(self, frequencies: List):
         """
@@ -110,21 +111,22 @@ class CCAKNNModel:
         Returns:
             Frequency predictions from the CCA and KNN models
         """
-        if frequencies is None:
-            frequencies = self.frequencies
+        # if frequencies is None:
+        #     frequencies = self.frequencies
         cca_predictions, correlations = self.cca_predict(data)
-        score = self.knn.predict_proba(correlations)
-        indices = [self.freq2label[freq] for freq in frequencies]
-        result = np.argmax(score[:, indices])
-        if np.sum(result == 0) == np.product(result.shape):
-            return cca_predictions, correlations
-        real_results = [indices[freq] for freq in np.argmax(score[:, indices], axis=1)]
-        return real_results, correlations
+        predictions = self.knn.predict(correlations)
+        # score = self.knn.predict_proba(correlations)
+        # indices = [self.freq2label[freq] for freq in frequencies]
+        # result = np.argmax(score[:, indices])
+        # if np.sum(result == 0) == np.product(result.shape):
+        #     return cca_predictions, correlations
+        # real_results = [indices[freq] for freq in np.argmax(score[:, indices], axis=1)]
+        return predictions, correlations
 
     def convert_index_to_frequency(self, predictions: np.array, frequencies: List[float] = None):
-        if frequencies is None:
-            frequencies = self.frequencies
-        return [frequencies[pred] for pred in predictions]
+        # if frequencies is None:
+        #     frequencies = self.frequencies
+        return [self.frequencies[pred] for pred in predictions]
 
     def calculate_correlation(self, signals: np.array, reference: np.array) -> np.array:
         """
