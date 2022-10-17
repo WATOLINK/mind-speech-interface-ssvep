@@ -94,11 +94,13 @@ class CCAKNNModel:
         Returns:
             Prepared data for prediction
         """
-        data = butter_bandpass_filter(data.T, lowcut, highcut, self.sample_rate, 4).T
-        data = buffer(data=data, duration=self.duration, data_overlap=self.sample_rate - 1)
+        if len(data.shape) > 2:
+            data = data.squeeze()
+        data = butter_bandpass_filter(data.T, lowcut, highcut, self.sample_rate, order).T
+        data = buffer(data=data, duration=int(self.duration), data_overlap=int(self.sample_rate - 1))
         return data
 
-    def predict(self, data: np.ndarray):
+    def predict(self, data: np.ndarray, frequencies: List[float] = None):
         """
         Make a prediction on some parsed and filtered EEG data.
 
@@ -108,12 +110,21 @@ class CCAKNNModel:
         Returns:
             Frequency predictions from the CCA and KNN models
         """
-        predictions, correlations = self.cca_predict(data)
-        predictions = self.knn.predict(correlations)
-        return predictions
+        if frequencies is None:
+            frequencies = self.frequencies
+        cca_predictions, correlations = self.cca_predict(data)
+        score = self.knn.predict_proba(correlations)
+        indices = [self.freq2label[freq] for freq in frequencies]
+        result = np.argmax(score[:, indices])
+        if np.sum(result == 0) == np.product(result.shape):
+            return cca_predictions, correlations
+        real_results = [indices[freq] for freq in np.argmax(score[:, indices], axis=1)]
+        return real_results, correlations
 
-    def convert_index_to_frequency(self, predictions: np.array):
-        return [self.frequencies[pred] for pred in predictions]
+    def convert_index_to_frequency(self, predictions: np.array, frequencies: List[float] = None):
+        if frequencies is None:
+            frequencies = self.frequencies
+        return [frequencies[pred] for pred in predictions]
 
     def calculate_correlation(self, signals: np.array, reference: np.array) -> np.array:
         """
@@ -156,8 +167,6 @@ class CCAKNNModel:
         idx_labels = [self.freq2label[label] for label in test_labels]
         test_data = np.array(test_data)
         cca_predictions, correlations = self.cca_predict(data=test_data)
-        if self.frequencies[0] == 0:
-            cca_predictions = [pred + 1 for pred in cca_predictions]
         cca_accuracy = accuracy_score(y_true=idx_labels, y_pred=cca_predictions)
         knn_predictions = self.knn.predict(correlations)
         knn_accuracy = accuracy_score(y_true=idx_labels, y_pred=knn_predictions)

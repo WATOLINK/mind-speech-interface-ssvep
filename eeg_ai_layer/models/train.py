@@ -92,6 +92,7 @@ def join_datasets(data_path: str) -> pd.DataFrame:
             data = data.append(join_datasets(os.path.join(data_path, path)), ignore_index=True)
         return data
 
+
 def segment_data_from_trials(trials: List):
     segments = []
     segment_labels = []
@@ -147,7 +148,10 @@ if __name__ == "__main__":
         test_data = pd.read_csv(args.testing_data)
         test_data, splits = parse_and_filter_eeg_data(test_data)
 
-    args.__dict__['frequencies'] = np.unique(data['Frequency'].dropna().sort_values())
+    freqs = np.unique(data['Frequency'].dropna().sort_values())
+    if args.no_zero:
+        freqs = freqs[np.nonzero(freqs)]
+    args.__dict__['frequencies'] = freqs
     model = load_model(args=args)
 
     if args.train and args.model_type != "fbcca":
