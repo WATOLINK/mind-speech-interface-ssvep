@@ -82,7 +82,7 @@ def buffer(data, duration, data_overlap):
     '''
 
     number_segments = int(math.ceil((len(data) - data_overlap)/(duration - data_overlap)))
-    temp_buf = [data[i:i+duration] for i in range(0, len(data), (duration - int(data_overlap)))]
+    temp_buf = [data[i:i+duration] for i in range(0, len(data), int(duration - int(data_overlap)))]
     
     # if the last segment is smaller than the window length, remove the last segment 
     # (we used to pad this but it was useless)
