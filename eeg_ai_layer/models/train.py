@@ -35,8 +35,8 @@ def get_args(parser: ArgumentParser):
     parser.add_argument('--sample-rate', type=int, default=250, help="Sampling rate (hz)")
     parser.add_argument('--window-length', type=float, default=1, help="Window length for data processing")
     parser.add_argument('--shift-length', type=float, default=1, help="Shift length for data processing")
-    parser.add_argument('--lower-freq', type=float, default=5, help="Lower frequency bound for a bandpass filter")
-    parser.add_argument('--upper-freq', type=float, default=5, help="Upper frequency bound for a bandpass filter")
+    parser.add_argument('--lower-freq', type=float, default=7, help="Lower frequency bound for a bandpass filter")
+    parser.add_argument('--upper-freq', type=float, default=16, help="Upper frequency bound for a bandpass filter")
     parser.add_argument('--random-state', type=int, default=42, help="Random State")
     return parser.parse_known_args()
 
@@ -130,7 +130,8 @@ if __name__ == "__main__":
             trials = split_trials(data)
             test_data, test_labels = segment_data_from_trials(trials=trials)
         else:
-            train_data = parse_and_filter_eeg_data(data=data, sample_rate=args.sample_rate, lowcut=9, highcut=16)
+            train_data = parse_and_filter_eeg_data(data=data, sample_rate=args.sample_rate, lowcut=args.lower_freq,
+                                                   highcut=args.upper_freq)
             trials = split_trials(train_data)
             segments, segment_labels = segment_data_from_trials(trials=trials)
             seggies = np.arange(len(segment_labels))

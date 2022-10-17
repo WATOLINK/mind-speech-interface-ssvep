@@ -30,6 +30,8 @@ class CCAKNNModel:
         self.cca_frequencies = None
         self.reference_templates = self.create_reference_templates(frequencies=self.frequencies)
         self.freq2label = {freq: idx for idx, freq in enumerate(self.frequencies)}
+        self.lower_freq = args.lower_freq
+        self.upper_freq = args.upper_freq
 
     def create_reference_templates(self, frequencies: List):
         """
@@ -82,7 +84,7 @@ class CCAKNNModel:
         predictions = np.argmax(correlations, axis=1)
         return predictions, correlations
 
-    def prepare(self, data):
+    def prepare(self, data, lowcut=7, highcut=16, order=4):
         """
         Prepare data for prediction. To be used in online context.
 
@@ -92,7 +94,7 @@ class CCAKNNModel:
         Returns:
             Prepared data for prediction
         """
-        data = butter_bandpass_filter(data.T, 9, 16, 250, 4).T
+        data = butter_bandpass_filter(data.T, lowcut, highcut, self.sample_rate, 4).T
         data = buffer(data=data, duration=self.duration, data_overlap=self.sample_rate - 1)
         return data
 
