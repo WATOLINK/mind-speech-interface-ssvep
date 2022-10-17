@@ -113,7 +113,7 @@ class FBCCA:
                     r[frequency_band, nf_index] = r_tmp
             rho = np.dot(self.fb_coefs, r)  # weighted sum of r from all different filter banks' result
             tau = np.argmax(rho)  # get maximum from the target as the final predict (get the index)
-            confidence[segment, :] = softmax(rho)
+            confidence[segment, :] = rho
             results[segment] = tau  # index indicate the maximum(most possible) target
         return results.astype('int'), confidence
 

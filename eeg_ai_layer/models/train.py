@@ -23,7 +23,7 @@ def get_args(parser: ArgumentParser):
     parser.add_argument('--components', type=int, default=1, help="Number of components for CCA")
     parser.add_argument('--train', action="store_true", help="Whether to train a model")
     parser.add_argument('--verbose', action="store_true", help="Verbosity level. Will print a confusion matrix if set")
-    parser.add_argument('--neighbors', type=int, default=3, help="The number of neighbors to pass to a KNN")
+    parser.add_argument('--neighbors', type=int, default=4, help="The number of neighbors to pass to a KNN")
     parser.add_argument('--no-zero', action="store_true", default=False, help="Whether to train the model on data with no frequency")
     parser.add_argument('--training-data', type=str, help="Filepath for the training data (csv)")
     parser.add_argument('--testing-data', type=str, help="Filepath for the testing data (csv)")
