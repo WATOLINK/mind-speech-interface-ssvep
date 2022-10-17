@@ -30,8 +30,8 @@ class CCAKNNModel:
         self.cca_frequencies = None
         self.reference_templates = self.create_reference_templates(frequencies=self.frequencies)
         self.freq2label = {freq: idx for idx, freq in enumerate(self.frequencies)}
-        self.lower_freq = args.lower_freq
-        self.upper_freq = args.upper_freq
+        self.lower_freq = args.lower_freq if "lower_freq" in args else 7
+        self.upper_freq = args.upper_freq if "upper_freq" in args else 16
 
     def create_reference_templates(self, frequencies: List):
         """
