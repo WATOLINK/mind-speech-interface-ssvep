@@ -24,6 +24,7 @@ Make sure to run the command from the base directory (mind-speech-interface-ssve
 Our software tools support the OpenBCI Cyton board as well as the gtec Unicorn Hybrid for EEG data capturing.   
 
 When setting up the device please make sure the channel numbers correspond to the following 10-20 electrode locations.
+Note that this image is viewed as if you were looking at the back of someone's head.
 
 ![image](https://user-images.githubusercontent.com/34819737/178824314-7b1296b8-cdd2-424b-86ef-b65fec7e2d6e.png)
 
@@ -139,11 +140,15 @@ After ensuring GPT-3, Twitter, and TTS features are setup, you will be ready to 
 ```
 for synthetic board:
 ```python
-    python SSVEP-Interface/Data_Streamer.py --board-id=-1 --model-path=eeg-ai-layer\modelname.model OR --model-type=fbcca
+    python SSVEP-Interface/Data_Streamer.py --board-id=-1 --model-path=eeg-ai-layer\modelname.model
+    # Alternatively
+    python SSVEP-Interface/Data_Streamer.py --board-id=-1 --model-type=fbcca
 ```
 for non synthetic board (our online system auto-detects board-id and serial-port):
 ```python
-    python SSVEP-Interface/Data_Streamer.py --model-path=eeg-ai-layer\modelname.model OR --model-type=fbcca
+    python SSVEP-Interface/Data_Streamer.py --model-path=eeg-ai-layer\modelname.model
+    # Alternatively
+    python SSVEP-Interface/Data_Streamer.py --model-type=fbcca
 ```
 
 Note: If you are using the OpenBCI with active electrodes with the online interface, please follow the steps to change the gain mentioned in the offline setup earlier before running the online interface.
