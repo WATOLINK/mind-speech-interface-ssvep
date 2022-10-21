@@ -87,7 +87,7 @@ def clickedGroup(parent, buttons, text, level):
 
     buttons[3].label.setText("Back")
 
-def clickedBack(parent, buttons, level):
+def clickedBack(parent, buttons, text, level):
     if level == 2:
         for x in range(len(buttons)):
             buttons[x].label.setText(groupedChars[x])
@@ -129,7 +129,6 @@ def keyboardClick(parent,buttons,selected,prediction=False):
         writePredictionToInput(parent, buttons, btnText, charMode=toggleBtn.label.text() == "Toggle Words")
         suggestWords(parent)
     else:
-        
         writeToInput(parent, buttons, btnText)
 
 

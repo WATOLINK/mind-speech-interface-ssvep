@@ -13,8 +13,11 @@ def getMainWidgetIndex(name):
     else:
         print("invalid sidebar name")
 
-WINDOW_WIDTH = 1900
-WINDOW_HEIGHT = 1061
+#WINDOW_WIDTH = 1900
+#WINDOW_HEIGHT = 1061
+
+WINDOW_WIDTH = 2400
+WINDOW_HEIGHT = 1360
 
 STIMULI_SIZE = 200
 

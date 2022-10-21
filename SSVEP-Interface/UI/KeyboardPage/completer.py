@@ -1,6 +1,6 @@
 from numpy import promote_types
 from UI.Components.button_container import ButtonContainer
-from PyQt5.QtWidgets import QWidget, QLineEdit, QCompleter
+from PyQt5.QtWidgets import QWidget, QLineEdit, QCompleter, QLabel
 # from PyQt5.QtGui import QTextCursor, QKeySequence, QFont
 from PyQt5 import QtCore
 from OpenAI.prediction import OpenAI
@@ -95,12 +95,17 @@ def getPredictions(prompt):
 def suggestWords(parent):
     toggleBtn = parent.findChild(ButtonContainer, "Toggle")
     # means the keyboard is currently on word mode
+    
     currentText = parent.findChild(QLineEdit, "Input").text()
+    print(f"current text: {currentText}")
     
     # hard coded prompt for now change the prompt below in order to input a custom prompt
-    questionInitial = '''
-    Answer 3 different and unique ways.
-    Question: How are you? Answer: '''
+    prompt = "Answer 3 different and unique ways. Question: Hi! Answer: "
+    
+    prompt_set = parent.findChild(QLabel, "Prompt").text()
+    if prompt_set and prompt_set != "Prompts Will Appear Here :)":
+        prompt = prompt_set
+    
     questionCompletion = '''
     Complete sentence in 3 different and unique ways. “'''
     endSequence = '''__”
@@ -108,7 +113,7 @@ def suggestWords(parent):
     2)
     3) \n \n '''
 
-    promptInitial = questionInitial + currentText + endSequence
+    promptInitial = prompt + " " + currentText + endSequence
     promptCompletion = questionCompletion + currentText + endSequence
 
     lastWord = ""
@@ -127,11 +132,12 @@ def suggestWords(parent):
         predictions = getPredictions(promptCompletion)
         # print(currentText)
         print("Condition 3 is running")
-    counter = 0
-    for item in predictions:
+
+    for idx, item in enumerate(predictions):
+        if not item:
+            continue
         if (item[0] == "1" or item[0] == "2" or item[0] == "3"):
-            predictions[counter] = item[2:]
-        counter = counter + 1
+            predictions[idx] = item[2:]
     
     print(f"This is the predictions")
     print(predictions)

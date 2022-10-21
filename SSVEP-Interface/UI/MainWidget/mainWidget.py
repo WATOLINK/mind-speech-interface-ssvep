@@ -42,7 +42,7 @@ class MainContainer(QWidget):
         mainWidget = mainStack(self)
         
         #UPPER SECTION
-        layout.addWidget(promptBox("What did you have for dinner last night?"), 0, 0, 1, textFieldWidth)
+        layout.addWidget(promptBox("Prompts Will Appear Here :)"), 0, 0, 1, textFieldWidth)
         layout.addWidget(inputBox(self), 1, 0, 1, textFieldWidth)
 
         layout.addWidget(EnterButton(self), 0, 3, 2, width-textFieldWidth)

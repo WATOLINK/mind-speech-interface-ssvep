@@ -2,6 +2,8 @@ from locale import currency
 import sys
 import asyncio
 
+from UI.KeyboardPage.completer import suggestWords
+
 import websockets
 from PyQt5.QtCore import center, Qt
 
@@ -105,6 +107,7 @@ def webAppSocket(window):
             if text.startswith("prompt: "):
                 promptBox = window.mainWidget.findChild(QLabel, "Prompt")
                 promptBox.setText(text[8:])
+                suggestWords(window.mainWidget)
             elif text.startswith("disconnect"):
                 print("Client Disconnected")
                 break
