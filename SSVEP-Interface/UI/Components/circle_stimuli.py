@@ -10,7 +10,6 @@ from PyQt5.QtWidgets import (
     QWidget,
     QHBoxLayout,
     QOpenGLWidget,
-    QSizePolicy
 )
 from PyQt5.QtCore import QTimer, Qt
 
