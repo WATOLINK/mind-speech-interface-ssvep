@@ -1,5 +1,7 @@
+from locale import currency
 import sys
 import asyncio
+
 import websockets
 from PyQt5.QtCore import center, Qt
 
@@ -11,7 +13,7 @@ from UI.styles import windowStyle
 
 from UI.Components.button_container import ButtonContainer #buttonClickNoise
 from UI.status import printStatus, setStimuliStatus
-from UI.UI_DEFS import WINDOW_HEIGHT, WINDOW_WIDTH
+from UI.UI_DEFS import WINDOW_HEIGHT, WINDOW_WIDTH, PAGE_STIM_ONSET_TIMES, START_DELAY
 
 import threading
 import time
@@ -51,6 +53,9 @@ def stimOnsetOffset(s, window):
     mainStack = window.mainWidget.findChild(QStackedWidget,"Main Widget")
     enterButton = window.mainWidget.findChild(ButtonContainer, "Enter Button")
     last_on_stimulus = None
+    
+    time.sleep(START_DELAY)
+    
     while True:
         if stopThread:
             break
@@ -58,7 +63,7 @@ def stimOnsetOffset(s, window):
         # OFFSET
         currWidget = mainStack.currentWidget()
         enterButton.stimuli.toggleOff()
-        for button in currWidget.findChildren(ButtonContainer):
+        for button in mainStack.findChildren(ButtonContainer):
             button.stimuli.toggleOff()
         setStimuliStatus('off')
         x = getStatus()
@@ -70,15 +75,15 @@ def stimOnsetOffset(s, window):
         socket_send(sending_socket=client_socket, data=x)
 
         printStatus()
-        time.sleep(5)
+        time.sleep(PAGE_STIM_ONSET_TIMES[currWidget.objectName()])
 
         if stopThread:
             break
 
-         #ONSET
+        #ONSET
         currWidget = mainStack.currentWidget()
         enterButton.stimuli.toggleOn()
-        for button in currWidget.findChildren(ButtonContainer):
+        for button in mainStack.findChildren(ButtonContainer):
             button.stimuli.toggleOn()
         setStimuliStatus('on')
         x = getStatus()
@@ -89,7 +94,7 @@ def stimOnsetOffset(s, window):
         socket_send(sending_socket=client_socket, data=x)
 
         printStatus()
-        time.sleep(5)
+        time.sleep(PAGE_STIM_ONSET_TIMES[currWidget.objectName()])
 
 
 def webAppSocket(window):

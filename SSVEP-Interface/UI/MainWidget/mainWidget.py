@@ -12,7 +12,7 @@ from UI.styles import textBoxStyle, promptBoxStyle
 from UI.OutputMenuPage.outputMenu import OutputMenuWidget
 from UI.KeyboardYNMenuPage.KeyboardYN import KeyboardYNMenuWidget
 from UI.YNPage.YN import YesNoWidget, disableOtherButtonsYN
-from UI.KeyboardPage.KeyboardWidget import KeyboardWidget
+from UI.KeyboardPage.KeyboardWidget import KeyboardWidget, toggle
 from UI.HelpPage.help import HelpWidget
 
 from UI.KeyboardPage.completer import suggestWords
@@ -20,10 +20,9 @@ from UI.KeyboardPage.completer import suggestWords
 from UI.Components.enterButton import EnterButton, submitAndReturn
 
 from UI.homeBase import AThread
-from PyQt5.QtWidgets import QWidget, QHBoxLayout
+from PyQt5.QtWidgets import QWidget
 from UI.Components.button_container import ButtonContainer
 from UI.helperFunctions import disableOtherButtons, changeStacks
-# from symbol import or_test
 from UI.status import setCurrentPage
 from UI.KeyboardPage.KeyboardWidget import keyboardClick, toggle, space, backspace
 
@@ -38,12 +37,8 @@ class MainContainer(QWidget):
         self.myThread = AThread()
         self.myThread.start()
 
-        #TODO: fix server comm integration
-        #self.parent = parent
-
         width = 5
         textFieldWidth = 3
-        # height = 6
         mainWidget = mainStack(self)
         
         #UPPER SECTION
@@ -53,6 +48,7 @@ class MainContainer(QWidget):
         layout.addWidget(EnterButton(self), 0, 3, 2, width-textFieldWidth)
         #MIDDLE SECTION
         layout.addWidget(mainWidget, 2, 0, 2, width)
+        toggle(self)
 
         self.initUI()
 
@@ -137,7 +133,6 @@ class MainContainer(QWidget):
 
 def enterButton(self):
     enter = self.findChild(ButtonContainer, "Enter Button")
-    # print(enter)
     submitAndReturn(enter, self)
 
 def help(self):
@@ -164,7 +159,6 @@ def inputBox(parent):
 def mainStack(parent):
     stack = QStackedWidget()
     stack.setObjectName("Main Widget")
-    # stack.setStyleSheet(mainButtonStyle)
 
     stack.addWidget(OutputMenuWidget(parent))  # 0
     stack.addWidget(KeyboardYNMenuWidget(parent))  # 1
