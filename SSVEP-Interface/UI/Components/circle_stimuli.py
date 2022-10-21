@@ -21,7 +21,7 @@ class CircleFlash (QOpenGLWidget):
     rValue = 0
     gValue = 0
     bValue = 0
-    on = True
+    on = False
 
     def __init__(self,freqHz, r, g, b):
         super() . __init__()

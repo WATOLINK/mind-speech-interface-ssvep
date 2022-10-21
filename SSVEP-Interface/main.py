@@ -63,7 +63,7 @@ def stimOnsetOffset(s, window):
         # OFFSET
         currWidget = mainStack.currentWidget()
         enterButton.stimuli.toggleOff()
-        for button in currWidget.findChildren(ButtonContainer):
+        for button in mainStack.findChildren(ButtonContainer):
             button.stimuli.toggleOff()
         setStimuliStatus('off')
         x = getStatus()
@@ -83,7 +83,7 @@ def stimOnsetOffset(s, window):
         #ONSET
         currWidget = mainStack.currentWidget()
         enterButton.stimuli.toggleOn()
-        for button in currWidget.findChildren(ButtonContainer):
+        for button in mainStack.findChildren(ButtonContainer):
             button.stimuli.toggleOn()
         setStimuliStatus('on')
         x = getStatus()
