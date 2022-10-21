@@ -87,7 +87,7 @@ def clickedGroup(parent, buttons, text, level):
 
     buttons[3].label.setText("Back")
 
-def clickedBack(parent, buttons, text, level):
+def clickedBack(parent, buttons, level):
     if level == 2:
         for x in range(len(buttons)):
             buttons[x].label.setText(groupedChars[x])
@@ -159,7 +159,7 @@ def writePredictionToInput(parent, buttons, text, charMode):
         print("NOT:" + text + "END")
         prevText = prevText.rstrip()
 
-    temp = prevText + text
+    temp = text
     
     # If user is typing individual characters
     if charMode == True and len(text) == 1:
