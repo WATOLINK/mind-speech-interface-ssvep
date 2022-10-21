@@ -159,7 +159,6 @@ def inputBox(parent):
 def mainStack(parent):
     stack = QStackedWidget()
     stack.setObjectName("Main Widget")
-    # stack.setStyleSheet(mainButtonStyle)
 
     stack.addWidget(OutputMenuWidget(parent))  # 0
     stack.addWidget(KeyboardYNMenuWidget(parent))  # 1
