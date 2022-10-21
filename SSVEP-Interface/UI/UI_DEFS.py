@@ -42,3 +42,13 @@ MAIN_STIM_FREQUENCIES = {
     'Backspace': 13.75,
     'Word Toggle': 14.25,
 }
+
+START_DELAY = 5
+
+PAGE_STIM_ONSET_TIMES = {
+    'Output Menu Page': 5,
+    'Keyboard YN Menu Page': 5,
+    'YN Page': 5,
+    'Keyboard Page': 5,
+    'Help Page': 5,
+}

@@ -20,10 +20,9 @@ from UI.KeyboardPage.completer import suggestWords
 from UI.Components.enterButton import EnterButton, submitAndReturn
 
 from UI.homeBase import AThread
-from PyQt5.QtWidgets import QWidget, QHBoxLayout
+from PyQt5.QtWidgets import QWidget
 from UI.Components.button_container import ButtonContainer
 from UI.helperFunctions import disableOtherButtons, changeStacks
-# from symbol import or_test
 from UI.status import setCurrentPage
 from UI.KeyboardPage.KeyboardWidget import keyboardClick, toggle, space, backspace
 
@@ -38,12 +37,8 @@ class MainContainer(QWidget):
         self.myThread = AThread()
         self.myThread.start()
 
-        #TODO: fix server comm integration
-        #self.parent = parent
-
         width = 5
         textFieldWidth = 3
-        # height = 6
         mainWidget = mainStack(self)
         
         #UPPER SECTION
