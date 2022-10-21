@@ -2,13 +2,6 @@ from PyQt5.QtWidgets import QWidget,QLineEdit,QHBoxLayout, QVBoxLayout
 from UI.Components.button_container import ButtonContainer #buttonClickNoise
 from UI.KeyboardPage.completer import suggestWords
 
-# groupedChars = ['a | b | c | d | e | f',
-#                    'g | h | i | j | k | l',
-#                    'm | n | o | p | q | r',
-#                    's | t | u | v | w | x',
-#                    'y | z | 0 | 1 | 2 | 3',
-#                    '4 | 5 | 6 | 7 | 8 | 9']
-
 groupedChars = ['abc | def | ghi',
                 'jkl | mno | pqr',
                 'stu | vwx | yz0',
@@ -18,9 +11,6 @@ groupedChars2 = [['a | b | c','d | e | f','g | h | i'],
                 ['j | k | l','m | n | o','p | q | r'],
                 ['s | t | u','v | w | x','y | z | 0'],
                 ['1 | 2 | 3','4 | 5 | 6','7 | 8 | 9']]
-
-
-
 class KeyboardWidget(QWidget):
 
     def __init__(self, parent):
@@ -124,8 +114,6 @@ def keyboardClick(parent,buttons,selected,prediction=False):
     toggleBtn = parent.findChild(ButtonContainer,"Toggle")
     btnText = selected.label.text()
 
-
-
     if btnText in groupedChars:
         clickedGroup(parent, buttons, btnText, 1)
     elif any(btnText in subl for subl in groupedChars2):
@@ -146,7 +134,6 @@ def keyboardClick(parent,buttons,selected,prediction=False):
 
 
 def writeToInput(parent, buttons, text):
-    
     inputField = parent.findChild(QLineEdit,"Input")
 
     
@@ -160,9 +147,6 @@ def writeToInput(parent, buttons, text):
     temp = text
     if prevText:
         temp = prevText + text
-
-    #TODO: fix server comm integration
-    # parent.parent.emit_message('client_message', {'message': temp})
     
     inputField.setText(temp)
 
@@ -195,9 +179,6 @@ def backspace(parent):
 
     if len(temp) != 0 :
         inputField.setText(temp[:-1])
-        
-        #TODO: fix server comm integration
-        #parent.parent.emit_message('client_message', {'message': temp[:-1]})
 
 def space(parent):
     #buttonClickNoise()
@@ -206,9 +187,6 @@ def space(parent):
 
     temp = inputField.text() + " "
     inputField.setText(temp)
-    
-    #TODO: fix server comm integration
-    #parent.parent.emit_message('client_message', {'message': temp})
 
 def toggle(parent):
     #buttonClickNoise()

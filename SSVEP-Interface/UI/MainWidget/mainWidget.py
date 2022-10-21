@@ -12,7 +12,7 @@ from UI.styles import textBoxStyle, promptBoxStyle
 from UI.OutputMenuPage.outputMenu import OutputMenuWidget
 from UI.KeyboardYNMenuPage.KeyboardYN import KeyboardYNMenuWidget
 from UI.YNPage.YN import YesNoWidget, disableOtherButtonsYN
-from UI.KeyboardPage.KeyboardWidget import KeyboardWidget
+from UI.KeyboardPage.KeyboardWidget import KeyboardWidget, toggle
 from UI.HelpPage.help import HelpWidget
 
 from UI.KeyboardPage.completer import suggestWords
@@ -48,6 +48,7 @@ class MainContainer(QWidget):
         layout.addWidget(EnterButton(self), 0, 3, 2, width-textFieldWidth)
         #MIDDLE SECTION
         layout.addWidget(mainWidget, 2, 0, 2, width)
+        toggle(self)
 
         self.initUI()
 
@@ -132,7 +133,6 @@ class MainContainer(QWidget):
 
 def enterButton(self):
     enter = self.findChild(ButtonContainer, "Enter Button")
-    # print(enter)
     submitAndReturn(enter, self)
 
 def help(self):
