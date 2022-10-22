@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split, KFold
+from sklearn.model_selection import train_test_split, StratifiedKFold
 from typing import List
 import os
 
@@ -156,9 +156,11 @@ if __name__ == "__main__":
     if args.train and args.model_type != "fbcca":
         if args.cross_val:
             print(f"Cross validation on {args.splits} splits")
-            kf = KFold(n_splits=args.splits)
+            kf = StratifiedKFold(n_splits=args.splits)
             kf.get_n_splits(segments)
-            for train_index, test_index in kf.split(segments):
+            freq2label = {freq: idx for idx, freq in enumerate(freqs)}
+            idx_labels = [freq2label[freq] for freq in segment_labels]
+            for train_index, test_index in kf.split(segments, idx_labels):
                 model = load_model(args=args)
                 X_train, X_test = [segments[t_idx] for t_idx in train_index], [segments[t_idx] for t_idx in test_index]
                 y_train, y_test = [segment_labels[t_idx] for t_idx in train_index], [segment_labels[t_idx] for t_idx in test_index]
