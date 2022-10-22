@@ -180,8 +180,19 @@ if __name__ == "__main__":
             model = load_model(args)
             seggies = np.arange(len(segment_labels))
             train_segs, test_segs = train_test_split(seggies, test_size=0.2, random_state=42)
-            train_data, train_labels = [segments[ts] for ts in train_segs], [segment_labels[ts] for ts in train_segs]
-            test_data, test_labels = [segments[ts] for ts in test_segs], [segment_labels[ts] for ts in test_segs]
+            class_pred = {seg_label: [segments[t_idx] for t_idx in range(len(segment_labels))
+                                      if segment_labels[t_idx] == seg_label] for seg_label in segment_labels}
+            stratified_split = {freq: train_test_split(class_pred[freq]) for freq in class_pred}
+            train_data = []
+            train_labels = []
+            test_data = []
+            test_labels = []
+            for freq in stratified_split:
+                pair = stratified_split[freq]
+                train_data.extend(pair[0])
+                train_labels.extend([freq] * len(pair[0]))
+                test_data.extend(pair[1])
+                test_labels.extend([freq] * len(pair[1]))
             print("Train")
             train_metrics = train(model, train_data, train_labels)
             print("Test")
