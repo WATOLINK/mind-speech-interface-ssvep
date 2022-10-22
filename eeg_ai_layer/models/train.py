@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold
 from typing import List
 import os
 
@@ -24,9 +24,9 @@ def get_args(parser: ArgumentParser):
     parser.add_argument('--train', action="store_true", help="Whether to train a model")
     parser.add_argument('--verbose', action="store_true", help="Verbosity level. Will print a confusion matrix if set")
     parser.add_argument('--neighbors', type=int, default=4, help="The number of neighbors to pass to a KNN")
-    parser.add_argument('--no-zero', action="store_true", default=False, help="Whether to train the model on data with no frequency")
-    parser.add_argument('--training-data', type=str, help="Filepath for the training data (csv)")
-    parser.add_argument('--testing-data', type=str, help="Filepath for the testing data (csv)")
+    parser.add_argument('--no-zero', action="store_true", default=False, help="Don't train a model on zero frequency")
+    parser.add_argument('--splits', default=5, type=int, help="Number of splits for cross validation")
+    parser.add_argument('--cross-val', default=False, action="store_true", help="Whether to use cross validation")
     parser.add_argument('--model-path', type=str, help="Filepath for a trained model", default=None)
     parser.add_argument('--model-type', type=str, default='fbcca', help="The model architecture to use. i.e. fbcca")
     parser.add_argument('--output-path', type=str, default=None, help="Where to save the model")
@@ -93,7 +93,7 @@ def join_datasets(data_path: str) -> pd.DataFrame:
         return data
 
 
-def segment_data_from_trials(trials: List):
+def segment_data_from_trials(trials: List, no_zero = False):
     segments = []
     segment_labels = []
     for trial in trials:
@@ -105,17 +105,25 @@ def segment_data_from_trials(trials: List):
         for seg in segs:
             segments.append(seg)
             segment_labels.append(label)
-    if args.no_zero:
+    if no_zero:
         segments = [segment for idx, segment in enumerate(segments) if segment_labels[idx] != 0]
         segment_labels = [segment_label for idx, segment_label in enumerate(segment_labels) if segment_labels[idx] != 0]
     return segments, segment_labels
+
+
+def display_metrics(metrics: dict):
+    for key in metrics:
+        message = f"{key}: {test_metrics[key]}"
+        if "confusion_matrix" in key:
+            message = f"{key}:\n{test_metrics[key]}"
+        print(message)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
     args, _ = get_args(parser)
 
-    train_data, test_data = None, None
+    segments, segment_labels = None, None
 
     if args.data:
         data = join_datasets(args.data)
@@ -129,47 +137,66 @@ if __name__ == "__main__":
 
         if args.model_type == "fbcca":
             trials = split_trials(data)
-            test_data, test_labels = segment_data_from_trials(trials=trials)
+            test_data, test_labels = segment_data_from_trials(trials=trials, no_zero=args.no_zero)
         else:
             train_data = parse_and_filter_eeg_data(data=data, sample_rate=args.sample_rate, lowcut=args.lower_freq,
                                                    highcut=args.upper_freq)
             trials = split_trials(train_data)
-            segments, segment_labels = segment_data_from_trials(trials=trials)
-            seggies = np.arange(len(segment_labels))
-            train_segs, test_segs = train_test_split(seggies, test_size=0.2, random_state=42)
-            train_data, train_labels = [segments[ts] for ts in train_segs], [segment_labels[ts] for ts in train_segs]
-            test_data, test_labels = [segments[ts] for ts in test_segs], [segment_labels[ts] for ts in test_segs]
-
-    if args.training_data:
-        train_data = pd.read_csv(args.training_data)
-        train_data = parse_and_filter_eeg_data(train_data)
-
-    if args.testing_data:
-        test_data = pd.read_csv(args.testing_data)
-        test_data, splits = parse_and_filter_eeg_data(test_data)
+            segments, segment_labels = segment_data_from_trials(trials=trials, no_zero=args.no_zero)
 
     freqs = np.unique(data['Frequency'].dropna().sort_values())
     if args.no_zero:
         freqs = freqs[np.nonzero(freqs)]
     args.__dict__['frequencies'] = freqs
-    model = load_model(args=args)
+    best_model = None
+    best_metrics = {}
+    train_accuracies = []
+    test_accuracies = []
 
     if args.train and args.model_type != "fbcca":
-        print("Train")
-        train_metrics = train(model, train_data, train_labels)
+        if args.cross_val:
+            print(f"Cross validation on {args.splits} splits")
+            kf = KFold(n_splits=args.splits)
+            kf.get_n_splits(segments)
+            for train_index, test_index in kf.split(segments):
+                model = load_model(args=args)
+                X_train, X_test = [segments[t_idx] for t_idx in train_index], [segments[t_idx] for t_idx in test_index]
+                y_train, y_test = [segment_labels[t_idx] for t_idx in train_index], [segment_labels[t_idx] for t_idx in test_index]
+                train_metrics = train(model, X_train, y_train)
+                train_accuracies.append(train_metrics["train_accuracy"])
+                test_metrics = test(args, model, X_test, y_test)
+                test_accuracies.append(test_metrics["test_accuracy"])
+                display_metrics(test_metrics)
+                if test_metrics["test_accuracy"] > best_metrics.get("test_accuracy", 0):
+                    best_metrics = test_metrics
+                    best_model = model
+            if args.verbose:
+                train_accuracies = np.array(train_accuracies)
+                test_accuracies = np.array(test_accuracies)
+                print(f"Avg train accuracy: {np.mean(train_accuracies)}, sd: {np.std(train_accuracies)}",
+                      f"Avg test accuracy: {np.mean(test_accuracies)}, sd: {np.std(test_accuracies)}", sep='\n')
+                print(f"Best model test accuracy: {best_metrics['test_accuracy']}")
+        else:
+            model = load_model(args)
+            seggies = np.arange(len(segment_labels))
+            train_segs, test_segs = train_test_split(seggies, test_size=0.2, random_state=42)
+            train_data, train_labels = [segments[ts] for ts in train_segs], [segment_labels[ts] for ts in train_segs]
+            test_data, test_labels = [segments[ts] for ts in test_segs], [segment_labels[ts] for ts in test_segs]
+            print("Train")
+            train_metrics = train(model, train_data, train_labels)
+            print("Test")
+            test_metrics = test(args, model, test_data, test_labels)
+            test_metrics.update(train_metrics)
+            if args.verbose:
+                display_metrics(test_metrics)
 
-    print("Test")
-    test_metrics = test(args, model, test_data, test_labels)
-
+    model = load_model(args)
     if args.train:
-        test_metrics.update(train_metrics)
-
-    if args.verbose:
-        for key in test_metrics:
-            message = f"{key}: {test_metrics[key]}"
-            if "confusion_matrix" in key:
-                message = f"{key}:\n{test_metrics[key]}"
-            print(message)
+        print("Train")
+        train(model, segments, segment_labels)
+    else:
+        print("Test")
+        test(args, model, segments, segment_labels)
 
     if args.output_path and args.output_name:
         path = os.path.join(args.output_path, args.output_name)
