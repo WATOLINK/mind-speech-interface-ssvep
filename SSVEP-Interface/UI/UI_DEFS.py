@@ -39,11 +39,11 @@ MAIN_STIM_FREQUENCIES = {
 
     'Keyboard 1': 12.75,
     'Keyboard 2': 11.75,
-    'Keyboard 3': 9.75,
-    'Keyboard 4': 10.75,
+    'Keyboard 3': 14.25,
+    'Keyboard 4': 9.75,
     'Space': 8.75,
-    'Backspace': 13.75,
-    'Word Toggle': 14.25,
+    'Backspace': 10.75,
+    'Word Toggle': 13.75,
 }
 
 START_DELAY = 5

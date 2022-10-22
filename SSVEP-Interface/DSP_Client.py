@@ -162,9 +162,13 @@ class EEGSocketListener:
             df = pd.DataFrame(data=self.csvData)
             files = glob.glob("SSVEP-Interface/online_data/*.csv")
             if files:
-                val = 1
+                val = 0
                 for file in files:
-                    num = int(file[file.rindex('_') + 1: file.rindex('.')])
+                    last_char = file[file.rindex('_') + 1: file.rindex('.')]
+                    try:
+                        num = int(last_char)
+                    except:
+                        num = 0
                     val = max(val, num)
                 val += 1
                 name = f"SSVEP-Interface/online_data/eeg_{val}.csv"
