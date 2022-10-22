@@ -84,7 +84,7 @@ class KNN:
         self.knn.fit(correlations, idx_labels)
         predictions, _ = self.predict(correlations)
         knn_accuracy = accuracy_score(y_true=idx_labels, y_pred=predictions)
-        return {'train_knn_accuracy': knn_accuracy, 'train_knn_predictions': predictions}
+        return {'train_accuracy': knn_accuracy, 'train_predictions': predictions}
 
     def test(self, hparams, test_data, test_labels):
         """
@@ -103,8 +103,8 @@ class KNN:
         idx_labels = [self.freq2label[label] for label in test_labels]
         predictions, _ = self.predict(correlations)
         knn_accuracy = accuracy_score(y_true=idx_labels, y_pred=predictions)
-        metrics = {'test_fbcca_knn_accuracy': knn_accuracy}
+        metrics = {'test_accuracy': knn_accuracy}
         if hparams.verbose:
             fbcca_knn_confusion_matrix = confusion_matrix(idx_labels, predictions)
-            metrics['test_fbcca_knn_confusion_matrix'] = fbcca_knn_confusion_matrix
+            metrics['test_confusion_matrix'] = fbcca_knn_confusion_matrix
         return metrics
