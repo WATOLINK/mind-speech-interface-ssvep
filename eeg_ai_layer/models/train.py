@@ -135,7 +135,7 @@ if __name__ == "__main__":
             data = data[1:]
             data.index = np.arange(data.shape[0])
 
-        if args.model_type == "fbcca":
+        if "fbcca" in args.model_type:
             trials = split_trials(data)
             test_data, test_labels = segment_data_from_trials(trials=trials, no_zero=args.no_zero)
         else:

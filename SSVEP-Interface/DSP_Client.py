@@ -145,6 +145,7 @@ class EEGSocketListener:
                     sample = np.expand_dims(subset[:, :-1], axis=0)
                     prepared = self.model.prepare(sample)
                     current_page_frequencies = page_frequencies[self.UIDict['current page']]
+                    print(f"current page freqs: {current_page_frequencies}")
                     results, _ = self.model.predict(prepared, frequencies=current_page_frequencies)
                     frequency = self.model.convert_index_to_frequency(results, frequencies=current_page_frequencies)
                     if len(frequency) == 1:

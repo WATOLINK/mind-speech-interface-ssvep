@@ -37,7 +37,8 @@ class KNN:
             Prepared data for prediction
         """
         prepared = self.fbcca.prepare(data)
-        _, correlations = self.fbcca.predict(prepared, self.frequencies)
+        fbcca_pred, correlations = self.fbcca.predict(prepared, self.frequencies)
+        print(f"FBCCA prediction: {fbcca_pred}")
         return correlations
 
     def predict(self, correlations: np.ndarray, frequencies: List[float] = None):
@@ -56,14 +57,23 @@ class KNN:
         """
         if frequencies is None:
             frequencies = self.frequencies
+        print(f"FBCCA correlations: {correlations}")
         predictions = self.knn.predict(correlations)
+        print(f"knn proba: ", self.knn.predict_proba(correlations))
+        print(f"KNN predictions: {predictions}, {self.frequencies[predictions[0]]}")
         freq2label = {freq: label for label, freq in enumerate(frequencies)}
-        subset_predictions = [idx for idx, pred in enumerate(predictions) if self.frequencies[pred] not in freq2label]
+        final_preds = []
+        mapping = [self.freq2label[freq] for freq in frequencies]
         for idx, pred in enumerate(predictions):
             pred_freq = self.frequencies[pred]
-            predictions[idx] = freq2label[pred_freq] if pred_freq in freq2label else \
-                np.argmax(correlations[idx, subset_predictions].squeeze())
-        return predictions, correlations
+            if pred_freq in freq2label:
+                final_preds.append(freq2label[pred_freq])
+                print("KNN prediction")
+            else:
+                relevant_corr = correlations[idx][mapping]
+                final_preds.append(np.argmax(relevant_corr))
+                print("FBCCA prediction")
+        return final_preds, correlations
 
     def load_model(self, model_path):
         state = load(model_path)
