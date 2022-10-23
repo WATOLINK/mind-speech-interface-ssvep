@@ -38,6 +38,8 @@ def get_args(parser: ArgumentParser):
     parser.add_argument('--lower-freq', type=float, default=7, help="Lower frequency bound for a bandpass filter")
     parser.add_argument('--upper-freq', type=float, default=16, help="Upper frequency bound for a bandpass filter")
     parser.add_argument('--random-state', type=int, default=42, help="Random State")
+    parser.add_argument('--first-n', type=float, default=-1, help="First n seconds")
+    parser.add_argument('--eval', action="store_true", default=False, help="eval")
     return parser.parse_known_args()
 
 
@@ -93,14 +95,14 @@ def join_datasets(data_path: str) -> pd.DataFrame:
         return data
 
 
-def segment_data_from_trials(trials: List, no_zero = False):
+def segment_data_from_trials(trials: List, window_length, shift_length, sample_rate, no_zero=False):
     segments = []
     segment_labels = []
     for trial in trials:
         label = trial.iloc[0]['Frequency']
         trial.drop(columns=['Frequency'], inplace=True)
-        duration = int(args.window_length * args.sample_rate)
-        data_overlap = (args.window_length - args.shift_length) * args.sample_rate
+        duration = int(window_length * sample_rate)
+        data_overlap = (window_length - shift_length) * sample_rate
         segs = buffer(trial, duration, data_overlap)
         for seg in segs:
             segments.append(seg)
@@ -137,29 +139,32 @@ if __name__ == "__main__":
 
         if "fbcca" in args.model_type:
             trials = split_trials(data)
-            test_data, test_labels = segment_data_from_trials(trials=trials, no_zero=args.no_zero)
+            segments, segment_labels = segment_data_from_trials(trials=trials, no_zero=args.no_zero)
         else:
             train_data = parse_and_filter_eeg_data(data=data, sample_rate=args.sample_rate, lowcut=args.lower_freq,
                                                    highcut=args.upper_freq)
-            trials = split_trials(train_data)
-            segments, segment_labels = segment_data_from_trials(trials=trials, no_zero=args.no_zero)
+            trials = split_trials(train_data, first_n=int(args.first_n * args.sample_rate))
+            segments, segment_labels = segment_data_from_trials(trials=trials, window_length=args.window_length,
+                                                                shift_length=args.shift_length,
+                                                                sample_rate=args.sample_rate, no_zero=args.no_zero)
 
     freqs = np.unique(data['Frequency'].dropna().sort_values())
     if args.no_zero:
         freqs = freqs[np.nonzero(freqs)]
+    freq2label = {freq: idx for idx, freq in enumerate(freqs)}
+    idx_labels = [freq2label[freq] for freq in segment_labels]
     args.__dict__['frequencies'] = freqs
     best_model = None
     best_metrics = {}
     train_accuracies = []
     test_accuracies = []
+    print(f"Using {args.model_type}")
 
-    if args.train and args.model_type != "fbcca":
+    if args.eval and args.train and args.model_type != "fbcca":
         if args.cross_val:
             print(f"Cross validation on {args.splits} splits")
             kf = StratifiedKFold(n_splits=args.splits)
             kf.get_n_splits(segments)
-            freq2label = {freq: idx for idx, freq in enumerate(freqs)}
-            idx_labels = [freq2label[freq] for freq in segment_labels]
             for train_index, test_index in kf.split(segments, idx_labels):
                 model = load_model(args=args)
                 X_train, X_test = [segments[t_idx] for t_idx in train_index], [segments[t_idx] for t_idx in test_index]
@@ -180,21 +185,9 @@ if __name__ == "__main__":
                 print(f"Best model test accuracy: {best_metrics['test_accuracy']}")
         else:
             model = load_model(args)
-            seggies = np.arange(len(segment_labels))
-            train_segs, test_segs = train_test_split(seggies, test_size=0.2, random_state=42)
-            class_pred = {seg_label: [segments[t_idx] for t_idx in range(len(segment_labels))
-                                      if segment_labels[t_idx] == seg_label] for seg_label in segment_labels}
-            stratified_split = {freq: train_test_split(class_pred[freq]) for freq in class_pred}
-            train_data = []
-            train_labels = []
-            test_data = []
-            test_labels = []
-            for freq in stratified_split:
-                pair = stratified_split[freq]
-                train_data.extend(pair[0])
-                train_labels.extend([freq] * len(pair[0]))
-                test_data.extend(pair[1])
-                test_labels.extend([freq] * len(pair[1]))
+            train_data, test_data, train_labels, test_labels = train_test_split(segments, segment_labels,
+                                                                                test_size=0.2, random_state=42,
+                                                                                stratify=idx_labels)
             print("Train")
             train_metrics = train(model, train_data, train_labels)
             print("Test")
@@ -209,7 +202,9 @@ if __name__ == "__main__":
         train(model, segments, segment_labels)
     else:
         print("Test")
-        test(args, model, segments, segment_labels)
+        test_metrics = test(args, model, segments, segment_labels)
+        if args.verbose:
+            display_metrics(test_metrics)
 
     if args.output_path and args.output_name:
         path = os.path.join(args.output_path, args.output_name)
