@@ -81,11 +81,12 @@ def make_confusion_matrix(y_true, y_pred, classes=None, figsize=(10, 10), text_s
         fig.savefig("confusion_matrix.png")
 
 
-def split_trials(data) -> List[pd.DataFrame]:
+def split_trials(data, first_n=-1) -> List[pd.DataFrame]:
     """
     Segment the data by trial.
     Args:
         data: The EEG data
+        first_n: Only take the first n samples
 
     Returns:
         A list of DataFrames that each contain a trial
@@ -96,6 +97,9 @@ def split_trials(data) -> List[pd.DataFrame]:
         data_slice = data[trial_indices[idx - 1]: trial_indices[idx]]
         data_slice['Frequency'] = data_slice['Frequency'].ffill()
         segmented_data.append(data_slice)
+    if first_n > 0:
+        for idx in range(len(segmented_data)):
+            segmented_data[idx] = segmented_data[idx, :first_n + 1]
     return segmented_data
 
 

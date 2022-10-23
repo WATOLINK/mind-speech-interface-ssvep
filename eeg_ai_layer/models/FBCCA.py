@@ -20,14 +20,14 @@ class FBCCA:
         self.duration = int(args.window_length * args.sample_rate)
         self.sample_rate = args.sample_rate
         # CCA Initialization
-        self.components = args.components
+        self.components = args.components if hasattr(args, "components") else 1
         self.cca = CCA(n_components=self.components)
         # Notch filter Initialization
         self.quality_factors = 30.0
         self.power_line_frequency = 60
         # Filter bank Initialization
-        self.frequency_bands = args.frequency_bands if "frequency_bands" in args else 10
-        self.harmonics = args.harmonics if "harmonics" in args else 2
+        self.frequency_bands = args.frequency_bands if hasattr(args, "frequency_bands") else 10
+        self.harmonics = args.harmonics if hasattr(args, "harmonics") else 2
         self.fb_coefs = np.power(np.arange(1, self.frequency_bands + 1), -1.25) + 0.25
         self.reference_templates = self.create_reference_templates(frequencies=self.cca_frequencies)
         self.verbose = False

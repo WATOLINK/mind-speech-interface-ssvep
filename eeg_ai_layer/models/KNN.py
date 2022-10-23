@@ -59,10 +59,18 @@ class KNN:
         predictions = self.knn.predict(correlations)
         freq2label = {freq: label for label, freq in enumerate(frequencies)}
         subset_predictions = [idx for idx, pred in enumerate(predictions) if self.frequencies[pred] not in freq2label]
+        preds = []
         for idx, pred in enumerate(predictions):
             pred_freq = self.frequencies[pred]
-            predictions[idx] = freq2label[pred_freq] if pred_freq in freq2label else \
-                np.argmax(correlations[idx, subset_predictions].squeeze())
+            if pred_freq in freq2label:
+                predictions[idx] = freq2label[pred_freq]
+                preds.append(1)
+            else:
+                predictions[idx] = np.argmax(correlations[idx, subset_predictions].squeeze())
+                preds.append(0)
+        # if self.verbose:
+        #     print(*[f"{idx}:knn prediction" if p else f"{idx}:fbcca prediction" for idx, p in enumerate(preds)],
+        #           sep="\n")
         return predictions, correlations
 
     def load_model(self, model_path):
