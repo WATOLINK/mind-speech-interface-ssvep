@@ -138,11 +138,8 @@ if __name__ == "__main__":
             data.index = np.arange(data.shape[0])
 
         if "fbcca" in args.model_type:
-            print("Skip bandpass")
-            trials = split_trials(data, first_n=int(args.first_n * args.sample_rate))
-            segments, segment_labels = segment_data_from_trials(trials=trials, window_length=args.window_length,
-                                                                shift_length=args.shift_length,
-                                                                sample_rate=args.sample_rate, no_zero=args.no_zero)
+            trials = split_trials(data)
+            segments, segment_labels = segment_data_from_trials(trials=trials, no_zero=args.no_zero)
         else:
             train_data = parse_and_filter_eeg_data(data=data, sample_rate=args.sample_rate, lowcut=args.lower_freq,
                                                    highcut=args.upper_freq)

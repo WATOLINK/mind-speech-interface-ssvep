@@ -2,6 +2,11 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLineEdit
 
 from UI.Components.button_container import ButtonContainer# buttonClickNoise
 
+from gtts import gTTS
+from playsound import playsound
+
+import os
+
 
 class YesNoWidget(QWidget):
     def __init__(self, parent):
@@ -22,10 +27,20 @@ class YesNoWidget(QWidget):
             layout.addWidget(button)
             buttons.append(button)
 
-        buttons[0].clicked.connect(lambda: disableOtherButtonsYN(parent, buttons, buttons[0]))
-        buttons[1].clicked.connect(lambda: disableOtherButtonsYN(parent, buttons, buttons[1]))
+        buttons[0].clicked.connect(lambda: yesNoVoice(parent, buttons, buttons[0], "Yes"))
+        buttons[1].clicked.connect(lambda: yesNoVoice(parent, buttons, buttons[1], "No"))
 
         return layout
+
+def TTS (text):
+    myobj = gTTS(text=text, lang='en', slow=False)
+
+    #myobj.save("yesno.mp3")
+    #playsound("yesno.mp3")
+
+def yesNoVoice(parent,buttons, selected, text):
+    disableOtherButtonsYN(parent,buttons,selected)
+    TTS(text)
 
 # make the yn array of buttons single select + display selection input field
 def disableOtherButtonsYN(parent,buttons, selected):    

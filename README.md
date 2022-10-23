@@ -15,7 +15,7 @@ The FBCCA Model we used was adapted from an implementation in this repository: h
 
 To install requirements, make sure you have Python 3.10+ installed, then run
 ```python
-    pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 Make sure to run the command from the base directory (mind-speech-interface-ssvep) of the Git repo
 
@@ -34,17 +34,17 @@ Note that this image is viewed as if you were looking at the back of someone's h
 
 To run the offline data-collection demo, copy and paste the following commands:
 ```python
-    cd mind-speech-interface-ssvep
+cd mind-speech-interface-ssvep
 ```
 
 If you are using the OpenBCI with active electrodes you need to set the gain of the amplifier to work with them. To do this, follow the readme here:
 ```python
-    cd cyton-active-electrode-gain-set
+cd cyton-active-electrode-gain-set
 ```
 
 Regardless of if you are or are not using active electrodes, continue here:
 ```python
-   cd SSVEP-Data-Collection
+cd SSVEP-Data-Collection
 ```
 
 NOTE: SSVEP-Data-Collection/configs.py --> open this file in a text editor and ensure the NUM_STIMS value is set to your desired # of stimuli (4 or 6 or 8), then save and exit.
@@ -53,11 +53,11 @@ Now you should be able to run the data collection tool!
 
 for openBCI 
 ```python
-    python run_demo.py --board-id=0 --serial-port=deviceserialport
+python run_demo.py --board-id=0 --serial-port=deviceserialport
 ```
 for gTec
 ```python
-    python run_demo.py --board-id=8 
+python run_demo.py --board-id=8 
 ```
 Note for MACOS: to find your device serial port, either look in you device settings (windows) or if using a mac type this in the terminal:
 
@@ -67,7 +67,7 @@ Note for MACOS: to find your device serial port, either look in you device setti
 ## Offline SSVEP Data Analysis 
 To visualize the csv created from data collection, in your terminal run:
 ```python
-    jupyter notebook
+jupyter notebook
 ```
 Then in the browser window navigate to the notebook under EEG-Data-Visualization:
 
@@ -136,19 +136,19 @@ TODO: Jason, Ivan
 After ensuring GPT-3, Twitter, and TTS features are setup, you will be ready to run our fully integrated SSVEP interface, copy and paste the following commands:
 
 ```python
-    cd mind-speech-interface-ssvep
+cd mind-speech-interface-ssvep
 ```
 for synthetic board:
 ```python
-    python SSVEP-Interface/Data_Streamer.py --board-id=-1 --model-path=eeg-ai-layer\modelname.model
-    # Alternatively
-    python SSVEP-Interface/Data_Streamer.py --board-id=-1 --model-type=fbcca
+python SSVEP-Interface/Data_Streamer.py --board-id=-1 --model-path=eeg-ai-layer\modelname.model
+# Alternatively
+python SSVEP-Interface/Data_Streamer.py --board-id=-1 --model-type=fbcca
 ```
 for non synthetic board (our online system auto-detects board-id and serial-port):
 ```python
-    python SSVEP-Interface/Data_Streamer.py --model-path=eeg-ai-layer\modelname.model
-    # Alternatively
-    python SSVEP-Interface/Data_Streamer.py --model-type=fbcca
+python SSVEP-Interface/Data_Streamer.py --model-path=eeg-ai-layer\modelname.model
+# Alternatively
+python SSVEP-Interface/Data_Streamer.py --model-type=fbcca
 ```
 
 Note: If you are using the OpenBCI with active electrodes with the online interface, please follow the steps to change the gain mentioned in the offline setup earlier before running the online interface.

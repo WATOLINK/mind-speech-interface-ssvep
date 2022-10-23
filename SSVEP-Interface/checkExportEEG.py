@@ -1,6 +1,6 @@
 import pandas as pd
 
-data = pd.read_csv(".online_data/eeg.csv")
+data = pd.read_csv("SSVEP-Interface/online_data/eeg_1.csv")
 
 total = 0
 prev_row = None
@@ -12,7 +12,7 @@ chain = 0
 
 for idx in data.index:
     row = data.loc[idx]
-    if idx != 0 and row[:15].equals(prev_row):
+    if idx != 0 and row[:8].equals(prev_row):
         total += 1
         if chain == 0:
             total += 1
@@ -20,7 +20,7 @@ for idx in data.index:
     else:
         chain = 0
 
-    prev_row = row[:15]#.copy()
+    prev_row = row[:8]#.copy()
 
 print(f"total: {total}")
     

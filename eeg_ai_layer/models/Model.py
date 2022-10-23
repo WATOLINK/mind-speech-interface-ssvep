@@ -7,6 +7,7 @@ def load_model(args):
     """
     Loads the model specified in the args
     """
+    print(f"Using {args.model_type}")
     if args.model_type == 'cca_knn':
         return CCAKNNModel(args)
     if args.model_type == 'fbcca':

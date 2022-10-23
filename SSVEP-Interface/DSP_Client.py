@@ -145,6 +145,7 @@ class EEGSocketListener:
                     sample = np.expand_dims(subset[:, :-1], axis=0)
                     prepared = self.model.prepare(sample)
                     current_page_frequencies = page_frequencies[self.UIDict['current page']]
+                    print(f"current page freqs: {current_page_frequencies}")
                     results, _ = self.model.predict(prepared, frequencies=current_page_frequencies)
                     frequency = self.model.convert_index_to_frequency(results, frequencies=current_page_frequencies)
                     if len(frequency) == 1:
@@ -162,9 +163,13 @@ class EEGSocketListener:
             df = pd.DataFrame(data=self.csvData)
             files = glob.glob("SSVEP-Interface/online_data/*.csv")
             if files:
-                val = 1
+                val = 0
                 for file in files:
-                    num = int(file[file.rindex('_') + 1: file.rindex('.')])
+                    last_char = file[file.rindex('_') + 1: file.rindex('.')]
+                    try:
+                        num = int(last_char)
+                    except:
+                        num = 0
                     val = max(val, num)
                 val += 1
                 name = f"SSVEP-Interface/online_data/eeg_{val}.csv"
