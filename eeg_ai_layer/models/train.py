@@ -87,7 +87,7 @@ def join_datasets(data_path: str) -> pd.DataFrame:
     try:
         data = pd.read_csv(data_path)
         return data
-    except IsADirectoryError:
+    except (IsADirectoryError, PermissionError):
         paths = [path for path in os.listdir(data_path) if path.endswith(".csv") or os.path.isdir(os.path.join(data_path, path))]
         data = join_datasets(os.path.join(data_path, paths[0]))
         for path in paths[1:]:
