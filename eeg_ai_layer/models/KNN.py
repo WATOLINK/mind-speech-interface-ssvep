@@ -10,11 +10,11 @@ class KNN:
     """A KNN model that accepts CCA or FBCCA features as input."""
 
     def __init__(self, args):
-        if args.model_path:
+        if hasattr(args, "model_path") and args.model_path:
             self.knn, self.frequencies, self.components = self.load_model(model_path=args.model_path)
         else:
             self.frequencies = [8.25, 8.75, 9.75, 10.75, 11.75, 12.75, 13.75, 14.25]
-            if "frequencies" in args:
+            if hasattr(args, "frequencies"):
                 self.frequencies = args.frequencies
             self.frequencies = args.frequencies  # [0.0, 12.75, 14.75, 11.75, 10.25]
             self.components = args.components
@@ -23,7 +23,7 @@ class KNN:
         self.sample_rate = args.sample_rate
         # CCA Initialization
         self.fbcca = FBCCA(args)
-        self.verbose = args.verbose if "verbose" in args else False
+        self.verbose = args.verbose if hasattr(args, "verbose") else False
         self.freq2label = {freq: idx for idx, freq in enumerate(self.frequencies)}
 
     def prepare(self, data):

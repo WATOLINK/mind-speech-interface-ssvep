@@ -137,7 +137,8 @@ if __name__ == "__main__":
             data = data[1:]
             data.index = np.arange(data.shape[0])
 
-        if args.model_type == "fbcca":
+        if "fbcca" in args.model_type:
+            print("Skip bandpass")
             trials = split_trials(data, first_n=int(args.first_n * args.sample_rate))
             segments, segment_labels = segment_data_from_trials(trials=trials, window_length=args.window_length,
                                                                 shift_length=args.shift_length,
