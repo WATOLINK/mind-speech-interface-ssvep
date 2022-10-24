@@ -64,11 +64,11 @@ class KNN:
             pred_freq = self.frequencies[pred]
             if pred_freq in freq2label:
                 final_preds.append(freq2label[pred_freq])
-                print("KNN prediction")
+                # print("KNN prediction")
             else:
                 relevant_corr = correlations[idx][mapping]
                 final_preds.append(np.argmax(relevant_corr))
-                print("FBCCA prediction")
+                # print("FBCCA prediction")
         return final_preds, correlations
 
     def load_model(self, model_path):

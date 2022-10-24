@@ -100,10 +100,10 @@ def segment_data_from_trials(trials: List, window_length, shift_length, sample_r
     segment_labels = []
     for trial in trials:
         label = trial.iloc[0]['Frequency']
-        trial.drop(columns=['Frequency'], inplace=True)
+        no_freq_trial = trial.drop(columns=['Frequency'])
         duration = int(window_length * sample_rate)
         data_overlap = (window_length - shift_length) * sample_rate
-        segs = buffer(trial, duration, data_overlap)
+        segs = buffer(no_freq_trial, duration, data_overlap)
         for seg in segs:
             segments.append(seg)
             segment_labels.append(label)
