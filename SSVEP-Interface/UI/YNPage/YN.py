@@ -35,8 +35,8 @@ class YesNoWidget(QWidget):
 def TTS (text):
     myobj = gTTS(text=text, lang='en', slow=False)
 
-    #myobj.save("yesno.mp3")
-    #playsound("yesno.mp3")
+    myobj.save("yesno.mp3")
+    playsound("yesno.mp3")
 
 def yesNoVoice(parent,buttons, selected, text):
     disableOtherButtonsYN(parent,buttons,selected)
