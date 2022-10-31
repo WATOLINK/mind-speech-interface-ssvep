@@ -2,7 +2,7 @@
 Mind-Speech Interface for NeuroTechX Student Clubs Competition 2022
 
 <![WLOUTRO_AdobeExpress (1)](https://user-images.githubusercontent.com/34819737/199123399-dfecfffb-84dd-4d42-a0aa-7affcd69d9f5.gif)
->
+
 
 This repository includes offline data collection and analysis tools for SSVEP, trainable models for SSVEP prediction, as well as an SSVEP text/speech interface.
 
