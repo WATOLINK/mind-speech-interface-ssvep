@@ -7,8 +7,8 @@ Platform Support: Currently our tools support Windows 10 and up. MacOS is techni
 
 ## Credit
 Some of our models and signal processing methods were adapted from the following repositories: 
-https://github.com/aaravindravi/Brain-computer-interfaces
-https://github.com/eugeneALU/CECNL_RealTimeBCI
+- https://github.com/aaravindravi/Brain-computer-interfaces
+- https://github.com/eugeneALU/CECNL_RealTimeBCI
 
 ## Requirements
 
