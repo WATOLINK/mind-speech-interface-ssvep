@@ -3,13 +3,12 @@ Mind-Speech Interface for NeuroTechX Student Clubs Competition 2022
 
 This repository includes offline data collection and analysis tools for SSVEP, trainable models for SSVEP prediction, as well as an SSVEP text/speech interface.
 
-Platform Support: Currently our repository supports Windows 10 and up, as well as MacOS Big Sur and newer.
-Note: For Mac devices with ARM SOCs (M1, M2 etc) you will need to run our tools in a Rosetta emulated terminal.
+Platform Support: Currently our tools support Windows 10 and up. MacOS is technically supported but is not recommended. For Mac devices with ARM SOCs (M1, M2 etc) you will need to run our tools in a Rosetta emulated terminal.
 
 ## Credit
-Some of our models and signal processing methods were adapted from Aravind Ravi's Brain Computer Interface Repository (see here: https://github.com/aaravindravi/Brain-computer-interfaces)
-
-The FBCCA Model we used was adapted from an implementation in this repository: https://github.com/eugeneALU/CECNL_RealTimeBCI
+Some of our models and signal processing methods were adapted from the following repositories: 
+https://github.com/aaravindravi/Brain-computer-interfaces
+https://github.com/eugeneALU/CECNL_RealTimeBCI
 
 ## Requirements
 
@@ -59,7 +58,7 @@ for gTec
 ```python
 python run_demo.py --board-id=8 
 ```
-Note for MACOS: to find your device serial port, either look in you device settings (windows) or if using a mac type this in the terminal:
+Note for using the OpenBCI: to find your device serial port, either look in you device settings (windows) or if using a mac type this in the terminal:
 
     ls /dev/cu.*
 
@@ -85,7 +84,7 @@ And averaged FFT plots of every stimuli response for each electrode will appear 
 
 <img width="654" alt="Screen Shot 2022-07-05 at 4 58 29 PM" src="https://user-images.githubusercontent.com/34819737/177415446-e1ec3b81-8d0d-49e0-97e5-822074659387.png">
 
-## CCAKNN Model Training/Testing
+## FBCCA-KNN Model Training/Testing
 
 Training models is relatively simple using the training script! 
 
@@ -95,21 +94,26 @@ The only default parameters to pass would be:
 - output-path: The directory where a model will be saved.
 - output-name: The name of the saved model.
 - model-type: Specify the type of model to train here.
+- window-length: Window length of example taken from particular trial.
+- shift-length: Shift between example windows.
+
+The window and shift lengths exist to allow us to manufacture more unique examples the KNN can train on.
 
 There are some handy flags:
 - train: Whether to train a model
+- eval: Whether to evaluate model using train/test split.
 - verbose: Whether to output metrics information like accuracy and a confusion matrix to the terminal.
 
-To train a CCA-KNN model, navigate to `mind-speech-interface-ssvep/` and run
+To train a FBCCA-KNN model, navigate to `mind-speech-interface-ssvep/` and run
 
 ```python
-python -m eeg_ai_layer.models.train --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --output-name=<YOUR_MODEL_NAME>
+python -m eeg_ai_layer.models.train --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --output-name=<YOUR_MODEL_NAME> --model-type=fbcca_knn --shift-length=<SECONDS> --window-length=<SECONDS> --no-zero
 ```
 
 If you'd like to see some metrics, pass the `--verbose` flag like so:
 
 ```python
-python -m eeg_ai_layer.models.train --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --output-name=<YOUR_MODEL_NAME> --verbose
+python -m eeg_ai_layer.models.train --data=<YOUR_DATA_PATH> --train --output-path=<YOUR_MODEL_OUTPUT_PATH> --output-name=<YOUR_MODEL_NAME> --model-type=fbcca_knn --shift-length=<SECONDS> --window-length=<SECONDS> --no-zero --verbose 
 ```
 
 # ONLINE SSVEP BCI 
@@ -130,7 +134,7 @@ Please follow the readme in "mind-speech-interface-ssvep/SSVEP-Interface/_TTS/".
 This feature allows you to train a voice model on samples of your own voice to use with the interface. It is not required for operation of the GUI.
 
 ## Speech To Text WebApp for Prompt Input 
-TODO: Jason, Ivan
+Please follow the readme in "mind-speech-interface-ssvep/SSVEP-Interface/web-app/".
 
 ## Online SSVEP Interface
 After ensuring GPT-3, Twitter, and TTS features are setup, you will be ready to run our fully integrated SSVEP interface, copy and paste the following commands:
@@ -146,9 +150,10 @@ python SSVEP-Interface/Data_Streamer.py --board-id=-1 --model-type=fbcca
 ```
 for non synthetic board (our online system auto-detects board-id and serial-port):
 ```python
-python SSVEP-Interface/Data_Streamer.py --model-path=eeg-ai-layer\modelname.model
-# Alternatively
 python SSVEP-Interface/Data_Streamer.py --model-type=fbcca
+
+# Alternatively
+python SSVEP-Interface/Data_Streamer.py  --model-type=fbcca_knn --model-path=eeg-ai-layer\models\savedmodels\modelname.model
 ```
 
 Note: If you are using the OpenBCI with active electrodes with the online interface, please follow the steps to change the gain mentioned in the offline setup earlier before running the online interface.
