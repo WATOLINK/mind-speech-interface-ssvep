@@ -144,7 +144,7 @@ cd mind-speech-interface-ssvep
 ```
 for synthetic board:
 ```python
-python SSVEP-Interface/Data_Streamer.py --board-id=-1 --model-path=eeg-ai-layer\modelname.model
+python SSVEP-Interface/Data_Streamer.py --board-id=-1 --model-type=fbcca_knn --model-path=eeg-ai-layer\models\savedmodels\modelname.model
 # Alternatively
 python SSVEP-Interface/Data_Streamer.py --board-id=-1 --model-type=fbcca
 ```
