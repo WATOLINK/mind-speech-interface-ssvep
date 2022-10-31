@@ -49,7 +49,7 @@ Regardless of if you are or are not using active electrodes, continue here:
 cd SSVEP-Data-Collection
 ```
 
-NOTE: SSVEP-Data-Collection/configs.py --> open this file in a text editor and ensure the NUM_STIMS value is set to your desired # of stimuli (4 or 6 or 8), then save and exit.
+NOTE: SSVEP-Data-Collection/configs.py --> This is set to 8 by default. Open this file in a text editor and ensure the NUM_STIMS value is set to your desired # of stimuli (4 or 6 or 8), then save and exit.
 
 Now you should be able to run the data collection tool!
 
